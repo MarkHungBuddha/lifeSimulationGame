@@ -5,7 +5,7 @@
 
 import type { Allocation } from '../engine/simulator'
 
-export type Region = 'us' | 'tw'
+export type Region = 'us' | 'tw' | 'jp'
 
 export interface RegionConfig {
   id: Region
@@ -34,6 +34,7 @@ export const REGION_CONFIGS: Record<Region, RegionConfig> = {
     currencySymbol: '$',
     assetLabels: {
       sp500: 'S&P 500',
+      intlStock: '國際股票',
       bond: '美國長債',
       gold: '黃金',
       cash: '現金',
@@ -57,6 +58,7 @@ export const REGION_CONFIGS: Record<Region, RegionConfig> = {
     currencySymbol: 'NT$',
     assetLabels: {
       sp500: '台股加權',
+      intlStock: '海外股票',
       bond: '台灣公債',
       gold: '黃金',
       cash: '現金(TWD)',
@@ -72,6 +74,30 @@ export const REGION_CONFIGS: Record<Region, RegionConfig> = {
       withdrawalCeiling: { min: 300000, max: 5000000, step: 50000 },
     },
   },
+  jp: {
+    id: 'jp',
+    name: '日本版',
+    flag: '🇯🇵',
+    currency: 'JPY',
+    currencySymbol: '¥',
+    assetLabels: {
+      sp500: '日本株',
+      intlStock: '海外株式',
+      bond: '日本国債',
+      gold: '金(ゴールド)',
+      cash: '現金(JPY)',
+      reits: 'J-REIT',
+    },
+    sliderRanges: {
+      annualIncome: { min: 2000000, max: 30000000, step: 500000 },
+      annualExpense: { min: 1500000, max: 20000000, step: 500000 },
+      annualContribution: { min: 0, max: 15000000, step: 500000 },
+      initialPortfolio: { min: 0, max: 200000000, step: 1000000 },
+      withdrawalAmount: { min: 1000000, max: 20000000, step: 500000 },
+      withdrawalFloor: { min: 1000000, max: 15000000, step: 500000 },
+      withdrawalCeiling: { min: 2000000, max: 25000000, step: 500000 },
+    },
+  },
 }
 
 /** 格式化金額（依地區） */
@@ -81,6 +107,11 @@ export function formatCurrency(n: number, region: Region): string {
     if (Math.abs(n) >= 100_000_000) return `${cfg.currencySymbol}${(n / 100_000_000).toFixed(1)}億`
     if (Math.abs(n) >= 10_000) return `${cfg.currencySymbol}${(n / 10_000).toFixed(0)}萬`
     return `${cfg.currencySymbol}${n.toFixed(0)}`
+  }
+  if (region === 'jp') {
+    if (Math.abs(n) >= 100_000_000) return `¥${(n / 100_000_000).toFixed(1)}億`
+    if (Math.abs(n) >= 10_000) return `¥${(n / 10_000).toFixed(0)}万`
+    return `¥${n.toFixed(0)}`
   }
   // US
   if (Math.abs(n) >= 1_000_000) return `$${(n / 1_000_000).toFixed(2)}M`
@@ -98,6 +129,11 @@ export function formatCurrencySigned(n: number, region: Region): string {
     if (abs >= 10_000) return `${sign}${cfg.currencySymbol}${(abs / 10_000).toFixed(0)}萬`
     return `${sign}${cfg.currencySymbol}${abs.toFixed(0)}`
   }
+  if (region === 'jp') {
+    if (abs >= 100_000_000) return `${sign}¥${(abs / 100_000_000).toFixed(1)}億`
+    if (abs >= 10_000) return `${sign}¥${(abs / 10_000).toFixed(0)}万`
+    return `${sign}¥${abs.toFixed(0)}`
+  }
   if (abs >= 1_000_000) return `${sign}$${(abs / 1_000_000).toFixed(1)}M`
   if (abs >= 1_000) return `${sign}$${(abs / 1_000).toFixed(0)}K`
   return `${sign}$${abs.toFixed(0)}`
@@ -110,6 +146,11 @@ export function formatSliderValue(v: number, region: Region): string {
     if (v >= 100_000_000) return `${cfg.currencySymbol}${(v / 100_000_000).toFixed(1)}億`
     if (v >= 10_000) return `${cfg.currencySymbol}${(v / 10_000).toFixed(0)}萬`
     return `${cfg.currencySymbol}${v.toLocaleString()}`
+  }
+  if (region === 'jp') {
+    if (v >= 100_000_000) return `¥${(v / 100_000_000).toFixed(1)}億`
+    if (v >= 10_000) return `¥${(v / 10_000).toFixed(0)}万`
+    return `¥${v.toLocaleString()}`
   }
   return `$${v.toLocaleString()}`
 }

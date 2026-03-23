@@ -4,12 +4,15 @@ import { simulatePath } from '../engine/simulator'
 import type { WorkerDoneMsg, WorkerRequest } from '../engine/worker'
 import { LIFESTYLE_PRESETS, type LifestyleId } from '../engine/lifestyle'
 import { LIFESTYLE_PRESETS_TW } from '../engine/lifestyle_tw'
+import { LIFESTYLE_PRESETS_JP } from '../engine/lifestyle_jp'
 import type { Region } from '../config/regions'
 import historicalData from '../../data/assets_returns.json'
 import type { HistoricalData } from '../engine/bootstrap'
 
 function getLifestylePresets(region: Region) {
-  return region === 'tw' ? LIFESTYLE_PRESETS_TW : LIFESTYLE_PRESETS
+  if (region === 'tw') return LIFESTYLE_PRESETS_TW
+  if (region === 'jp') return LIFESTYLE_PRESETS_JP
+  return LIFESTYLE_PRESETS
 }
 
 interface SimResult {

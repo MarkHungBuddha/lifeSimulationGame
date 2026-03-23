@@ -59,7 +59,7 @@ export const LIFESTYLE_PRESETS: Record<Exclude<LifestyleId, 'custom'>, Lifestyle
     retirementAge: 55,
     initialPortfolio: 50000,
     withdrawal: { type: 'fixed_amount', amount: 20000 },
-    allocation: { sp500: 0.50, bond: 0.20, gold: 0.10, cash: 0.10, reits: 0.10 },
+    allocation: { sp500: 0.40, intlStock: 0.10, bond: 0.20, gold: 0.10, cash: 0.10, reits: 0.10 },
   },
 
   moderate: {
@@ -75,7 +75,7 @@ export const LIFESTYLE_PRESETS: Record<Exclude<LifestyleId, 'custom'>, Lifestyle
     retirementAge: 65,
     initialPortfolio: 100000,
     withdrawal: { type: 'fixed_rate', rate: 0.04 },
-    allocation: { sp500: 0.60, bond: 0.20, gold: 0.10, cash: 0.05, reits: 0.05 },
+    allocation: { sp500: 0.45, intlStock: 0.15, bond: 0.20, gold: 0.10, cash: 0.05, reits: 0.05 },
   },
 
   comfortable: {
@@ -91,7 +91,7 @@ export const LIFESTYLE_PRESETS: Record<Exclude<LifestyleId, 'custom'>, Lifestyle
     retirementAge: 62,
     initialPortfolio: 250000,
     withdrawal: { type: 'fixed_amount', amount: 80000 },
-    allocation: { sp500: 0.55, bond: 0.25, gold: 0.05, cash: 0.05, reits: 0.10 },
+    allocation: { sp500: 0.40, intlStock: 0.15, bond: 0.25, gold: 0.05, cash: 0.05, reits: 0.10 },
   },
 
   lavish: {
@@ -107,7 +107,7 @@ export const LIFESTYLE_PRESETS: Record<Exclude<LifestyleId, 'custom'>, Lifestyle
     retirementAge: 67,
     initialPortfolio: 80000,
     withdrawal: { type: 'fixed_amount', amount: 120000 },
-    allocation: { sp500: 0.70, bond: 0.10, gold: 0.05, cash: 0.05, reits: 0.10 },
+    allocation: { sp500: 0.55, intlStock: 0.15, bond: 0.10, gold: 0.05, cash: 0.05, reits: 0.10 },
   },
 
   fire_lean: {
@@ -123,7 +123,7 @@ export const LIFESTYLE_PRESETS: Record<Exclude<LifestyleId, 'custom'>, Lifestyle
     retirementAge: 40,
     initialPortfolio: 100000,
     withdrawal: { type: 'fixed_rate', rate: 0.035 },
-    allocation: { sp500: 0.80, bond: 0.10, gold: 0.05, cash: 0.00, reits: 0.05 },
+    allocation: { sp500: 0.60, intlStock: 0.20, bond: 0.10, gold: 0.05, cash: 0.00, reits: 0.05 },
   },
 
   fire_fat: {
@@ -139,7 +139,7 @@ export const LIFESTYLE_PRESETS: Record<Exclude<LifestyleId, 'custom'>, Lifestyle
     retirementAge: 45,
     initialPortfolio: 300000,
     withdrawal: { type: 'fixed_amount', amount: 80000 },
-    allocation: { sp500: 0.65, bond: 0.15, gold: 0.10, cash: 0.00, reits: 0.10 },
+    allocation: { sp500: 0.45, intlStock: 0.20, bond: 0.15, gold: 0.10, cash: 0.00, reits: 0.10 },
   },
 }
 

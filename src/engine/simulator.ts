@@ -18,6 +18,7 @@ import type { Region } from '../config/regions'
 /** 資產配置權重（總和必須為 1） */
 export interface Allocation {
   sp500: number
+  intlStock: number
   bond: number
   gold: number
   cash: number
@@ -72,7 +73,7 @@ export interface PathResult {
   allEvents: TriggeredEvent[]    // 整條路徑所有觸發事件
 }
 
-const ASSET_KEYS: (keyof Allocation)[] = ['sp500', 'bond', 'gold', 'cash', 'reits']
+const ASSET_KEYS: (keyof Allocation)[] = ['sp500', 'intlStock', 'bond', 'gold', 'cash', 'reits']
 
 function validateAllocation(alloc: Allocation): void {
   const sum = ASSET_KEYS.reduce((s, k) => s + alloc[k], 0)
@@ -82,7 +83,11 @@ function validateAllocation(alloc: Allocation): void {
 }
 
 function calcWeightedReturn(returns: YearReturns, alloc: Allocation): number {
-  return ASSET_KEYS.reduce((sum, key) => sum + alloc[key] * returns[key], 0)
+  return ASSET_KEYS.reduce((sum, key) => {
+    // intlStock 使用 sp500 的歷史報酬（我們只有美國歷史數據）
+    const retKey = key === 'intlStock' ? 'sp500' : key
+    return sum + alloc[key] * returns[retKey]
+  }, 0)
 }
 
 function calcWithdrawal(

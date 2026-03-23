@@ -11,14 +11,17 @@ import BarChartIcon from '@mui/icons-material/BarChart'
 import { useGameStore } from '../store/gameStore'
 import { LIFESTYLE_LIST, type LifestyleId } from '../engine/lifestyle'
 import { LIFESTYLE_LIST_TW } from '../engine/lifestyle_tw'
+import { LIFESTYLE_LIST_JP } from '../engine/lifestyle_jp'
 import type { Allocation } from '../engine/simulator'
 import { REGION_CONFIGS, formatSliderValue, type Region } from '../config/regions'
 import { EVENT_DATABASE } from '../events/eventDatabase'
 import { EVENT_DATABASE_TW } from '../events/eventDatabase_tw'
+import { EVENT_DATABASE_JP } from '../events/eventDatabase_jp'
 
-const ASSET_KEYS: (keyof Allocation)[] = ['sp500', 'bond', 'gold', 'cash', 'reits']
+const ASSET_KEYS: (keyof Allocation)[] = ['sp500', 'intlStock', 'bond', 'gold', 'cash', 'reits']
 const ASSET_COLORS: Record<keyof Allocation, string> = {
   sp500: '#1565c0',
+  intlStock: '#0d47a1',
   bond: '#6a1b9a',
   gold: '#f9a825',
   cash: '#2e7d32',
@@ -29,8 +32,8 @@ export function Controls() {
   const store = useGameStore()
   const region = store.region
   const cfg = REGION_CONFIGS[region]
-  const lifestyleList = region === 'tw' ? LIFESTYLE_LIST_TW : LIFESTYLE_LIST
-  const eventCount = region === 'tw' ? EVENT_DATABASE_TW.length : EVENT_DATABASE.length
+  const lifestyleList = region === 'jp' ? LIFESTYLE_LIST_JP : region === 'tw' ? LIFESTYLE_LIST_TW : LIFESTYLE_LIST
+  const eventCount = region === 'jp' ? EVENT_DATABASE_JP.length : region === 'tw' ? EVENT_DATABASE_TW.length : EVENT_DATABASE.length
   const r = cfg.sliderRanges
 
   const handleAllocationChange = (key: keyof Allocation, value: number) => {
@@ -57,10 +60,13 @@ export function Controls() {
         value={region} onChange={(_, v) => v && store.setRegion(v as Region)}
         sx={{ mb: 0.5 }}>
         <ToggleButton value="us">
-          🇺🇸 美國版 (USD)
+          🇺🇸 USD
         </ToggleButton>
         <ToggleButton value="tw">
-          🇹🇼 台灣版 (TWD)
+          🇹🇼 TWD
+        </ToggleButton>
+        <ToggleButton value="jp">
+          🇯🇵 JPY
         </ToggleButton>
       </ToggleButtonGroup>
 
@@ -244,7 +250,9 @@ export function Controls() {
               {store.enableEvents ? '已啟用' : '未啟用'}
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              {region === 'tw'
+              {region === 'jp'
+                ? `日経暴落、大地震、過労、介護等 ${eventCount} 種日本版ランダムイベント`
+                : region === 'tw'
                 ? `台股崩盤、台海危機、颱風地震等 ${eventCount} 種台灣版隨機事件`
                 : `市場崩盤、失業、疾病、家庭事件等 ${eventCount} 種隨機事件`}
             </Typography>

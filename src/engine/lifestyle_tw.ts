@@ -21,7 +21,7 @@ export const LIFESTYLE_PRESETS_TW: Record<Exclude<LifestyleId, 'custom'>, Lifest
     retirementAge: 60,
     initialPortfolio: 1500000, // 150萬
     withdrawal: { type: 'fixed_amount', amount: 360000 },
-    allocation: { sp500: 0.50, bond: 0.20, gold: 0.10, cash: 0.10, reits: 0.10 },
+    allocation: { sp500: 0.35, intlStock: 0.15, bond: 0.20, gold: 0.10, cash: 0.10, reits: 0.10 },
   },
 
   moderate: {
@@ -37,7 +37,7 @@ export const LIFESTYLE_PRESETS_TW: Record<Exclude<LifestyleId, 'custom'>, Lifest
     retirementAge: 65,
     initialPortfolio: 3000000, // 300萬
     withdrawal: { type: 'fixed_rate', rate: 0.04 },
-    allocation: { sp500: 0.60, bond: 0.20, gold: 0.10, cash: 0.05, reits: 0.05 },
+    allocation: { sp500: 0.40, intlStock: 0.20, bond: 0.20, gold: 0.10, cash: 0.05, reits: 0.05 },
   },
 
   comfortable: {
@@ -53,7 +53,7 @@ export const LIFESTYLE_PRESETS_TW: Record<Exclude<LifestyleId, 'custom'>, Lifest
     retirementAge: 60,
     initialPortfolio: 8000000, // 800萬
     withdrawal: { type: 'fixed_amount', amount: 720000 },
-    allocation: { sp500: 0.55, bond: 0.25, gold: 0.05, cash: 0.05, reits: 0.10 },
+    allocation: { sp500: 0.35, intlStock: 0.20, bond: 0.25, gold: 0.05, cash: 0.05, reits: 0.10 },
   },
 
   lavish: {
@@ -69,7 +69,7 @@ export const LIFESTYLE_PRESETS_TW: Record<Exclude<LifestyleId, 'custom'>, Lifest
     retirementAge: 67,
     initialPortfolio: 3000000, // 300萬
     withdrawal: { type: 'fixed_amount', amount: 1440000 },
-    allocation: { sp500: 0.70, bond: 0.10, gold: 0.05, cash: 0.05, reits: 0.10 },
+    allocation: { sp500: 0.50, intlStock: 0.20, bond: 0.10, gold: 0.05, cash: 0.05, reits: 0.10 },
   },
 
   fire_lean: {
@@ -85,7 +85,7 @@ export const LIFESTYLE_PRESETS_TW: Record<Exclude<LifestyleId, 'custom'>, Lifest
     retirementAge: 40,
     initialPortfolio: 3000000, // 300萬
     withdrawal: { type: 'fixed_rate', rate: 0.035 },
-    allocation: { sp500: 0.80, bond: 0.10, gold: 0.05, cash: 0.00, reits: 0.05 },
+    allocation: { sp500: 0.30, intlStock: 0.50, bond: 0.10, gold: 0.05, cash: 0.00, reits: 0.05 },
   },
 
   fire_fat: {
@@ -101,7 +101,7 @@ export const LIFESTYLE_PRESETS_TW: Record<Exclude<LifestyleId, 'custom'>, Lifest
     retirementAge: 45,
     initialPortfolio: 10000000, // 1000萬
     withdrawal: { type: 'fixed_amount', amount: 840000 },
-    allocation: { sp500: 0.65, bond: 0.15, gold: 0.10, cash: 0.00, reits: 0.10 },
+    allocation: { sp500: 0.30, intlStock: 0.35, bond: 0.15, gold: 0.10, cash: 0.00, reits: 0.10 },
   },
 }
 

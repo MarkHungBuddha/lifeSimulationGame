@@ -113,7 +113,7 @@ describe('simulatePath', () => {
     initialPortfolio: 100000,
     annualContribution: 20000,
     annualIncome: 70000,
-    allocation: { sp500: 0.6, bond: 0.2, gold: 0.1, cash: 0.05, reits: 0.05 },
+    allocation: { sp500: 0.45, intlStock: 0.15, bond: 0.2, gold: 0.1, cash: 0.05, reits: 0.05 },
     withdrawal: { type: 'fixed_rate', rate: 0.04 },
     enableEvents: false,
   }
@@ -154,7 +154,7 @@ describe('simulatePath', () => {
   it('配置權重不為 1 時拋出錯誤', () => {
     const badParams = {
       ...baseParams,
-      allocation: { sp500: 0.5, bond: 0.2, gold: 0.1, cash: 0.05, reits: 0.05 },
+      allocation: { sp500: 0.35, intlStock: 0.15, bond: 0.2, gold: 0.1, cash: 0.05, reits: 0.05 },
     }
     expect(() => simulatePath(historicalData, badParams, 42)).toThrow('權重總和必須為 1')
   })

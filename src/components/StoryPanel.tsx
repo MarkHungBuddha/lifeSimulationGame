@@ -22,6 +22,7 @@ import CakeIcon from '@mui/icons-material/Cake'
 import type { EventCategory } from '../events/eventTypes'
 import { CATEGORY_LABELS } from '../events/eventDatabase'
 import { CATEGORY_LABELS_TW } from '../events/eventDatabase_tw'
+import { CATEGORY_LABELS_JP } from '../events/eventDatabase_jp'
 import { useGameStore } from '../store/gameStore'
 import { formatCurrency, formatCurrencySigned, type Region } from '../config/regions'
 
@@ -48,7 +49,7 @@ export function StoryPanel() {
   const currentAge = useGameStore(s => s.currentAge)
   const retirementAge = useGameStore(s => s.retirementAge)
   const region = useGameStore(s => s.region)
-  const categoryLabels = region === 'tw' ? CATEGORY_LABELS_TW : CATEGORY_LABELS
+  const categoryLabels = region === 'jp' ? CATEGORY_LABELS_JP : region === 'tw' ? CATEGORY_LABELS_TW : CATEGORY_LABELS
   const fmtP = (n: number) => formatCurrency(n, region)
   const fmtM = (n: number) => formatCurrencySigned(n, region)
 

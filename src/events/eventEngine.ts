@@ -11,6 +11,7 @@
 import { createSeededRNG } from '../engine/rng'
 import { EVENT_DATABASE, EVENT_MAP } from './eventDatabase'
 import { EVENT_DATABASE_TW, EVENT_MAP_TW } from './eventDatabase_tw'
+import { EVENT_DATABASE_JP, EVENT_MAP_JP } from './eventDatabase_jp'
 import type { RandomEvent, TriggeredEvent, ImpactType } from './eventTypes'
 import type { Region } from '../config/regions'
 
@@ -89,13 +90,17 @@ const WORK_ONLY_EVENTS: Set<string> = new Set([
   // TW
   'tw_layoff', 'tw_unpaid_leave', 'tw_career_break', 'tw_promotion',
   'tw_job_hop', 'tw_burnout', 'tw_company_bankrupt',
+  // JP
+  'jp_layoff', 'jp_early_retirement', 'jp_job_change', 'jp_promotion',
+  'jp_bonus_cut', 'jp_burnout', 'jp_non_regular', 'jp_company_bankrupt',
+  'jp_karoshi_health',
 ])
 
 /** 取得地區對應的事件資料 */
 function getEventData(region: Region) {
-  return region === 'tw'
-    ? { database: EVENT_DATABASE_TW, map: EVENT_MAP_TW }
-    : { database: EVENT_DATABASE, map: EVENT_MAP }
+  if (region === 'tw') return { database: EVENT_DATABASE_TW, map: EVENT_MAP_TW }
+  if (region === 'jp') return { database: EVENT_DATABASE_JP, map: EVENT_MAP_JP }
+  return { database: EVENT_DATABASE, map: EVENT_MAP }
 }
 
 export function rollEventsForYear(

@@ -11,7 +11,7 @@ import SavingsIcon from '@mui/icons-material/Savings'
 import { useGameStore } from '../store/gameStore'
 import { LIFESTYLE_PRESETS } from '../engine/lifestyle'
 import { LIFESTYLE_PRESETS_TW } from '../engine/lifestyle_tw'
-import { formatCurrency, formatSliderValue } from '../config/regions'
+import { formatCurrency, formatSliderValue, type Region } from '../config/regions'
 
 export function ResultPanel() {
   const result = useGameStore(s => s.result)
@@ -274,7 +274,7 @@ function PercentileChart({ percentiles, currentAge, retirementAge, region }: {
   percentiles: { p10: number[]; p25: number[]; p50: number[]; p75: number[]; p90: number[] }
   currentAge: number
   retirementAge: number
-  region: 'us' | 'tw'
+  region: Region
 }) {
   const theme = useTheme()
   const primary = theme.palette.primary.main
