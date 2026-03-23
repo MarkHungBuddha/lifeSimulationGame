@@ -11,8 +11,18 @@
 import type { ImmigrationPlan, ImmigrationState, ImmigrationRoute, ImmigrationPhase } from './immigrationTypes'
 import { INITIAL_IMMIGRATION_STATE } from './immigrationTypes'
 import { getImmigrationRoute, getImmigrationEvents } from './immigrationData'
+import type { Allocation } from './simulator'
+import { LIFESTYLE_PRESETS } from './lifestyle'
+import { LIFESTYLE_PRESETS_JP } from './lifestyle_jp'
 import type { Region } from '../config/regions'
 import type { TriggeredEvent, RandomEvent } from '../events/eventTypes'
+
+/** 取得目標國的預設投資配置 */
+function getTargetAllocation(target: Region): Allocation {
+  if (target === 'jp') return { ...LIFESTYLE_PRESETS_JP.moderate.allocation }
+  if (target === 'us') return { ...LIFESTYLE_PRESETS.moderate.allocation }
+  return { ...LIFESTYLE_PRESETS.moderate.allocation }
+}
 
 export interface ImmigrationYearResult {
   newState: ImmigrationState
@@ -22,7 +32,8 @@ export interface ImmigrationYearResult {
   expenseMultiplier: number
   immigrationEvents: TriggeredEvent[]
   phaseChanged: boolean
-  phaseLabel: string | null        // 階段變化描述（用於時間線顯示）
+  phaseLabel: string | null
+  switchedAllocation: Allocation | null  // 移民後的投資組合配置
 }
 
 function createPhaseEvent(
@@ -71,6 +82,7 @@ export function processImmigrationYear(
     immigrationEvents: [],
     phaseChanged: false,
     phaseLabel: null,
+    switchedAllocation: null,
   }
 
   if (!plan?.enabled) return noChange
@@ -265,6 +277,10 @@ export function processImmigrationYear(
 
   state.totalImmigrationCost += cost
 
+  // 移民到目標國後，投資組合切換為目標國預設配置
+  const inTargetCountry = ['transition', 'settled', 'permanent'].includes(state.phase)
+  const switchedAllocation = inTargetCountry ? getTargetAllocation(plan.targetRegion) : null
+
   return {
     newState: state,
     activeRegion,
@@ -274,6 +290,7 @@ export function processImmigrationYear(
     immigrationEvents: events,
     phaseChanged,
     phaseLabel,
+    switchedAllocation,
   }
 }
 

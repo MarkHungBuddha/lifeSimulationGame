@@ -152,6 +152,7 @@ export function simulatePath(
     let immExpenseMultiplier = 1
     let immCost = 0
     let immigrationEvents: TriggeredEvent[] = []
+    let effectiveAllocation = params.allocation
 
     if (params.immigrationPlan?.enabled && !bankrupt) {
       const immResult = processImmigrationYear(
@@ -164,6 +165,9 @@ export function simulatePath(
       immExpenseMultiplier = immResult.expenseMultiplier
       immCost = immResult.costThisYear
       immigrationEvents = immResult.immigrationEvents
+      if (immResult.switchedAllocation) {
+        effectiveAllocation = immResult.switchedAllocation
+      }
 
       // 扣除移民成本
       portfolio -= immCost
@@ -235,7 +239,7 @@ export function simulatePath(
 
     portfolio += contribution
 
-    const weightedReturn = calcWeightedReturn(yearReturns, params.allocation)
+    const weightedReturn = calcWeightedReturn(yearReturns, effectiveAllocation)
     portfolio *= 1 + weightedReturn
 
     portfolio -= withdrawal
