@@ -3,12 +3,13 @@
  */
 
 export type EventCategory =
-  | 'market'    // 市場與經濟
-  | 'career'    // 職涯與就業
-  | 'health'    // 醫療與健康
-  | 'family'    // 家庭與人生
-  | 'property'  // 財產與資產
-  | 'legal'     // 法律與稅務
+  | 'market'       // 市場與經濟
+  | 'career'       // 職涯與就業
+  | 'health'       // 醫療與健康
+  | 'family'       // 家庭與人生
+  | 'property'     // 財產與資產
+  | 'legal'        // 法律與稅務
+  | 'immigration'  // 移民相關
 
 export type ImpactType =
   | 'income_change'       // 收入百分比變化

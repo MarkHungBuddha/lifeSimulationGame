@@ -262,6 +262,55 @@ export function Controls() {
 
       <Divider sx={{ my: 1 }} />
 
+      {/* 移民計畫 */}
+      {region === 'tw' && (
+        <>
+          <Typography variant="overline" color="text.secondary" fontWeight={700}>
+            移民計畫
+          </Typography>
+          <FormControlLabel
+            control={
+              <Switch checked={store.immigrationEnabled}
+                onChange={(_, v) => store.setImmigrationEnabled(v)} color="info" />
+            }
+            label={
+              <Stack>
+                <Typography variant="body2" fontWeight={600}>
+                  {store.immigrationEnabled ? '已規劃移民' : '未規劃'}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  模擬從台灣移民到日本或美國的完整路徑
+                </Typography>
+              </Stack>
+            }
+          />
+          {store.immigrationEnabled && (
+            <>
+              <ToggleButtonGroup fullWidth size="small" exclusive
+                value={store.immigrationTarget}
+                onChange={(_, v) => v && store.setImmigrationTarget(v)}
+                sx={{ mb: 0.5 }}>
+                <ToggleButton value="jp">🇯🇵 移民日本</ToggleButton>
+                <ToggleButton value="us">🇺🇸 移民美國</ToggleButton>
+              </ToggleButtonGroup>
+              {store.immigrationTarget && (
+                <>
+                  <SliderField label="開始準備年齡" value={store.immigrationAge} unit="歲"
+                    min={store.currentAge + 1} max={store.retirementAge - 5}
+                    onChange={store.setImmigrationAge} />
+                  <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.4 }}>
+                    {store.immigrationTarget === 'jp'
+                      ? '🇯🇵 日語學習→求職→COE申請（簽證成功率85%）→定居→永住（HSP最快1-3年）'
+                      : '🇺🇸 英語準備→求職→H-1B抽籤（每次25%，最多3次）→定居→綠卡（EB-2約3年）'}
+                  </Typography>
+                </>
+              )}
+            </>
+          )}
+          <Divider sx={{ my: 1 }} />
+        </>
+      )}
+
       {/* 模擬設定 */}
       <Typography variant="overline" color="text.secondary" fontWeight={700}>
         模擬設定

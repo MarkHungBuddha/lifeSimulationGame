@@ -478,4 +478,5 @@ export const CATEGORY_LABELS: Record<EventCategory, string> = {
   family: '家庭與人生',
   property: '財產與資產',
   legal: '法律與稅務',
+  immigration: '移民相關',
 }

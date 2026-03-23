@@ -12,6 +12,10 @@
 
 import { blockBootstrap, type HistoricalData, type YearReturns } from './bootstrap'
 import { rollEventsForYear } from '../events/eventEngine'
+import { createSeededRNG } from './rng'
+import { processImmigrationYear } from './immigrationEngine'
+import type { ImmigrationPlan, ImmigrationState, ImmigrationPhase } from './immigrationTypes'
+import { INITIAL_IMMIGRATION_STATE } from './immigrationTypes'
 import type { TriggeredEvent } from '../events/eventTypes'
 import type { Region } from '../config/regions'
 
@@ -43,6 +47,7 @@ export interface SimulationParams {
   withdrawal: WithdrawalStrategy
   enableEvents: boolean     // 是否啟用隨機事件
   region?: Region           // 地區（影響事件資料庫）
+  immigrationPlan?: ImmigrationPlan  // 移民計畫
 }
 
 /** 單年模擬快照 */
@@ -61,6 +66,8 @@ export interface YearSnapshot {
   eventPortfolioImpact: number   // 事件對資產的影響
   eventIncomeImpact: number      // 事件對收入的影響
   eventExpense: number           // 事件額外支出
+  immigrationPhase?: ImmigrationPhase   // 移民階段
+  activeRegion?: Region                  // 該年實際所在國家
 }
 
 /** 單條路徑結果 */
@@ -125,6 +132,8 @@ export function simulatePath(
   let bankrupt = false
   let bankruptAge: number | null = null
   let effectiveIncome = params.annualIncome
+  let immState: ImmigrationState = { ...INITIAL_IMMIGRATION_STATE }
+  const immRng = createSeededRNG(seed * 7919 + 13)  // 移民用獨立 RNG
   const snapshots: YearSnapshot[] = []
   const allEvents: TriggeredEvent[] = []
 
@@ -137,22 +146,53 @@ export function simulatePath(
       cumulativeInflation *= 1 + yearReturns.cpi
     }
 
-    // === 隨機事件 ===
+    // === 移民處理 ===
+    let activeRegion = params.region ?? 'us'
+    let immIncomeMultiplier = 1
+    let immExpenseMultiplier = 1
+    let immCost = 0
+    let immigrationEvents: TriggeredEvent[] = []
+
+    if (params.immigrationPlan?.enabled && !bankrupt) {
+      const immResult = processImmigrationYear(
+        immState, params.immigrationPlan,
+        age, y, portfolio, effectiveIncome, immRng,
+      )
+      immState = immResult.newState
+      activeRegion = immResult.activeRegion
+      immIncomeMultiplier = immResult.incomeMultiplier
+      immExpenseMultiplier = immResult.expenseMultiplier
+      immCost = immResult.costThisYear
+      immigrationEvents = immResult.immigrationEvents
+
+      // 扣除移民成本
+      portfolio -= immCost
+      if (portfolio < 0) portfolio = 0
+
+      // 移民事件中的永久收入變化
+      for (const evt of immigrationEvents) {
+        for (const impact of evt.actualImpacts) {
+          if (impact.type === 'income_boost') {
+            effectiveIncome += impact.amount
+          }
+        }
+      }
+    }
+
+    // === 隨機事件（使用 activeRegion）===
     let events: TriggeredEvent[] = []
     let eventPortfolioImpact = 0
     let eventIncomeImpact = 0
     let eventExpense = 0
 
     if (params.enableEvents && !bankrupt) {
-      // 每年事件用不同 seed（路徑 seed + 年份偏移）
       const eventSeed = seed * 1000 + y * 37
       const isRetired = age >= params.retirementAge
-      const result = rollEventsForYear(eventSeed, age, y, portfolio, effectiveIncome, isRetired, params.region ?? 'us')
+      const result = rollEventsForYear(eventSeed, age, y, portfolio, effectiveIncome, isRetired, activeRegion)
       events = result.events
       eventPortfolioImpact = result.totalPortfolioImpact
       eventIncomeImpact = result.totalIncomeImpact
       eventExpense = result.totalExpense
-      allEvents.push(...events)
 
       // 套用事件影響
       portfolio += eventPortfolioImpact
@@ -168,20 +208,29 @@ export function simulatePath(
       }
     }
 
-    // === 正常模擬流程 ===
+    // 合併移民事件到事件列表
+    events = [...events, ...immigrationEvents]
+    allEvents.push(...events)
+
+    // === 正常模擬流程（套用移民收入/支出倍率）===
     const isRetired = age >= params.retirementAge
     let contribution = 0
     let withdrawal = 0
 
     if (!isRetired && !bankrupt) {
-      contribution = params.annualContribution * cumulativeInflation
+      contribution = params.annualContribution * cumulativeInflation * immIncomeMultiplier
+      // 移民後支出增加 → 可存入額減少
+      if (immExpenseMultiplier > 1) {
+        const extraExpense = params.annualContribution * cumulativeInflation * (immExpenseMultiplier - 1) * 0.5
+        contribution = Math.max(0, contribution - extraExpense)
+      }
     } else if (!bankrupt) {
       withdrawal = calcWithdrawal(
         params.withdrawal,
         params.initialPortfolio,
         portfolio,
         cumulativeInflation,
-      )
+      ) * immExpenseMultiplier
     }
 
     portfolio += contribution
@@ -215,6 +264,8 @@ export function simulatePath(
       eventPortfolioImpact,
       eventIncomeImpact,
       eventExpense,
+      immigrationPhase: params.immigrationPlan?.enabled ? immState.phase : undefined,
+      activeRegion: params.immigrationPlan?.enabled ? activeRegion : undefined,
     })
   }
 

@@ -6,6 +6,7 @@ import { LIFESTYLE_PRESETS, type LifestyleId } from '../engine/lifestyle'
 import { LIFESTYLE_PRESETS_TW } from '../engine/lifestyle_tw'
 import { LIFESTYLE_PRESETS_JP } from '../engine/lifestyle_jp'
 import type { Region } from '../config/regions'
+import type { ImmigrationPlan } from '../engine/immigrationTypes'
 import historicalData from '../../data/assets_returns.json'
 import type { HistoricalData } from '../engine/bootstrap'
 
@@ -48,6 +49,11 @@ interface GameState {
   numPaths: number
   enableEvents: boolean
 
+  // 移民
+  immigrationEnabled: boolean
+  immigrationTarget: Region | null
+  immigrationAge: number
+
   // 頁面
   viewMode: ViewMode
 
@@ -74,6 +80,9 @@ interface GameState {
   setWithdrawal: (w: WithdrawalStrategy) => void
   setNumPaths: (n: number) => void
   setEnableEvents: (v: boolean) => void
+  setImmigrationEnabled: (v: boolean) => void
+  setImmigrationTarget: (r: Region | null) => void
+  setImmigrationAge: (v: number) => void
   setViewMode: (m: ViewMode) => void
   runSimulation: () => void
   runStory: () => void
@@ -99,6 +108,10 @@ export const useGameStore = create<GameState>((set, get) => ({
   numPaths: 10000,
   enableEvents: false,
 
+  immigrationEnabled: false,
+  immigrationTarget: null,
+  immigrationAge: 30,
+
   viewMode: 'simulation',
 
   isRunning: false,
@@ -123,6 +136,8 @@ export const useGameStore = create<GameState>((set, get) => ({
       withdrawal: preset.withdrawal,
       result: null,
       storyResult: null,
+      immigrationEnabled: r === 'tw' ? get().immigrationEnabled : false,
+      immigrationTarget: r === 'tw' ? get().immigrationTarget : null,
     })
   },
 
@@ -152,6 +167,9 @@ export const useGameStore = create<GameState>((set, get) => ({
   setWithdrawal: (w) => set({ withdrawal: w, lifestyleId: 'custom' }),
   setNumPaths: (n) => set({ numPaths: n }),
   setEnableEvents: (v) => set({ enableEvents: v }),
+  setImmigrationEnabled: (v) => set({ immigrationEnabled: v, enableEvents: v ? true : get().enableEvents }),
+  setImmigrationTarget: (r) => set({ immigrationTarget: r }),
+  setImmigrationAge: (v) => set({ immigrationAge: v }),
   setViewMode: (m) => set({ viewMode: m }),
 
   runSimulation: () => {
@@ -182,6 +200,17 @@ export const useGameStore = create<GameState>((set, get) => ({
       worker = null
     }
 
+    const immigrationPlan: ImmigrationPlan | undefined =
+      state.immigrationEnabled && state.immigrationTarget
+        ? {
+            enabled: true,
+            originRegion: state.region,
+            targetRegion: state.immigrationTarget,
+            triggerAge: state.immigrationAge,
+            maxAttempts: 3,
+          }
+        : undefined
+
     const request: WorkerRequest = {
       type: 'run',
       data: historicalData as HistoricalData,
@@ -196,6 +225,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         withdrawal: state.withdrawal,
         enableEvents: state.enableEvents,
         region: state.region,
+        immigrationPlan,
       },
       numPaths: state.numPaths,
       masterSeed: Date.now(),
@@ -207,6 +237,17 @@ export const useGameStore = create<GameState>((set, get) => ({
   runStory: () => {
     const state = get()
     set({ isStoryRunning: true, storyResult: null })
+
+    const immigrationPlan: ImmigrationPlan | undefined =
+      state.immigrationEnabled && state.immigrationTarget
+        ? {
+            enabled: true,
+            originRegion: state.region,
+            targetRegion: state.immigrationTarget,
+            triggerAge: state.immigrationAge,
+            maxAttempts: 3,
+          }
+        : undefined
 
     // 在主執行緒跑單一路徑（有事件紀錄）
     setTimeout(() => {
@@ -223,6 +264,7 @@ export const useGameStore = create<GameState>((set, get) => ({
           withdrawal: state.withdrawal,
           enableEvents: true,  // 故事模式強制啟用事件
           region: state.region,
+          immigrationPlan,
         },
         Date.now(),
       )

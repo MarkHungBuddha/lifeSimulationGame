@@ -33,6 +33,7 @@ const CATEGORY_COLORS: Record<EventCategory, string> = {
   family: '#2e7d32',
   property: '#e65100',
   legal: '#37474f',
+  immigration: '#00838f',
 }
 
 const CATEGORY_EMOJI: Record<EventCategory, string> = {
@@ -42,6 +43,7 @@ const CATEGORY_EMOJI: Record<EventCategory, string> = {
   family: '👨‍👩‍👧',
   property: '🏠',
   legal: '⚖️',
+  immigration: '✈️',
 }
 
 export function StoryPanel() {
@@ -143,9 +145,12 @@ export function StoryPanel() {
             const isPeak = age === peakAge
             const isLast = yearIdx === totalYears - 1
 
-            let dotColor: 'success' | 'error' | 'primary' | 'warning' | 'grey' = 'grey'
+            const hasImmigrationEvent = snap.events.some(e => e.event.category === 'immigration')
+
+            let dotColor: 'success' | 'error' | 'primary' | 'warning' | 'info' | 'grey' = 'grey'
             if (isBankrupt) dotColor = 'error'
             else if (isRetirement) dotColor = 'primary'
+            else if (hasImmigrationEvent) dotColor = 'info'
             else if (hasEvents) dotColor = 'warning'
             else if (isPeak) dotColor = 'success'
 
@@ -163,7 +168,9 @@ export function StoryPanel() {
                 <TimelineContent sx={{ pb: 3 }}>
                   <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5 }}>
                     <Typography variant="subtitle2" fontWeight={700}>
-                      {age} 歲
+                      {snap.activeRegion && snap.activeRegion !== region
+                        ? `${snap.activeRegion === 'jp' ? '🇯🇵' : snap.activeRegion === 'us' ? '🇺🇸' : '🇹🇼'} `
+                        : ''}{age} 歲
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
                       {fmtP(snap.portfolioEnd)}

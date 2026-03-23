@@ -622,4 +622,5 @@ export const CATEGORY_LABELS_JP: Record<EventCategory, string> = {
   family: '家庭・人生',
   property: '財産・天災',
   legal: '法律・税務',
+  immigration: '移民関連',
 }
