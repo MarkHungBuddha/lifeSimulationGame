@@ -46,9 +46,9 @@ export function ResultPanel() {
   const rateHex = rate >= 0.8 ? '#2e7d32' : rate >= 0.5 ? '#ed6c02' : '#d32f2f'
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: { xs: 2, sm: 3 } }}>
       {/* 生活風格摘要 */}
-      <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+      <Paper variant="outlined" sx={{ p: { xs: 1.5, sm: 2 }, mb: 2 }}>
         <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
           <SavingsIcon color="primary" />
           <Typography variant="subtitle1" fontWeight={700}>
@@ -93,36 +93,39 @@ export function ResultPanel() {
 
       {/* 成功率 Hero */}
       <Paper elevation={2} sx={{
-        p: 4, mb: 3, textAlign: 'center',
+        p: { xs: 2.5, sm: 4 }, mb: { xs: 2, sm: 3 }, textAlign: 'center',
         background: `linear-gradient(135deg, ${rateHex}11, ${rateHex}08)`,
         border: `1px solid ${rateHex}33`,
       }}>
-        <Typography variant="h1" sx={{ fontWeight: 800, color: rateHex, lineHeight: 1 }}>
+        <Typography sx={{
+          fontWeight: 800, color: rateHex, lineHeight: 1,
+          fontSize: { xs: '3rem', sm: '4rem', md: '6rem' },
+        }}>
           {(rate * 100).toFixed(1)}%
         </Typography>
-        <Stack direction="row" spacing={1} justifyContent="center" sx={{ mt: 1.5 }}>
+        <Stack direction="row" spacing={1} justifyContent="center" sx={{ mt: 1.5 }} flexWrap="wrap" useFlexGap>
           <Chip icon={<TrendingUpIcon />} label="退休存活率" color={rateColor} variant="outlined" />
           <Chip label={`${result.numPaths.toLocaleString()} 條路徑`} variant="outlined" size="small" />
         </Stack>
       </Paper>
 
       {/* 統計卡片 */}
-      <Grid container spacing={2} sx={{ mb: 3 }}>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+      <Grid container spacing={{ xs: 1, sm: 2 }} sx={{ mb: { xs: 2, sm: 3 } }}>
+        <Grid size={{ xs: 6, sm: 6, md: 3 }}>
           <StatCard icon={<AccountBalanceIcon />} label="中位最終資產"
             value={fmt(result.medianFinalPortfolio)} color="#1565c0" />
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <Grid size={{ xs: 6, sm: 6, md: 3 }}>
           <StatCard icon={<WarningIcon />} label="中位破產年齡"
             value={result.medianDepletionAge ? `${result.medianDepletionAge.toFixed(0)} 歲` : '未破產'}
             color={result.medianDepletionAge ? '#d32f2f' : '#2e7d32'} />
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <Grid size={{ xs: 6, sm: 6, md: 3 }}>
           <StatCard icon={<TrendingUpIcon />} label="P90 最終資產"
             value={fmt(result.percentiles.p90[result.percentiles.p90.length - 1])}
             color="#1565c0" />
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <Grid size={{ xs: 6, sm: 6, md: 3 }}>
           <StatCard icon={<TrendingUpIcon />} label="P10 最終資產"
             value={fmt(result.percentiles.p10[result.percentiles.p10.length - 1])}
             color="#e65100" />
@@ -130,14 +133,14 @@ export function ResultPanel() {
       </Grid>
 
       {/* 最大跌幅卡片 */}
-      <Paper elevation={1} sx={{ p: 2, mb: 3 }}>
-        <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 1.5 }}>
+      <Paper elevation={1} sx={{ p: { xs: 1.5, sm: 2 }, mb: { xs: 2, sm: 3 } }}>
+        <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 1 }}>
           最大跌幅（Max Drawdown）
         </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5, display: { xs: 'none', sm: 'block' } }}>
           模擬期間內，資產從高峰到低谷的最大跌幅百分比
         </Typography>
-        <Grid container spacing={2}>
+        <Grid container spacing={{ xs: 1, sm: 2 }}>
           <Grid size={{ xs: 6, sm: 3 }}>
             <StatCard icon={<TrendingDownIcon />} label="中位跌幅"
               value={`-${(result.maxDrawdown.median * 100).toFixed(1)}%`}
@@ -162,13 +165,17 @@ export function ResultPanel() {
       </Paper>
 
       {/* Percentile Band Chart */}
-      <Paper elevation={1} sx={{ p: 2, mb: 3 }}>
+      <Paper elevation={1} sx={{ p: { xs: 1.5, sm: 2 }, mb: { xs: 2, sm: 3 } }}>
         <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 1 }}>
           資產走勢 — Percentile Band Chart
         </Typography>
-        <PercentileChart percentiles={result.percentiles}
-          currentAge={currentAge} retirementAge={retirementAge} region={region} />
-        <Stack direction="row" spacing={2} sx={{ mt: 1.5, justifyContent: 'center' }}>
+        <Box sx={{ overflowX: 'auto', mx: { xs: -0.5, sm: 0 } }}>
+          <Box sx={{ minWidth: 480 }}>
+            <PercentileChart percentiles={result.percentiles}
+              currentAge={currentAge} retirementAge={retirementAge} region={region} />
+          </Box>
+        </Box>
+        <Stack direction="row" spacing={2} sx={{ mt: 1.5, justifyContent: 'center' }} flexWrap="wrap" useFlexGap>
           <Legend color="rgba(21,101,192,0.12)" label="P10 – P90" />
           <Legend color="rgba(21,101,192,0.28)" label="P25 – P75" />
           <Legend color="#1565c0" label="P50 中位數" line />
@@ -176,12 +183,12 @@ export function ResultPanel() {
       </Paper>
 
       {/* Percentile 表格 */}
-      <Paper elevation={1} sx={{ p: 2 }}>
+      <Paper elevation={1} sx={{ p: { xs: 1, sm: 2 } }}>
         <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 1 }}>
           各年百分位資產值
         </Typography>
-        <TableContainer>
-          <Table size="small">
+        <TableContainer sx={{ maxHeight: { xs: 400, sm: 'none' } }}>
+          <Table size="small" sx={{ '& .MuiTableCell-root': { px: { xs: 0.5, sm: 2 }, whiteSpace: 'nowrap', fontSize: { xs: 12, sm: 14 } } }}>
             <TableHead>
               <TableRow>
                 <TableCell>年齡</TableCell>
@@ -201,7 +208,7 @@ export function ResultPanel() {
                   <TableCell>
                     {currentAge + i}
                     {currentAge + i === retirementAge && (
-                      <Chip label="退休" size="small" color="primary" sx={{ ml: 1, height: 20, fontSize: 11 }} />
+                      <Chip label="退休" size="small" color="primary" sx={{ ml: 0.5, height: 20, fontSize: 11 }} />
                     )}
                   </TableCell>
                   <TableCell align="right" sx={{ color: '#d32f2f' }}>
@@ -234,10 +241,10 @@ function StatCard({ icon, label, value, color }: {
   icon: React.ReactNode; label: string; value: string; color: string
 }) {
   return (
-    <Paper variant="outlined" sx={{ p: 2, textAlign: 'center' }}>
-      <Box sx={{ color, mb: 0.5 }}>{icon}</Box>
-      <Typography variant="caption" color="text.secondary">{label}</Typography>
-      <Typography variant="h5" fontWeight={700}>{value}</Typography>
+    <Paper variant="outlined" sx={{ p: { xs: 1.5, sm: 2 }, textAlign: 'center' }}>
+      <Box sx={{ color, mb: 0.5, '& .MuiSvgIcon-root': { fontSize: { xs: 20, sm: 24 } } }}>{icon}</Box>
+      <Typography variant="caption" color="text.secondary" noWrap>{label}</Typography>
+      <Typography fontWeight={700} noWrap sx={{ fontSize: { xs: '1rem', sm: '1.5rem' } }}>{value}</Typography>
     </Paper>
   )
 }
@@ -279,6 +286,11 @@ function PercentileChart({ percentiles, currentAge, retirementAge, region }: {
   const theme = useTheme()
   const primary = theme.palette.primary.main
 
+  const isDark = theme.palette.mode === 'dark'
+  const gridColor = isDark ? '#444' : '#e0e0e0'
+  const axisColor = isDark ? '#666' : '#bdbdbd'
+  const labelColor = isDark ? '#aaa' : '#757575'
+
   const canvasRef = (canvas: HTMLCanvasElement | null) => {
     if (!canvas) return
     const dpr = window.devicePixelRatio || 1
@@ -305,7 +317,7 @@ function PercentileChart({ percentiles, currentAge, retirementAge, region }: {
     const y = (v: number) => pad.top + plotH - (Math.max(v, 0) / maxVal) * plotH
 
     // Grid lines
-    ctx.strokeStyle = '#e0e0e0'
+    ctx.strokeStyle = gridColor
     ctx.lineWidth = 0.5
     for (let s = 1; s <= 5; s++) {
       const val = (maxVal / 5) * s
@@ -371,7 +383,7 @@ function PercentileChart({ percentiles, currentAge, retirementAge, region }: {
     ctx.setLineDash([])
 
     // Axes
-    ctx.strokeStyle = '#bdbdbd'
+    ctx.strokeStyle = axisColor
     ctx.lineWidth = 1
     ctx.beginPath()
     ctx.moveTo(pad.left, pad.top)
@@ -380,7 +392,7 @@ function PercentileChart({ percentiles, currentAge, retirementAge, region }: {
     ctx.stroke()
 
     // X labels
-    ctx.fillStyle = '#757575'
+    ctx.fillStyle = labelColor
     ctx.font = '12px "Noto Sans TC", sans-serif'
     ctx.textAlign = 'center'
     const xStep = Math.max(1, Math.floor(years / 8))

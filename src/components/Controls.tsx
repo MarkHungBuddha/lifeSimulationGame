@@ -28,6 +28,8 @@ const ASSET_COLORS: Record<keyof Allocation, string> = {
   reits: '#e65100',
 }
 
+const ZERO_ALLOCATION: Allocation = { sp500: 0, intlStock: 0, bond: 0, gold: 0, cash: 0, reits: 0 }
+
 export function Controls() {
   const store = useGameStore()
   const region = store.region
@@ -43,6 +45,16 @@ export function Controls() {
     store.setAllocation(newAlloc)
   }
 
+  const handleImmAllocationChange = (key: keyof Allocation, value: number) => {
+    const newAlloc = { ...store.immigrationAllocation, [key]: value / 100 }
+    const sum = ASSET_KEYS.reduce((s, k) => s + newAlloc[k], 0)
+    if (sum > 1.001) return
+    store.setImmigrationAllocation(newAlloc)
+  }
+
+  const immAllocSum = ASSET_KEYS.reduce((s, k) => s + store.immigrationAllocation[k], 0)
+  const immAllocValid = Math.abs(immAllocSum - 1) <= 0.001
+
   const allocSum = ASSET_KEYS.reduce((s, k) => s + store.allocation[k], 0)
   const allocValid = Math.abs(allocSum - 1) <= 0.001
   const savingsRate = store.annualIncome > 0
@@ -51,7 +63,7 @@ export function Controls() {
   const fmtMonthly = (v: number) => formatSliderValue(Math.round(v / 12), region)
 
   return (
-    <Box sx={{ p: 2.5, display: 'flex', flexDirection: 'column', gap: 1 }}>
+    <Box sx={{ p: { xs: 2, sm: 2.5 }, display: 'flex', flexDirection: 'column', gap: 1 }}>
       {/* 地區切換 */}
       <Typography variant="overline" color="text.secondary" fontWeight={700}>
         地區版本
@@ -159,8 +171,12 @@ export function Controls() {
         <Typography variant="overline" color="text.secondary" fontWeight={700}>
           資產配置
         </Typography>
-        <Chip size="small" label={`${(allocSum * 100).toFixed(0)}%`}
-          color={allocValid ? 'success' : 'error'} variant="outlined" />
+        <Stack direction="row" alignItems="center" spacing={0.5}>
+          <Chip size="small" label="全部歸零" variant="outlined" clickable
+            onClick={() => store.setAllocation({ ...ZERO_ALLOCATION })} />
+          <Chip size="small" label={`${(allocSum * 100).toFixed(0)}%`}
+            color={allocValid ? 'success' : 'error'} variant="outlined" />
+        </Stack>
       </Stack>
 
       {ASSET_KEYS.map(key => (
@@ -303,6 +319,45 @@ export function Controls() {
                       ? '🇯🇵 日語學習→求職→COE申請（簽證成功率85%）→定居→永住（HSP最快1-3年）'
                       : '🇺🇸 英語準備→求職→H-1B抽籤（每次25%，最多3次）→定居→綠卡（EB-2約3年）'}
                   </Typography>
+
+                  {/* 移民後投資配置 */}
+                  <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mt: 1.5 }}>
+                    <Typography variant="caption" fontWeight={700} color="text.secondary">
+                      移民後投資配置
+                    </Typography>
+                    <Stack direction="row" alignItems="center" spacing={0.5}>
+                      <Chip size="small" label="全部歸零" variant="outlined" clickable
+                        onClick={() => store.setImmigrationAllocation({ ...ZERO_ALLOCATION })} />
+                      <Chip size="small" label={`${(immAllocSum * 100).toFixed(0)}%`}
+                        color={immAllocValid ? 'success' : 'error'} variant="outlined" />
+                    </Stack>
+                  </Stack>
+
+                  {ASSET_KEYS.map(key => {
+                    const targetCfg = REGION_CONFIGS[store.immigrationTarget!]
+                    return (
+                      <Box key={`imm-${key}`}>
+                        <Stack direction="row" justifyContent="space-between" alignItems="center">
+                          <Typography variant="caption" sx={{ color: ASSET_COLORS[key], fontWeight: 600 }}>
+                            {targetCfg.assetLabels[key]}
+                          </Typography>
+                          <Typography variant="caption" fontWeight={700}>
+                            {(store.immigrationAllocation[key] * 100).toFixed(0)}%
+                          </Typography>
+                        </Stack>
+                        <Slider size="small" min={0} max={100} step={5}
+                          value={store.immigrationAllocation[key] * 100}
+                          onChange={(_, v) => handleImmAllocationChange(key, v as number)}
+                          sx={{ color: ASSET_COLORS[key], py: 0.3 }} />
+                      </Box>
+                    )
+                  })}
+
+                  {!immAllocValid && (
+                    <Alert severity="error" variant="outlined" sx={{ py: 0 }}>
+                      配置總和必須為 100%
+                    </Alert>
+                  )}
                 </>
               )}
             </>
@@ -338,7 +393,7 @@ export function Controls() {
 
       {store.viewMode === 'simulation' ? (
         <Button variant="contained" size="large" fullWidth
-          disabled={store.isRunning || !allocValid}
+          disabled={store.isRunning || !allocValid || (store.immigrationEnabled && !!store.immigrationTarget && !immAllocValid)}
           onClick={store.runSimulation}
           startIcon={store.isRunning ? <HourglassTopIcon /> : <PlayArrowIcon />}
           sx={{ mt: 1, py: 1.5, fontWeight: 700, fontSize: 16 }}>
@@ -346,7 +401,7 @@ export function Controls() {
         </Button>
       ) : (
         <Button variant="contained" size="large" fullWidth color="secondary"
-          disabled={store.isStoryRunning || !allocValid}
+          disabled={store.isStoryRunning || !allocValid || (store.immigrationEnabled && !!store.immigrationTarget && !immAllocValid)}
           onClick={store.runStory}
           startIcon={<AutoStoriesIcon />}
           sx={{ mt: 1, py: 1.5, fontWeight: 700, fontSize: 16 }}>

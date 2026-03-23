@@ -53,6 +53,7 @@ interface GameState {
   immigrationEnabled: boolean
   immigrationTarget: Region | null
   immigrationAge: number
+  immigrationAllocation: Allocation
 
   // 頁面
   viewMode: ViewMode
@@ -83,6 +84,7 @@ interface GameState {
   setImmigrationEnabled: (v: boolean) => void
   setImmigrationTarget: (r: Region | null) => void
   setImmigrationAge: (v: number) => void
+  setImmigrationAllocation: (a: Allocation) => void
   setViewMode: (m: ViewMode) => void
   runSimulation: () => void
   runStory: () => void
@@ -111,6 +113,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   immigrationEnabled: false,
   immigrationTarget: null,
   immigrationAge: 30,
+  immigrationAllocation: { ...LIFESTYLE_PRESETS_JP.moderate.allocation },
 
   viewMode: 'simulation',
 
@@ -168,8 +171,12 @@ export const useGameStore = create<GameState>((set, get) => ({
   setNumPaths: (n) => set({ numPaths: n }),
   setEnableEvents: (v) => set({ enableEvents: v }),
   setImmigrationEnabled: (v) => set({ immigrationEnabled: v, enableEvents: v ? true : get().enableEvents }),
-  setImmigrationTarget: (r) => set({ immigrationTarget: r }),
+  setImmigrationTarget: (r) => {
+    const presets = r ? getLifestylePresets(r) : getLifestylePresets('jp')
+    set({ immigrationTarget: r, immigrationAllocation: { ...presets.moderate.allocation } })
+  },
   setImmigrationAge: (v) => set({ immigrationAge: v }),
+  setImmigrationAllocation: (a) => set({ immigrationAllocation: a }),
   setViewMode: (m) => set({ viewMode: m }),
 
   runSimulation: () => {
@@ -208,6 +215,7 @@ export const useGameStore = create<GameState>((set, get) => ({
             targetRegion: state.immigrationTarget,
             triggerAge: state.immigrationAge,
             maxAttempts: 3,
+            immigrationAllocation: state.immigrationAllocation,
           }
         : undefined
 
@@ -246,6 +254,7 @@ export const useGameStore = create<GameState>((set, get) => ({
             targetRegion: state.immigrationTarget,
             triggerAge: state.immigrationAge,
             maxAttempts: 3,
+            immigrationAllocation: state.immigrationAllocation,
           }
         : undefined
 

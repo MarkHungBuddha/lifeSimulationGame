@@ -123,7 +123,7 @@ export function StoryPanel() {
   const sortedYears = [...keyYears].filter(y => y >= 0 && y < totalYears).sort((a, b) => a - b)
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: { xs: 2, sm: 3 } }}>
       {/* 結局 Hero */}
       <Paper elevation={2} sx={{
         p: 3, mb: 3, textAlign: 'center',
@@ -310,6 +310,10 @@ function StoryChart({ snapshots, currentAge, retirementAge, region }: {
 }) {
   const theme = useTheme()
 
+  const isDark = theme.palette.mode === 'dark'
+  const gridColor = isDark ? '#444' : '#e0e0e0'
+  const labelColor = isDark ? '#aaa' : '#757575'
+
   const canvasRef = (canvas: HTMLCanvasElement | null) => {
     if (!canvas) return
     const dpr = window.devicePixelRatio || 1
@@ -334,7 +338,7 @@ function StoryChart({ snapshots, currentAge, retirementAge, region }: {
     const y = (v: number) => pad.top + plotH - (Math.max(v, 0) / maxVal) * plotH
 
     // Grid
-    ctx.strokeStyle = '#e0e0e0'
+    ctx.strokeStyle = gridColor
     ctx.lineWidth = 0.5
     for (let s = 1; s <= 4; s++) {
       const val = (maxVal / 4) * s
@@ -381,7 +385,7 @@ function StoryChart({ snapshots, currentAge, retirementAge, region }: {
     }
 
     // Axes labels
-    ctx.fillStyle = '#757575'
+    ctx.fillStyle = labelColor
     ctx.font = '11px sans-serif'
     ctx.textAlign = 'center'
     const step = Math.max(1, Math.floor(years / 8))

@@ -277,9 +277,11 @@ export function processImmigrationYear(
 
   state.totalImmigrationCost += cost
 
-  // 移民到目標國後，投資組合切換為目標國預設配置
+  // 移民到目標國後，切換投資組合配置（優先使用玩家自訂）
   const inTargetCountry = ['transition', 'settled', 'permanent'].includes(state.phase)
-  const switchedAllocation = inTargetCountry ? getTargetAllocation(plan.targetRegion) : null
+  const switchedAllocation = inTargetCountry
+    ? (plan.immigrationAllocation ? { ...plan.immigrationAllocation } : getTargetAllocation(plan.targetRegion))
+    : null
 
   return {
     newState: state,

@@ -7,6 +7,7 @@
  */
 
 import type { Region } from '../config/regions'
+import type { Allocation } from './simulator'
 
 export type ImmigrationPhase =
   | 'none'            // 尚未開始或未啟用
@@ -26,6 +27,7 @@ export interface ImmigrationPlan {
   targetRegion: Region        // 'jp' or 'us'
   triggerAge: number          // 開始準備的年齡
   maxAttempts: number         // 簽證最大嘗試次數（預設 3）
+  immigrationAllocation?: Allocation  // 移民後自訂投資配置
 }
 
 export interface ImmigrationState {
