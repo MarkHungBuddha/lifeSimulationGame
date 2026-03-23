@@ -21,7 +21,9 @@ import AutoStoriesIcon from '@mui/icons-material/AutoStories'
 import CakeIcon from '@mui/icons-material/Cake'
 import type { EventCategory } from '../events/eventTypes'
 import { CATEGORY_LABELS } from '../events/eventDatabase'
+import { CATEGORY_LABELS_TW } from '../events/eventDatabase_tw'
 import { useGameStore } from '../store/gameStore'
+import { formatCurrency, formatCurrencySigned, type Region } from '../config/regions'
 
 const CATEGORY_COLORS: Record<EventCategory, string> = {
   market: '#1565c0',
@@ -41,24 +43,14 @@ const CATEGORY_EMOJI: Record<EventCategory, string> = {
   legal: '⚖️',
 }
 
-function formatMoney(n: number): string {
-  const abs = Math.abs(n)
-  const sign = n >= 0 ? '+' : '-'
-  if (abs >= 1_000_000) return `${sign}$${(abs / 1_000_000).toFixed(1)}M`
-  if (abs >= 1_000) return `${sign}$${(abs / 1_000).toFixed(0)}K`
-  return `${sign}$${abs.toFixed(0)}`
-}
-
-function formatPortfolio(n: number): string {
-  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(2)}M`
-  if (n >= 1_000) return `$${(n / 1_000).toFixed(0)}K`
-  return `$${n.toFixed(0)}`
-}
-
 export function StoryPanel() {
   const storyResult = useGameStore(s => s.storyResult)
   const currentAge = useGameStore(s => s.currentAge)
   const retirementAge = useGameStore(s => s.retirementAge)
+  const region = useGameStore(s => s.region)
+  const categoryLabels = region === 'tw' ? CATEGORY_LABELS_TW : CATEGORY_LABELS
+  const fmtP = (n: number) => formatCurrency(n, region)
+  const fmtM = (n: number) => formatCurrencySigned(n, region)
 
   if (!storyResult) {
     return (
@@ -113,13 +105,13 @@ export function StoryPanel() {
           {bankrupt ? `${bankruptAge} 歲破產` : '財務存活'}
         </Typography>
         <Typography variant="h6" color="text.secondary" sx={{ mt: 1 }}>
-          最終資產 {formatPortfolio(finalPortfolio)}
+          最終資產 {fmtP(finalPortfolio)}
         </Typography>
         <Stack direction="row" spacing={2} justifyContent="center" sx={{ mt: 2 }}>
           <Chip label={`${allEvents.length} 個事件`} variant="outlined" />
           <Chip label={`${positiveEvents.length} 正面`} color="success" variant="outlined" />
           <Chip label={`${negativeEvents.length} 負面`} color="error" variant="outlined" />
-          <Chip label={`峰值 ${formatPortfolio(peakPortfolio)} @ ${peakAge}歲`} variant="outlined" />
+          <Chip label={`峰值 ${fmtP(peakPortfolio)} @ ${peakAge}歲`} variant="outlined" />
         </Stack>
       </Paper>
 
@@ -128,7 +120,7 @@ export function StoryPanel() {
         <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 1 }}>
           資產走勢
         </Typography>
-        <StoryChart snapshots={snapshots} currentAge={currentAge} retirementAge={retirementAge} />
+        <StoryChart snapshots={snapshots} currentAge={currentAge} retirementAge={retirementAge} region={region} />
       </Paper>
 
       {/* 時間線 */}
@@ -173,7 +165,7 @@ export function StoryPanel() {
                       {age} 歲
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      {formatPortfolio(snap.portfolioEnd)}
+                      {fmtP(snap.portfolioEnd)}
                     </Typography>
                     {isRetirement && <Chip label="退休" size="small" color="primary" sx={{ height: 20 }} />}
                     {isBankrupt && <Chip label="破產" size="small" color="error" sx={{ height: 20 }} />}
@@ -184,9 +176,9 @@ export function StoryPanel() {
                   {/* 年度摘要 */}
                   <Typography variant="caption" color="text.secondary">
                     報酬 {(snap.weightedReturn * 100).toFixed(1)}%
-                    {snap.contribution > 0 && ` ・ 存入 ${formatPortfolio(snap.contribution)}`}
-                    {snap.withdrawal > 0 && ` ・ 提領 ${formatPortfolio(snap.withdrawal)}`}
-                    {snap.eventExpense > 0 && ` ・ 事件支出 ${formatPortfolio(snap.eventExpense)}`}
+                    {snap.contribution > 0 && ` ・ 存入 ${fmtP(snap.contribution)}`}
+                    {snap.withdrawal > 0 && ` ・ 提領 ${fmtP(snap.withdrawal)}`}
+                    {snap.eventExpense > 0 && ` ・ 事件支出 ${fmtP(snap.eventExpense)}`}
                   </Typography>
 
                   {/* 事件卡片 */}
@@ -204,7 +196,7 @@ export function StoryPanel() {
                           {evt.event.name}
                         </Typography>
                         <Chip size="small" variant="outlined"
-                          label={CATEGORY_LABELS[evt.event.category]}
+                          label={categoryLabels[evt.event.category]}
                           sx={{
                             height: 18, fontSize: 10,
                             borderColor: CATEGORY_COLORS[evt.event.category],
@@ -217,7 +209,7 @@ export function StoryPanel() {
                       <Stack direction="row" spacing={1} flexWrap="wrap">
                         {evt.actualImpacts.map((impact, k) => (
                           <Chip key={k} size="small"
-                            label={`${impact.description} (${formatMoney(impact.amount)})`}
+                            label={`${impact.description} (${fmtM(impact.amount)})`}
                             color={impact.amount >= 0 ? 'success' : 'error'}
                             variant="outlined"
                             sx={{ height: 22, fontSize: 11 }} />
@@ -236,10 +228,11 @@ export function StoryPanel() {
 }
 
 /** 迷你資產走勢 Canvas */
-function StoryChart({ snapshots, currentAge, retirementAge }: {
+function StoryChart({ snapshots, currentAge, retirementAge, region }: {
   snapshots: { age: number; portfolioEnd: number; events: { event: { isPositive?: boolean } }[] }[]
   currentAge: number
   retirementAge: number
+  region: Region
 }) {
   const theme = useTheme()
 
@@ -324,9 +317,7 @@ function StoryChart({ snapshots, currentAge, retirementAge }: {
     ctx.textAlign = 'right'
     for (let s = 0; s <= 4; s++) {
       const val = (maxVal / 4) * s
-      const abs = Math.abs(val)
-      const label = abs >= 1e6 ? `$${(val / 1e6).toFixed(1)}M` : `$${(val / 1e3).toFixed(0)}K`
-      ctx.fillText(label, pad.left - 6, y(val) + 4)
+      ctx.fillText(formatCurrency(val, region), pad.left - 6, y(val) + 4)
     }
   }
 

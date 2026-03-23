@@ -10,6 +10,8 @@ import InsightsIcon from '@mui/icons-material/Insights'
 import SavingsIcon from '@mui/icons-material/Savings'
 import { useGameStore } from '../store/gameStore'
 import { LIFESTYLE_PRESETS } from '../engine/lifestyle'
+import { LIFESTYLE_PRESETS_TW } from '../engine/lifestyle_tw'
+import { formatCurrency, formatSliderValue } from '../config/regions'
 
 export function ResultPanel() {
   const result = useGameStore(s => s.result)
@@ -19,6 +21,10 @@ export function ResultPanel() {
   const annualIncome = useGameStore(s => s.annualIncome)
   const annualExpense = useGameStore(s => s.annualExpense)
   const annualContribution = useGameStore(s => s.annualContribution)
+  const region = useGameStore(s => s.region)
+  const presets = region === 'tw' ? LIFESTYLE_PRESETS_TW : LIFESTYLE_PRESETS
+  const fmt = (v: number) => formatCurrency(v, region)
+  const fmtSlider = (v: number) => formatSliderValue(v, region)
 
   if (!result) {
     return (
@@ -48,7 +54,7 @@ export function ResultPanel() {
           <Typography variant="subtitle1" fontWeight={700}>
             生活風格摘要
             {lifestyleId !== 'custom' && (() => {
-              const preset = LIFESTYLE_PRESETS[lifestyleId as keyof typeof LIFESTYLE_PRESETS]
+              const preset = presets[lifestyleId as keyof typeof presets]
               return preset ? ` — ${preset.emoji} ${preset.name}` : ''
             })()}
           </Typography>
@@ -56,15 +62,15 @@ export function ResultPanel() {
         <Grid container spacing={2}>
           <Grid size={{ xs: 6, sm: 3 }}>
             <Typography variant="caption" color="text.secondary">年收入</Typography>
-            <Typography variant="body1" fontWeight={700}>${annualIncome.toLocaleString()}</Typography>
+            <Typography variant="body1" fontWeight={700}>{fmtSlider(annualIncome)}</Typography>
           </Grid>
           <Grid size={{ xs: 6, sm: 3 }}>
             <Typography variant="caption" color="text.secondary">年開銷</Typography>
-            <Typography variant="body1" fontWeight={700}>${annualExpense.toLocaleString()}</Typography>
+            <Typography variant="body1" fontWeight={700}>{fmtSlider(annualExpense)}</Typography>
           </Grid>
           <Grid size={{ xs: 6, sm: 3 }}>
             <Typography variant="caption" color="text.secondary">年投資</Typography>
-            <Typography variant="body1" fontWeight={700}>${annualContribution.toLocaleString()}</Typography>
+            <Typography variant="body1" fontWeight={700}>{fmtSlider(annualContribution)}</Typography>
           </Grid>
           <Grid size={{ xs: 6, sm: 3 }}>
             <Typography variant="caption" color="text.secondary">儲蓄率</Typography>
@@ -75,11 +81,11 @@ export function ResultPanel() {
           </Grid>
         </Grid>
         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-          月開銷 ${Math.round(annualExpense / 12).toLocaleString()} ・
+          月開銷 {fmtSlider(Math.round(annualExpense / 12))} ・
           退休年齡 {retirementAge} 歲 ・
           工作年數 {retirementAge - currentAge} 年
           {lifestyleId !== 'custom' && (() => {
-            const preset = LIFESTYLE_PRESETS[lifestyleId as keyof typeof LIFESTYLE_PRESETS]
+            const preset = presets[lifestyleId as keyof typeof presets]
             return preset ? ` ・ ${preset.description}` : ''
           })()}
         </Typography>
@@ -104,7 +110,7 @@ export function ResultPanel() {
       <Grid container spacing={2} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <StatCard icon={<AccountBalanceIcon />} label="中位最終資產"
-            value={`$${formatMoney(result.medianFinalPortfolio)}`} color="#1565c0" />
+            value={fmt(result.medianFinalPortfolio)} color="#1565c0" />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <StatCard icon={<WarningIcon />} label="中位破產年齡"
@@ -113,12 +119,12 @@ export function ResultPanel() {
         </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <StatCard icon={<TrendingUpIcon />} label="P90 最終資產"
-            value={`$${formatMoney(result.percentiles.p90[result.percentiles.p90.length - 1])}`}
+            value={fmt(result.percentiles.p90[result.percentiles.p90.length - 1])}
             color="#1565c0" />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <StatCard icon={<TrendingUpIcon />} label="P10 最終資產"
-            value={`$${formatMoney(result.percentiles.p10[result.percentiles.p10.length - 1])}`}
+            value={fmt(result.percentiles.p10[result.percentiles.p10.length - 1])}
             color="#e65100" />
         </Grid>
       </Grid>
@@ -161,7 +167,7 @@ export function ResultPanel() {
           資產走勢 — Percentile Band Chart
         </Typography>
         <PercentileChart percentiles={result.percentiles}
-          currentAge={currentAge} retirementAge={retirementAge} />
+          currentAge={currentAge} retirementAge={retirementAge} region={region} />
         <Stack direction="row" spacing={2} sx={{ mt: 1.5, justifyContent: 'center' }}>
           <Legend color="rgba(21,101,192,0.12)" label="P10 – P90" />
           <Legend color="rgba(21,101,192,0.28)" label="P25 – P75" />
@@ -199,19 +205,19 @@ export function ResultPanel() {
                     )}
                   </TableCell>
                   <TableCell align="right" sx={{ color: '#d32f2f' }}>
-                    ${formatMoney(result.percentiles.p10[i])}
+                    {fmt(result.percentiles.p10[i])}
                   </TableCell>
                   <TableCell align="right" sx={{ color: '#e65100' }}>
-                    ${formatMoney(result.percentiles.p25[i])}
+                    {fmt(result.percentiles.p25[i])}
                   </TableCell>
                   <TableCell align="right" sx={{ fontWeight: 700 }}>
-                    ${formatMoney(result.percentiles.p50[i])}
+                    {fmt(result.percentiles.p50[i])}
                   </TableCell>
                   <TableCell align="right" sx={{ color: '#2e7d32' }}>
-                    ${formatMoney(result.percentiles.p75[i])}
+                    {fmt(result.percentiles.p75[i])}
                   </TableCell>
                   <TableCell align="right" sx={{ color: '#1565c0' }}>
-                    ${formatMoney(result.percentiles.p90[i])}
+                    {fmt(result.percentiles.p90[i])}
                   </TableCell>
                 </TableRow>
               ))}
@@ -264,10 +270,11 @@ function getTableRows(totalYears: number): number[] {
 }
 
 /** Canvas Percentile Band Chart with MUI theme colors */
-function PercentileChart({ percentiles, currentAge, retirementAge }: {
+function PercentileChart({ percentiles, currentAge, retirementAge, region }: {
   percentiles: { p10: number[]; p25: number[]; p50: number[]; p75: number[]; p90: number[] }
   currentAge: number
   retirementAge: number
+  region: 'us' | 'tw'
 }) {
   const theme = useTheme()
   const primary = theme.palette.primary.main
@@ -387,7 +394,7 @@ function PercentileChart({ percentiles, currentAge, retirementAge }: {
     ctx.textAlign = 'right'
     for (let s = 0; s <= 5; s++) {
       const val = (maxVal / 5) * s
-      ctx.fillText('$' + formatMoney(val), pad.left - 8, y(val) + 4)
+      ctx.fillText(formatCurrency(val, region), pad.left - 8, y(val) + 4)
     }
   }
 

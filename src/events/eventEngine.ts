@@ -10,7 +10,9 @@
 
 import { createSeededRNG } from '../engine/rng'
 import { EVENT_DATABASE, EVENT_MAP } from './eventDatabase'
+import { EVENT_DATABASE_TW, EVENT_MAP_TW } from './eventDatabase_tw'
 import type { RandomEvent, TriggeredEvent, ImpactType } from './eventTypes'
+import type { Region } from '../config/regions'
 
 /** 取得年齡調整後的事件機率 */
 function getAdjustedProbability(event: RandomEvent, age: number): number {
@@ -82,8 +84,19 @@ function calcImpactAmount(
 /** 退休後不觸發的事件類別與 ID */
 const WORK_ONLY_CATEGORIES: Set<string> = new Set(['career'])
 const WORK_ONLY_EVENTS: Set<string> = new Set([
+  // US
   'layoff', 'pay_cut', 'career_break', 'promotion', 'burnout',
+  // TW
+  'tw_layoff', 'tw_unpaid_leave', 'tw_career_break', 'tw_promotion',
+  'tw_job_hop', 'tw_burnout', 'tw_company_bankrupt',
 ])
+
+/** 取得地區對應的事件資料 */
+function getEventData(region: Region) {
+  return region === 'tw'
+    ? { database: EVENT_DATABASE_TW, map: EVENT_MAP_TW }
+    : { database: EVENT_DATABASE, map: EVENT_MAP }
+}
 
 export function rollEventsForYear(
   seed: number,
@@ -92,7 +105,9 @@ export function rollEventsForYear(
   portfolio: number,
   annualIncome: number,
   isRetired: boolean = false,
+  region: Region = 'us',
 ): { events: TriggeredEvent[]; totalPortfolioImpact: number; totalIncomeImpact: number; totalExpense: number } {
+  const { database, map } = getEventData(region)
   const rng = createSeededRNG(seed)
   const triggered: TriggeredEvent[] = []
   const triggeredIds = new Set<string>()
@@ -102,7 +117,7 @@ export function rollEventsForYear(
   let totalExpense = 0
 
   // 第一輪：獨立觸發
-  for (const event of EVENT_DATABASE) {
+  for (const event of database) {
     // 退休後跳過工作相關事件
     if (isRetired && (WORK_ONLY_CATEGORIES.has(event.category) || WORK_ONLY_EVENTS.has(event.id))) {
       rng() // 消耗 RNG 保持序列一致
@@ -116,12 +131,12 @@ export function rollEventsForYear(
 
   // 第二輪：處理事件相關性（被觸發的事件可能拉動相關事件）
   for (const id of [...triggeredIds]) {
-    const event = EVENT_MAP.get(id)!
+    const event = map.get(id)!
     if (event.correlatedWith) {
       for (const correlatedId of event.correlatedWith) {
         if (!triggeredIds.has(correlatedId)) {
           // 退休後不拉動工作事件
-          const correlated = EVENT_MAP.get(correlatedId)
+          const correlated = map.get(correlatedId)
           if (isRetired && correlated &&
               (WORK_ONLY_CATEGORIES.has(correlated.category) || WORK_ONLY_EVENTS.has(correlated.id))) {
             continue
@@ -137,7 +152,7 @@ export function rollEventsForYear(
 
   // 計算每個觸發事件的影響
   for (const id of triggeredIds) {
-    const event = EVENT_MAP.get(id)!
+    const event = map.get(id)!
     const actualImpacts: TriggeredEvent['actualImpacts'] = []
 
     // 每個事件內，savings_change 和 portfolio_change 只取較大損失（不疊加）

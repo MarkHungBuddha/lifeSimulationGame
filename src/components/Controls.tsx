@@ -10,19 +10,28 @@ import AutoStoriesIcon from '@mui/icons-material/AutoStories'
 import BarChartIcon from '@mui/icons-material/BarChart'
 import { useGameStore } from '../store/gameStore'
 import { LIFESTYLE_LIST, type LifestyleId } from '../engine/lifestyle'
+import { LIFESTYLE_LIST_TW } from '../engine/lifestyle_tw'
 import type { Allocation } from '../engine/simulator'
+import { REGION_CONFIGS, formatSliderValue, type Region } from '../config/regions'
+import { EVENT_DATABASE } from '../events/eventDatabase'
+import { EVENT_DATABASE_TW } from '../events/eventDatabase_tw'
 
 const ASSET_KEYS: (keyof Allocation)[] = ['sp500', 'bond', 'gold', 'cash', 'reits']
-const ASSET_META: Record<keyof Allocation, { label: string; color: string }> = {
-  sp500: { label: 'S&P 500', color: '#1565c0' },
-  bond:  { label: '美國長債', color: '#6a1b9a' },
-  gold:  { label: '黃金', color: '#f9a825' },
-  cash:  { label: '現金', color: '#2e7d32' },
-  reits: { label: 'REITs', color: '#e65100' },
+const ASSET_COLORS: Record<keyof Allocation, string> = {
+  sp500: '#1565c0',
+  bond: '#6a1b9a',
+  gold: '#f9a825',
+  cash: '#2e7d32',
+  reits: '#e65100',
 }
 
 export function Controls() {
   const store = useGameStore()
+  const region = store.region
+  const cfg = REGION_CONFIGS[region]
+  const lifestyleList = region === 'tw' ? LIFESTYLE_LIST_TW : LIFESTYLE_LIST
+  const eventCount = region === 'tw' ? EVENT_DATABASE_TW.length : EVENT_DATABASE.length
+  const r = cfg.sliderRanges
 
   const handleAllocationChange = (key: keyof Allocation, value: number) => {
     const newAlloc = { ...store.allocation, [key]: value / 100 }
@@ -35,16 +44,35 @@ export function Controls() {
   const allocValid = Math.abs(allocSum - 1) <= 0.001
   const savingsRate = store.annualIncome > 0
     ? store.annualContribution / store.annualIncome : 0
+  const fmtVal = (v: number) => formatSliderValue(v, region)
+  const fmtMonthly = (v: number) => formatSliderValue(Math.round(v / 12), region)
 
   return (
     <Box sx={{ p: 2.5, display: 'flex', flexDirection: 'column', gap: 1 }}>
+      {/* 地區切換 */}
+      <Typography variant="overline" color="text.secondary" fontWeight={700}>
+        地區版本
+      </Typography>
+      <ToggleButtonGroup fullWidth size="small" exclusive
+        value={region} onChange={(_, v) => v && store.setRegion(v as Region)}
+        sx={{ mb: 0.5 }}>
+        <ToggleButton value="us">
+          🇺🇸 美國版 (USD)
+        </ToggleButton>
+        <ToggleButton value="tw">
+          🇹🇼 台灣版 (TWD)
+        </ToggleButton>
+      </ToggleButtonGroup>
+
+      <Divider sx={{ my: 1 }} />
+
       {/* 生活風格選擇 */}
       <Typography variant="overline" color="text.secondary" fontWeight={700}>
         生活風格
       </Typography>
 
       <Grid container spacing={1}>
-        {LIFESTYLE_LIST.map(preset => (
+        {lifestyleList.map(preset => (
           <Grid size={6} key={preset.id}>
             <Card variant={store.lifestyleId === preset.id ? 'elevation' : 'outlined'}
               elevation={store.lifestyleId === preset.id ? 4 : 0}
@@ -70,7 +98,7 @@ export function Controls() {
 
       {store.lifestyleId !== 'custom' && (
         <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, lineHeight: 1.4 }}>
-          {LIFESTYLE_LIST.find(p => p.id === store.lifestyleId)?.description}
+          {lifestyleList.find(p => p.id === store.lifestyleId)?.description}
         </Typography>
       )}
       {store.lifestyleId === 'custom' && (
@@ -85,20 +113,20 @@ export function Controls() {
       </Typography>
 
       <SliderField label="年收入" value={store.annualIncome} unit=""
-        min={20000} max={500000} step={5000} onChange={store.setAnnualIncome}
-        format={v => `$${v.toLocaleString()}`} />
+        min={r.annualIncome.min} max={r.annualIncome.max} step={r.annualIncome.step}
+        onChange={store.setAnnualIncome} format={fmtVal} />
       <SliderField label="年生活開銷" value={store.annualExpense} unit=""
-        min={10000} max={300000} step={5000} onChange={store.setAnnualExpense}
-        format={v => `$${v.toLocaleString()}`} />
+        min={r.annualExpense.min} max={r.annualExpense.max} step={r.annualExpense.step}
+        onChange={store.setAnnualExpense} format={fmtVal} />
       <SliderField label="年存入投資" value={store.annualContribution} unit=""
-        min={0} max={200000} step={1000} onChange={store.setAnnualContribution}
-        format={v => `$${v.toLocaleString()}`} />
+        min={r.annualContribution.min} max={r.annualContribution.max} step={r.annualContribution.step}
+        onChange={store.setAnnualContribution} format={fmtVal} />
 
       <Stack direction="row" spacing={1} sx={{ mb: 0.5 }}>
         <Chip size="small" variant="outlined" color={savingsRate >= 0.3 ? 'success' : savingsRate >= 0.15 ? 'warning' : 'error'}
           label={`儲蓄率 ${(savingsRate * 100).toFixed(0)}%`} />
         <Chip size="small" variant="outlined"
-          label={`月開銷 $${Math.round(store.annualExpense / 12).toLocaleString()}`} />
+          label={`月開銷 ${fmtMonthly(store.annualExpense)}`} />
       </Stack>
 
       <Divider sx={{ my: 1 }} />
@@ -115,8 +143,8 @@ export function Controls() {
       <SliderField label="模擬結束" value={store.endAge} unit="歲"
         min={store.retirementAge + 1} max={100} onChange={store.setEndAge} />
       <SliderField label="起始資產" value={store.initialPortfolio} unit=""
-        min={0} max={2000000} step={10000} onChange={store.setInitialPortfolio}
-        format={v => `$${v.toLocaleString()}`} />
+        min={r.initialPortfolio.min} max={r.initialPortfolio.max} step={r.initialPortfolio.step}
+        onChange={store.setInitialPortfolio} format={fmtVal} />
 
       <Divider sx={{ my: 1 }} />
 
@@ -132,8 +160,8 @@ export function Controls() {
       {ASSET_KEYS.map(key => (
         <Box key={key}>
           <Stack direction="row" justifyContent="space-between" alignItems="center">
-            <Typography variant="body2" sx={{ color: ASSET_META[key].color, fontWeight: 600 }}>
-              {ASSET_META[key].label}
+            <Typography variant="body2" sx={{ color: ASSET_COLORS[key], fontWeight: 600 }}>
+              {cfg.assetLabels[key]}
             </Typography>
             <Typography variant="body2" fontWeight={700}>
               {(store.allocation[key] * 100).toFixed(0)}%
@@ -142,7 +170,7 @@ export function Controls() {
           <Slider size="small" min={0} max={100} step={5}
             value={store.allocation[key] * 100}
             onChange={(_, v) => handleAllocationChange(key, v as number)}
-            sx={{ color: ASSET_META[key].color, py: 0.5 }} />
+            sx={{ color: ASSET_COLORS[key], py: 0.5 }} />
         </Box>
       ))}
 
@@ -182,20 +210,20 @@ export function Controls() {
       )}
       {store.withdrawal.type === 'fixed_amount' && (
         <SliderField label="年提領額" value={store.withdrawal.amount} unit=""
-          min={10000} max={300000} step={5000}
+          min={r.withdrawalAmount.min} max={r.withdrawalAmount.max} step={r.withdrawalAmount.step}
           onChange={v => store.setWithdrawal({ type: 'fixed_amount', amount: v })}
-          format={v => `$${v.toLocaleString()}`} />
+          format={fmtVal} />
       )}
       {store.withdrawal.type === 'dynamic' && (
         <>
           <SliderField label="提領下限" value={store.withdrawal.floor} unit=""
-            min={10000} max={200000} step={5000}
-            onChange={v => store.setWithdrawal({ ...store.withdrawal, type: 'dynamic', floor: v })}
-            format={v => `$${v.toLocaleString()}`} />
+            min={r.withdrawalFloor.min} max={r.withdrawalFloor.max} step={r.withdrawalFloor.step}
+            onChange={v => store.setWithdrawal({ type: 'dynamic', floor: v, ceiling: store.withdrawal.type === 'dynamic' ? store.withdrawal.ceiling : v * 2 })}
+            format={fmtVal} />
           <SliderField label="提領上限" value={store.withdrawal.ceiling} unit=""
-            min={20000} max={300000} step={5000}
-            onChange={v => store.setWithdrawal({ ...store.withdrawal, type: 'dynamic', ceiling: v })}
-            format={v => `$${v.toLocaleString()}`} />
+            min={r.withdrawalCeiling.min} max={r.withdrawalCeiling.max} step={r.withdrawalCeiling.step}
+            onChange={v => store.setWithdrawal({ type: 'dynamic', floor: store.withdrawal.type === 'dynamic' ? store.withdrawal.floor : v / 2, ceiling: v })}
+            format={fmtVal} />
         </>
       )}
 
@@ -216,7 +244,9 @@ export function Controls() {
               {store.enableEvents ? '已啟用' : '未啟用'}
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              市場崩盤、失業、疾病、家庭事件等 24 種隨機事件
+              {region === 'tw'
+                ? `台股崩盤、台海危機、颱風地震等 ${eventCount} 種台灣版隨機事件`
+                : `市場崩盤、失業、疾病、家庭事件等 ${eventCount} 種隨機事件`}
             </Typography>
           </Stack>
         }

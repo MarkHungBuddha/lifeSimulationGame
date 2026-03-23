@@ -3,8 +3,14 @@ import type { Allocation, WithdrawalStrategy, PathResult } from '../engine/simul
 import { simulatePath } from '../engine/simulator'
 import type { WorkerDoneMsg, WorkerRequest } from '../engine/worker'
 import { LIFESTYLE_PRESETS, type LifestyleId } from '../engine/lifestyle'
+import { LIFESTYLE_PRESETS_TW } from '../engine/lifestyle_tw'
+import type { Region } from '../config/regions'
 import historicalData from '../../data/assets_returns.json'
 import type { HistoricalData } from '../engine/bootstrap'
+
+function getLifestylePresets(region: Region) {
+  return region === 'tw' ? LIFESTYLE_PRESETS_TW : LIFESTYLE_PRESETS
+}
 
 interface SimResult {
   successRate: number
@@ -20,6 +26,9 @@ interface SimResult {
 type ViewMode = 'simulation' | 'story'
 
 interface GameState {
+  // 地區
+  region: Region
+
   // 生活風格
   lifestyleId: LifestyleId
   annualIncome: number
@@ -49,6 +58,7 @@ interface GameState {
   isStoryRunning: boolean
 
   // Actions
+  setRegion: (r: Region) => void
   applyLifestyle: (id: Exclude<LifestyleId, 'custom'>) => void
   setAnnualIncome: (v: number) => void
   setAnnualExpense: (v: number) => void
@@ -71,6 +81,7 @@ let worker: Worker | null = null
 const defaultPreset = LIFESTYLE_PRESETS.moderate
 
 export const useGameStore = create<GameState>((set, get) => ({
+  region: 'us',
   lifestyleId: 'moderate',
   annualIncome: defaultPreset.annualIncome,
   annualExpense: defaultPreset.annualExpense,
@@ -94,8 +105,27 @@ export const useGameStore = create<GameState>((set, get) => ({
   storyResult: null,
   isStoryRunning: false,
 
+  setRegion: (r) => {
+    const presets = getLifestylePresets(r)
+    const preset = presets.moderate
+    set({
+      region: r,
+      lifestyleId: 'moderate',
+      annualIncome: preset.annualIncome,
+      annualExpense: preset.annualExpense,
+      retirementAge: preset.retirementAge,
+      initialPortfolio: preset.initialPortfolio,
+      annualContribution: preset.annualContribution,
+      allocation: { ...preset.allocation },
+      withdrawal: preset.withdrawal,
+      result: null,
+      storyResult: null,
+    })
+  },
+
   applyLifestyle: (id) => {
-    const preset = LIFESTYLE_PRESETS[id]
+    const presets = getLifestylePresets(get().region)
+    const preset = presets[id]
     set({
       lifestyleId: id,
       annualIncome: preset.annualIncome,
@@ -162,6 +192,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         allocation: state.allocation,
         withdrawal: state.withdrawal,
         enableEvents: state.enableEvents,
+        region: state.region,
       },
       numPaths: state.numPaths,
       masterSeed: Date.now(),
@@ -188,6 +219,7 @@ export const useGameStore = create<GameState>((set, get) => ({
           allocation: state.allocation,
           withdrawal: state.withdrawal,
           enableEvents: true,  // 故事模式強制啟用事件
+          region: state.region,
         },
         Date.now(),
       )

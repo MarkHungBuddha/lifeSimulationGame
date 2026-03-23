@@ -13,6 +13,7 @@
 import { blockBootstrap, type HistoricalData, type YearReturns } from './bootstrap'
 import { rollEventsForYear } from '../events/eventEngine'
 import type { TriggeredEvent } from '../events/eventTypes'
+import type { Region } from '../config/regions'
 
 /** 資產配置權重（總和必須為 1） */
 export interface Allocation {
@@ -40,6 +41,7 @@ export interface SimulationParams {
   allocation: Allocation
   withdrawal: WithdrawalStrategy
   enableEvents: boolean     // 是否啟用隨機事件
+  region?: Region           // 地區（影響事件資料庫）
 }
 
 /** 單年模擬快照 */
@@ -140,7 +142,7 @@ export function simulatePath(
       // 每年事件用不同 seed（路徑 seed + 年份偏移）
       const eventSeed = seed * 1000 + y * 37
       const isRetired = age >= params.retirementAge
-      const result = rollEventsForYear(eventSeed, age, y, portfolio, effectiveIncome, isRetired)
+      const result = rollEventsForYear(eventSeed, age, y, portfolio, effectiveIncome, isRetired, params.region ?? 'us')
       events = result.events
       eventPortfolioImpact = result.totalPortfolioImpact
       eventIncomeImpact = result.totalIncomeImpact
