@@ -20,20 +20,28 @@ description: >
 ```
 assets_returns.json          ← 已完成 ✅
         ↓
-Block Bootstrap Engine       ← 下一步
+Block Bootstrap Engine       ← 已完成 ✅ (src/engine/bootstrap.ts)
+        ↓
+Single Path Simulator        ← 已完成 ✅ (src/engine/simulator.ts)
+        ↓
+Monte Carlo Runner           ← 已完成 ✅ (src/engine/runner.ts, 10,000 paths)
+        ↓
+Web Worker                   ← 已完成 ✅ (src/engine/worker.ts)
+        ↓
+Visualization Layer          ← 已完成 ✅ (Canvas Percentile Band Chart)
+        ↓
+React UI (MUI)               ← 已完成 ✅ (Controls + ResultPanel)
         ↓
 Event System                 ← 待開發
         ↓
-Monte Carlo Runner           ← 待開發（10,000 paths, Web Worker）
+Spaghetti Chart              ← 待開發
         ↓
-Visualization Layer          ← 待開發（Spaghetti Chart, Percentile Bands）
-        ↓
-React UI / Game Loop         ← 待開發
+Game Loop                    ← 待開發
 ```
 
 ---
 
-## 模組一：資料層（已完成）
+## 模組一：資料層（已完成 ✅）
 
 ### 資料來源
 - **美股 (sp500)**：Shiller S&P 500 年度報酬
@@ -44,7 +52,7 @@ React UI / Game Loop         ← 待開發
 - **通膨 (cpi)**：BLS CPI
 
 ### 檔案
-- `assets_returns.json`：1972–2023，52 年，六個欄位
+- `data/assets_returns.json`：1972–2023，52 年，六個欄位（含 real 報酬）
 
 ### 關鍵統計（名目報酬）
 
@@ -67,139 +75,121 @@ React UI / Game Loop         ← 待開發
 
 ---
 
-## 模組二：Block Bootstrap 引擎（待開發）
+## 模組二：Block Bootstrap 引擎（已完成 ✅）
 
-### 為何用 Block Bootstrap
-- 放回抽樣會破壞景氣循環的序列相關性
-- Block Bootstrap 一次抽連續 3–5 年區塊，保留短期市場動能
+### 實作檔案
+- `src/engine/rng.ts` — xoshiro128** seeded PRNG
+- `src/engine/bootstrap.ts` — Block Bootstrap 重抽樣
 
-### 實作要點
+### 設計決策
+- **RNG**：xoshiro128**（splitmix32 展開 seed → 4 個 32-bit 狀態）
+- **Block size**：4 年（平衡序列相關性與樣本多樣性）
+- **Seed 管理**：每條路徑 seed = masterSeed + pathIndex，保證可重現
 
-```javascript
-// 每次模擬用獨立 seed，保證可重現
-const seed = Date.now()
-const rng = createSeededRNG(seed)  // 推薦 Mulberry32 或 xoshiro128
-
-function blockBootstrap(data, years, blockSize = 4) {
-  const yearKeys = Object.keys(data)  // ['1972', '1973', ...]
-  const result = []
-  while (result.length < years) {
-    // 隨機選一個起始年份
-    const startIdx = Math.floor(rng() * (yearKeys.length - blockSize))
-    for (let i = 0; i < blockSize && result.length < years; i++) {
-      result.push(data[yearKeys[startIdx + i]])
-    }
-  }
-  return result  // 長度 = 模擬年數，保留資產聯合分佈
-}
-```
-
-### Seed 管理
-```javascript
-// 每條路徑用不同 seed，但同一次模擬可重現
-function runSimulation(params, masterSeed) {
-  return Array.from({ length: params.numPaths }, (_, i) => {
-    const pathSeed = masterSeed + i
-    return simulatePath(params, pathSeed)
-  })
-}
+### 介面
+```typescript
+createSeededRNG(seed: number): () => number  // [0, 1)
+blockBootstrap(data, years, seed, blockSize?): YearReturns[]
 ```
 
 ---
 
-## 模組三：事件系統（待開發）
+## 模組三：單條路徑模擬器（已完成 ✅）
+
+### 實作檔案
+- `src/engine/simulator.ts`
+
+### 每年模擬步驟
+1. Block Bootstrap 抽出該年各資產報酬
+2. 累計通膨：`cumulativeInflation *= (1 + cpi)`
+3. 退休前：加入年存款（通膨調整）
+4. 計算加權報酬：`portfolio *= (1 + weightedReturn)`
+5. 退休後：扣除提領金額（通膨調整）
+6. 破產檢查（資產 ≤ 0）
+
+### 三種提領策略
+- `fixed_rate`：4% 法則（初始資產 × rate × 累計通膨）
+- `fixed_amount`：固定金額（通膨調整）
+- `dynamic`：當前資產 4%，設上下限（通膨調整）
+
+### 介面
+```typescript
+simulatePath(data, params, seed): PathResult
+// PathResult: { seed, snapshots[], finalPortfolio, bankrupt, bankruptAge }
+```
+
+---
+
+## 模組四：Monte Carlo Runner + Web Worker（已完成 ✅）
+
+### 實作檔案
+- `src/engine/runner.ts` — 批次模擬 + percentile 計算
+- `src/engine/worker.ts` — Web Worker 包裝
+
+### 功能
+- 執行 N 條路徑（預設 10,000）
+- 計算 percentile（p10/p25/p50/p75/p90）每年資產值
+- 計算成功率（未破產比率）
+- 進度回呼（每 500 條路徑）
+- Worker 只回傳統計結果（不傳完整 paths，節省記憶體）
+
+### 介面
+```typescript
+runMonteCarlo(data, params, numPaths?, masterSeed?, onProgress?): MonteCarloResult
+// Worker 訊息：{ type: 'run', ... } → { type: 'progress' | 'done', ... }
+```
+
+---
+
+## 模組五：視覺化（部分完成）
+
+### 已完成 ✅
+- **Percentile Band Chart**（Canvas，HiDPI 支援）
+  - P10–P90 淺色帶、P25–P75 深色帶、P50 實線
+  - 退休年齡虛線標記
+  - MUI 主題色彩
+- **成功率 Hero**：大字顯示 + 顏色語義（綠/黃/紅）
+- **統計卡片**：中位最終資產、中位破產年齡、P90/P10 最終資產
+- **Percentile 表格**：每 5 年一行，退休年齡高亮
+
+### 待開發 ⬜
+- **Spaghetti Chart**（Canvas，抽樣 200 條路徑）
+- **Percentile / Spaghetti 切換**
+
+---
+
+## 模組六：UI 層（已完成 ✅）
+
+### 實作檔案
+- `src/main.tsx` — MUI ThemeProvider + Noto Sans TC
+- `src/App.tsx` — AppBar + Drawer 響應式佈局
+- `src/components/Controls.tsx` — 參數控制面板
+- `src/components/ResultPanel.tsx` — 結果顯示面板
+- `src/store/gameStore.ts` — Zustand 狀態管理
+
+### UI 設計
+- **Material Design** — MUI v7 元件
+- **響應式**：桌面 permanent Drawer，手機漢堡選單
+- **控制面板**：MUI Slider（資產配置各有獨立色彩）、Select、Button
+- **進度條**：LinearProgress + 百分比顯示
+
+---
+
+## 模組七：事件系統（待開發 ⬜）
 
 ### 事件資料結構
 ```javascript
 const EVENTS = [
-  {
-    id: 'market_crash',
-    name: '市場崩盤',
-    probability: 0.05,        // 每年觸發機率
-    type: 'market_shock',
-    impact: { sp500: -0.35, bond: +0.15, gold: +0.10 },
-    duration: 1,
-  },
-  {
-    id: 'medical_emergency',
-    name: '重大醫療支出',
-    probability: 0.03,
-    type: 'expense_shock',
-    impact: { expense_one_time: 80000 },
-  },
-  {
-    id: 'career_break',
-    name: '職涯中斷',
-    probability: 0.02,
-    type: 'income_shock',
-    impact: { income_multiplier: 0, duration: 2 },
-  },
-  {
-    id: 'inflation_spike',
-    name: '通膨飆升',
-    probability: 0.04,
-    type: 'inflation_shock',
-    impact: { cpi_override: 0.12, duration: 2 },
-  },
+  { id: 'market_crash', name: '市場崩盤', probability: 0.05, type: 'market_shock',
+    impact: { sp500: -0.35, bond: +0.15, gold: +0.10 }, duration: 1 },
+  { id: 'medical_emergency', name: '重大醫療支出', probability: 0.03, type: 'expense_shock',
+    impact: { expense_one_time: 80000 } },
+  { id: 'career_break', name: '職涯中斷', probability: 0.02, type: 'income_shock',
+    impact: { income_multiplier: 0, duration: 2 } },
+  { id: 'inflation_spike', name: '通膨飆升', probability: 0.04, type: 'inflation_shock',
+    impact: { cpi_override: 0.12, duration: 2 } },
 ]
 ```
-
-### 事件觸發邏輯（每年模擬時執行）
-```javascript
-function rollEvents(rng, year, playerAge) {
-  return EVENTS.filter(event => {
-    const adjustedProb = adjustByAge(event, playerAge)
-    return rng() < adjustedProb
-  })
-}
-```
-
----
-
-## 模組四：Monte Carlo Runner（待開發）
-
-### 效能建議
-
-| 路徑數    | 執行時間（估計） | 建議方式           |
-|----------|--------------|------------------|
-| 1,000    | < 1 秒       | 主執行緒           |
-| 10,000   | 1–3 秒       | **Web Worker（推薦）** |
-| 100,000  | 10+ 秒       | Web Worker 必須    |
-
-### 鎖定目標
-- **10,000 路徑**，收斂足夠，體驗流暢
-- Web Worker 避免 UI 凍結
-
-### 輸出格式
-```javascript
-{
-  seed: 1748273422,
-  successRate: 0.847,          // 50 年未破產比率
-  paths: Float32Array[],       // 10000 條路徑，記憶體優化
-  percentiles: {
-    p10: [...],                // 每年第 10 百分位資產值
-    p25: [...],
-    p50: [...],
-    p75: [...],
-    p90: [...],
-  },
-  medianDepletionYear: null,   // 若成功率 < 50%，資產耗盡中位年份
-}
-```
-
----
-
-## 模組五：視覺化（待開發）
-
-### 圖表類型
-1. **Spaghetti Chart**：100 條半透明路徑（存活=藍，破產=紅）
-2. **Percentile Band Chart**：p10/p50/p90 帶狀圖，主要呈現工具
-3. **Success Rate Gauge**：大字顯示存活機率
-
-### 渲染建議
-- 10,000 條路徑不渲染全部，只渲染抽樣的 200 條做 Spaghetti
-- Percentile bands 用 filled area（recharts 或 D3）
-- 考慮 Canvas API 取代 SVG，大量路徑效能更好
 
 ---
 
@@ -223,23 +213,27 @@ function rollEvents(rng, year, playerAge) {
 
 ## 技術棧
 
-- **前端**：React + TypeScript
-- **狀態管理**：Zustand（輕量，適合滑桿即時更新）
-- **圖表**：Recharts（Percentile bands）+ Canvas（Spaghetti）
+- **前端**：React 19 + TypeScript
+- **UI 框架**：MUI v7（Material Design）
+- **狀態管理**：Zustand
+- **圖表**：Canvas API（Percentile Band Chart）
 - **運算**：Web Worker（模擬引擎隔離）
-- **隨機數**：xoshiro128 或 Mulberry32（比 Math.random 快且可 seed）
+- **隨機數**：xoshiro128**（可 seed、比 Math.random 快）
+- **建構工具**：Vite 8
+- **測試**：Vitest（16 個測試覆蓋 RNG / Bootstrap / Simulator）
 - **資料**：`assets_returns.json` 靜態打包，不需後端
+- **字型**：Noto Sans TC + Roboto
 
 ---
 
-## 開發順序建議
+## 開發順序
 
 1. ✅ 資料層（`assets_returns.json`）
-2. ⬜ Block Bootstrap + Seed RNG 核心
-3. ⬜ 單條路徑模擬（含資產配置計算）
-4. ⬜ 批次 10,000 路徑 + Web Worker
-5. ⬜ 基本 UI（滑桿 + 存活率數字）
-6. ⬜ Percentile Band 圖表
+2. ✅ Block Bootstrap + Seed RNG 核心（`rng.ts`, `bootstrap.ts`）
+3. ✅ 單條路徑模擬（`simulator.ts`，含資產配置、通膨調整、三種提領策略）
+4. ✅ 批次 10,000 路徑 + Web Worker（`runner.ts`, `worker.ts`）
+5. ✅ 基本 UI — MUI Material Design（Controls + ResultPanel + Zustand）
+6. ✅ Percentile Band Chart（Canvas，HiDPI，退休線標記）
 7. ⬜ 事件系統
 8. ⬜ Spaghetti Chart + 動畫
 9. ⬜ 完整遊戲迴圈

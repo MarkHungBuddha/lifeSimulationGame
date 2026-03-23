@@ -1,88 +1,68 @@
 # 蒙地卡羅人生模擬遊戲 — 開發計畫
 
-## 專案狀態：Phase 1 資料層完成
+## 專案狀態：Phase 1–5 完成（引擎 + UI + 視覺化）
 
 ---
 
 ## 已完成
 
-### ✅ 設計藍圖確立
+### ✅ Phase 1：設計藍圖 + 資料層
 - 核心玩法迴圈（初始設定 → 策略擬定 → 模擬檢視 → 動態事件）
 - 五大系統模組定義完成
 - 技術架構選型完成
-
-### ✅ 資料策略決定
 - **選用路線 B：歷史序列重抽樣（Block Bootstrap）**
   - 不用常態分佈假設，從真實歷史年份聯合抽樣
   - 保留資產間相關性（股災時黃金上漲等真實關係）
   - 保留肥尾分佈，比常態分佈更接近現實
-- 統一起點：1972 年（五個資產類別最短公分母）
-- 資料全部靜態打包，不依賴外部 API
+- 資料整合完成（`data/assets_returns.json`）
+  - 覆蓋 1972–2023，共 52 年
+  - 五個資產類別：sp500、bond、gold、cash、reits + cpi
+  - 重大事件年份驗證通過
 
-### ✅ 資料整合完成（`assets_returns.json`）
-- 覆蓋 1972–2023，共 52 年
-- 五個資產類別：sp500、bond、gold、cash、reits
-- 含通膨（cpi）欄位，可計算實質報酬
-- 重大事件年份驗證通過（2008 股票 -37% / 公債 +26% 等邏輯正確）
+### ✅ Phase 2：模擬引擎核心
+- xoshiro128** Seeded RNG（`src/engine/rng.ts`）
+- Block Bootstrap 重抽樣（`src/engine/bootstrap.ts`，block size = 4）
+- 單條路徑模擬器（`src/engine/simulator.ts`）
+  - 每年：抽歷史年份 → 加權報酬 → 通膨調整提領 → 破產檢查
+  - 三種提領策略：4% 法則 / 固定金額 / 動態提領
+  - 驗證：相同 seed 產出相同結果 ✅
+- 16 個測試全數通過（`tests/engine.test.ts`）
+
+### ✅ Phase 3：批次模擬 + Web Worker
+- Monte Carlo Runner（`src/engine/runner.ts`）
+  - 批次執行 10,000 條路徑
+  - 計算 Percentile（p10/p25/p50/p75/p90）
+  - 計算成功率（未破產比率）
+  - 中位最終資產 / 中位破產年齡
+- Web Worker（`src/engine/worker.ts`）
+  - 背景執行，UI 不凍結
+  - 進度回呼（每 500 條路徑）
+  - 只回傳統計結果，節省記憶體
+
+### ✅ Phase 4：基礎 UI（Material Design）
+- MUI v7 + Noto Sans TC 字型（`src/main.tsx`）
+- 響應式 AppBar + Drawer 佈局（`src/App.tsx`）
+- 控制面板（`src/components/Controls.tsx`）
+  - 年齡 / 資產 / 存款 Slider
+  - 資產配置滑桿（5 個資產，獨立色彩，總和驗證）
+  - 提領策略 Select
+  - 模擬路徑數 Slider
+  - 執行按鈕 + LinearProgress 進度條
+- 結果面板（`src/components/ResultPanel.tsx`）
+  - 成功率 Hero（顏色語義：綠 ≥80% / 黃 ≥50% / 紅）
+  - 統計卡片 Grid（中位最終資產、破產年齡、P90/P10）
+  - Percentile 表格（每 5 年，退休年齡高亮）
+- Zustand 狀態管理（`src/store/gameStore.ts`）
+
+### ✅ Phase 5：視覺化（部分）
+- Percentile Band Chart（Canvas，HiDPI）
+  - P10–P90 淺色帶、P25–P75 深色帶、P50 實線
+  - 退休年齡虛線標記
+  - 網格線 + Y 軸金額標籤
 
 ---
 
 ## 待開發任務
-
-### Phase 2：模擬引擎核心
-**目標：一條路徑能正確跑完 50 年**
-
-- [ ] 實作 Seeded RNG（推薦 xoshiro128）
-- [ ] 實作 Block Bootstrap（block size = 4）
-- [ ] 單條路徑模擬
-  - 每年：抽歷史年份 → 計算加權報酬 → 扣提領金額 → 扣通膨
-  - 檢查破產條件（資產 ≤ 0）
-  - 輸出每年資產值陣列
-- [ ] 驗證：相同 seed 產出相同結果
-
-**關鍵決策點**
-- 提領金額是否通膨調整？（建議：是，採 4% 法則實質提領）
-- 資產配置再平衡頻率？（建議：每年自動再平衡）
-
----
-
-### Phase 3：批次模擬 + Web Worker
-**目標：10,000 條路徑，UI 不凍結**
-
-- [ ] 將模擬引擎移入 Web Worker
-- [ ] 主執行緒 ↔ Worker 通訊介面設計
-- [ ] 批次執行 10,000 條路徑
-- [ ] 計算 Percentile（p10/p25/p50/p75/p90）
-- [ ] 計算成功率（50 年內未破產比率）
-- [ ] 輸出格式：`Float32Array` 記憶體優化
-
----
-
-### Phase 4：基礎 UI
-**目標：可以操作滑桿看到結果數字**
-
-- [ ] 初始設定表單（年齡、退休年齡、起始資金）
-- [ ] 資產配置滑桿（5 個資產，總和鎖定 100%）
-- [ ] 提領策略選擇（4% 固定 / 動態 / 自訂金額）
-- [ ] 「執行模擬」按鈕 → 顯示成功率大數字
-- [ ] Loading 狀態（Web Worker 執行中）
-
----
-
-### Phase 5：視覺化
-**目標：Percentile Band 圖表**
-
-- [ ] Percentile Band Chart（recharts filled area）
-  - X 軸：年份（0–50）
-  - Y 軸：資產值
-  - 帶狀：p10–p90 填充，p50 主線
-- [ ] Spaghetti Chart（Canvas，抽樣 200 條路徑）
-  - 存活路徑：藍色，opacity 0.15
-  - 破產路徑：紅色，opacity 0.2
-- [ ] 成功率 Gauge / 大字顯示
-- [ ] 切換：Percentile / Spaghetti 兩種視角
-
----
 
 ### Phase 6：事件系統
 **目標：時間推進 + 隨機事件干預**
@@ -90,8 +70,18 @@
 - [ ] 事件資料庫定義（市場崩盤、醫療支出、職涯中斷、通膨飆升）
 - [ ] 每年事件擲骰子邏輯
 - [ ] 事件觸發後強制插入當年模擬
-- [ ] 玩家事件決策介面（彈出視窗 → 調整配置）
+- [ ] 玩家事件決策介面（MUI Dialog → 調整配置）
 - [ ] 遊戲時間軸推進 UI
+
+---
+
+### Phase 5b：Spaghetti Chart
+**目標：個別路徑視覺化**
+
+- [ ] Spaghetti Chart（Canvas，抽樣 200 條路徑）
+  - 存活路徑：藍色，opacity 0.15
+  - 破產路徑：紅色，opacity 0.2
+- [ ] Percentile / Spaghetti 切換 Tab
 
 ---
 
@@ -113,10 +103,12 @@
 | 歷史起點 | 1972 | 五資產最短公分母 |
 | 模擬路徑數 | 10,000 | 收斂足夠，1–3 秒可接受 |
 | 運算方式 | Web Worker | 避免 UI 凍結 |
-| RNG | xoshiro128 | 可 seed、比 Math.random 快 |
+| RNG | xoshiro128** | 可 seed、快、週期長 |
 | Bootstrap block size | 4 年 | 平衡序列相關性與樣本多樣性 |
-| 圖表庫 | recharts + Canvas | Percentile 用 recharts，Spaghetti 用 Canvas |
+| 圖表 | Canvas API | HiDPI 支援，大量路徑效能好 |
+| UI 框架 | MUI v7 | Material Design，響應式 |
 | 狀態管理 | Zustand | 輕量，適合滑桿即時更新 |
+| 建構工具 | Vite 8 | 快速 HMR，原生 ES module |
 | 後端 | 無 | 純前端，JSON 靜態打包 |
 
 ---
@@ -127,34 +119,41 @@
 |-----|------|------|
 | 52 年資料抽 50 年模擬，樣本數偏小 | 模擬多樣性不足 | Block Bootstrap 部分緩解；未來可加入 Parametric 補充 |
 | Canvas Spaghetti 10,000 條效能 | UI 卡頓 | 只渲染抽樣 200 條，其餘只算 Percentile |
-| 事件系統讓每次模擬路徑長度不一致 | 統計計算複雜 | 事件只影響當年參數，路徑長度固定為 50 年 |
+| 事件系統讓每次模擬路徑長度不一致 | 統計計算複雜 | 事件只影響當年參數，路徑長度固定 |
 | 黃金資料 1968 前無歷史 | 資料缺口 | 已鎖定 1972 起點解決 |
 
 ---
 
-## 檔案結構（目標）
+## 檔案結構（目前）
 
 ```
-monte-carlo-game/
-├── SKILL.md
-├── PLAN.md
+lifeSimulationGame/
+├── SKILL.md                          ✅
+├── PLAN.md                           ✅
+├── README.md                         ✅
+├── index.html                        ✅
+├── package.json                      ✅
+├── tsconfig.json                     ✅
+├── vite.config.ts                    ✅
 ├── data/
-│   └── assets_returns.json     ✅
+│   └── assets_returns.json           ✅
 ├── src/
+│   ├── main.tsx                      ✅ MUI Theme + 進入點
+│   ├── App.tsx                       ✅ AppBar + Drawer 佈局
 │   ├── engine/
-│   │   ├── rng.ts               ← Phase 2
-│   │   ├── bootstrap.ts         ← Phase 2
-│   │   ├── simulator.ts         ← Phase 2
-│   │   └── worker.ts            ← Phase 3
-│   ├── events/
-│   │   └── events.ts            ← Phase 6
+│   │   ├── index.ts                  ✅ 統一匯出
+│   │   ├── rng.ts                    ✅ xoshiro128** PRNG
+│   │   ├── bootstrap.ts             ✅ Block Bootstrap
+│   │   ├── simulator.ts             ✅ 單條路徑模擬
+│   │   ├── runner.ts                ✅ 批次 Monte Carlo
+│   │   └── worker.ts                ✅ Web Worker
 │   ├── components/
-│   │   ├── Controls.tsx         ← Phase 4
-│   │   ├── PercentileChart.tsx  ← Phase 5
-│   │   ├── SpaghettiChart.tsx   ← Phase 5
-│   │   └── GameLoop.tsx         ← Phase 7
-│   └── store/
-│       └── gameStore.ts         ← Phase 4
-└── public/
-    └── assets_returns.json
+│   │   ├── Controls.tsx             ✅ MUI 控制面板
+│   │   └── ResultPanel.tsx          ✅ MUI 結果 + Canvas 圖表
+│   ├── store/
+│   │   └── gameStore.ts             ✅ Zustand
+│   └── events/
+│       └── events.ts                ← Phase 6
+└── tests/
+    └── engine.test.ts               ✅ 16 tests passed
 ```
