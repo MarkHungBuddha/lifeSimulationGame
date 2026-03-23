@@ -1,10 +1,5 @@
 /**
  * Web Worker — 在背景執行緒跑 Monte Carlo 模擬
- *
- * 訊息協議：
- *   主執行緒 → Worker: { type: 'run', data, params, numPaths, masterSeed }
- *   Worker → 主執行緒: { type: 'progress', progress }
- *   Worker → 主執行緒: { type: 'done', result }
  */
 
 import { runMonteCarlo } from './runner'
@@ -33,6 +28,8 @@ export interface WorkerDoneMsg {
     percentiles: { p10: number[]; p25: number[]; p50: number[]; p75: number[]; p90: number[] }
     medianFinalPortfolio: number
     medianDepletionAge: number | null
+    maxDrawdown: { median: number; p75: number; p90: number; worst: number }
+    eventsEnabled: boolean
   }
 }
 
@@ -45,7 +42,6 @@ self.onmessage = (e: MessageEvent<WorkerRequest>) => {
     self.postMessage({ type: 'progress', progress } satisfies WorkerProgressMsg)
   })
 
-  // 不傳完整 paths（太大），只傳統計結果
   self.postMessage({
     type: 'done',
     result: {
@@ -55,6 +51,8 @@ self.onmessage = (e: MessageEvent<WorkerRequest>) => {
       percentiles: result.percentiles,
       medianFinalPortfolio: result.medianFinalPortfolio,
       medianDepletionAge: result.medianDepletionAge,
+      maxDrawdown: result.maxDrawdown,
+      eventsEnabled: params.enableEvents,
     },
   } satisfies WorkerDoneMsg)
 }

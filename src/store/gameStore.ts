@@ -1,6 +1,8 @@
 import { create } from 'zustand'
-import type { Allocation, WithdrawalStrategy } from '../engine/simulator'
+import type { Allocation, WithdrawalStrategy, PathResult } from '../engine/simulator'
+import { simulatePath } from '../engine/simulator'
 import type { WorkerDoneMsg, WorkerRequest } from '../engine/worker'
+import { LIFESTYLE_PRESETS, type LifestyleId } from '../engine/lifestyle'
 import historicalData from '../../data/assets_returns.json'
 import type { HistoricalData } from '../engine/bootstrap'
 
@@ -9,11 +11,20 @@ interface SimResult {
   percentiles: { p10: number[]; p25: number[]; p50: number[]; p75: number[]; p90: number[] }
   medianFinalPortfolio: number
   medianDepletionAge: number | null
+  maxDrawdown: { median: number; p75: number; p90: number; worst: number }
   numPaths: number
   masterSeed: number
+  eventsEnabled: boolean
 }
 
+type ViewMode = 'simulation' | 'story'
+
 interface GameState {
+  // 生活風格
+  lifestyleId: LifestyleId
+  annualIncome: number
+  annualExpense: number
+
   // 參數
   currentAge: number
   retirementAge: number
@@ -23,13 +34,24 @@ interface GameState {
   allocation: Allocation
   withdrawal: WithdrawalStrategy
   numPaths: number
+  enableEvents: boolean
 
-  // 狀態
+  // 頁面
+  viewMode: ViewMode
+
+  // 批次模擬狀態
   isRunning: boolean
   progress: number
   result: SimResult | null
 
+  // 人生故事模式
+  storyResult: PathResult | null
+  isStoryRunning: boolean
+
   // Actions
+  applyLifestyle: (id: Exclude<LifestyleId, 'custom'>) => void
+  setAnnualIncome: (v: number) => void
+  setAnnualExpense: (v: number) => void
   setCurrentAge: (v: number) => void
   setRetirementAge: (v: number) => void
   setEndAge: (v: number) => void
@@ -38,33 +60,66 @@ interface GameState {
   setAllocation: (a: Allocation) => void
   setWithdrawal: (w: WithdrawalStrategy) => void
   setNumPaths: (n: number) => void
+  setEnableEvents: (v: boolean) => void
+  setViewMode: (m: ViewMode) => void
   runSimulation: () => void
+  runStory: () => void
 }
 
 let worker: Worker | null = null
 
+const defaultPreset = LIFESTYLE_PRESETS.moderate
+
 export const useGameStore = create<GameState>((set, get) => ({
+  lifestyleId: 'moderate',
+  annualIncome: defaultPreset.annualIncome,
+  annualExpense: defaultPreset.annualExpense,
+
   currentAge: 30,
-  retirementAge: 65,
+  retirementAge: defaultPreset.retirementAge,
   endAge: 95,
-  initialPortfolio: 100000,
-  annualContribution: 20000,
-  allocation: { sp500: 0.6, bond: 0.2, gold: 0.1, cash: 0.05, reits: 0.05 },
-  withdrawal: { type: 'fixed_rate', rate: 0.04 },
+  initialPortfolio: defaultPreset.initialPortfolio,
+  annualContribution: defaultPreset.annualContribution,
+  allocation: { ...defaultPreset.allocation },
+  withdrawal: defaultPreset.withdrawal,
   numPaths: 10000,
+  enableEvents: false,
+
+  viewMode: 'simulation',
 
   isRunning: false,
   progress: 0,
   result: null,
 
+  storyResult: null,
+  isStoryRunning: false,
+
+  applyLifestyle: (id) => {
+    const preset = LIFESTYLE_PRESETS[id]
+    set({
+      lifestyleId: id,
+      annualIncome: preset.annualIncome,
+      annualExpense: preset.annualExpense,
+      retirementAge: preset.retirementAge,
+      initialPortfolio: preset.initialPortfolio,
+      annualContribution: preset.annualContribution,
+      allocation: { ...preset.allocation },
+      withdrawal: preset.withdrawal,
+    })
+  },
+
+  setAnnualIncome: (v) => set({ annualIncome: v, lifestyleId: 'custom' }),
+  setAnnualExpense: (v) => set({ annualExpense: v, lifestyleId: 'custom' }),
   setCurrentAge: (v) => set({ currentAge: v }),
-  setRetirementAge: (v) => set({ retirementAge: v }),
+  setRetirementAge: (v) => set({ retirementAge: v, lifestyleId: 'custom' }),
   setEndAge: (v) => set({ endAge: v }),
-  setInitialPortfolio: (v) => set({ initialPortfolio: v }),
-  setAnnualContribution: (v) => set({ annualContribution: v }),
-  setAllocation: (a) => set({ allocation: a }),
-  setWithdrawal: (w) => set({ withdrawal: w }),
+  setInitialPortfolio: (v) => set({ initialPortfolio: v, lifestyleId: 'custom' }),
+  setAnnualContribution: (v) => set({ annualContribution: v, lifestyleId: 'custom' }),
+  setAllocation: (a) => set({ allocation: a, lifestyleId: 'custom' }),
+  setWithdrawal: (w) => set({ withdrawal: w, lifestyleId: 'custom' }),
   setNumPaths: (n) => set({ numPaths: n }),
+  setEnableEvents: (v) => set({ enableEvents: v }),
+  setViewMode: (m) => set({ viewMode: m }),
 
   runSimulation: () => {
     const state = get()
@@ -72,7 +127,6 @@ export const useGameStore = create<GameState>((set, get) => ({
 
     set({ isRunning: true, progress: 0, result: null })
 
-    // 終止前一個 worker
     if (worker) worker.terminate()
     worker = new Worker(new URL('../engine/worker.ts', import.meta.url), { type: 'module' })
 
@@ -82,11 +136,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         set({ progress: msg.progress })
       } else if (msg.type === 'done') {
         const done = msg as WorkerDoneMsg
-        set({
-          isRunning: false,
-          progress: 1,
-          result: done.result,
-        })
+        set({ isRunning: false, progress: 1, result: done.result })
         worker?.terminate()
         worker = null
       }
@@ -108,13 +158,40 @@ export const useGameStore = create<GameState>((set, get) => ({
         endAge: state.endAge,
         initialPortfolio: state.initialPortfolio,
         annualContribution: state.annualContribution,
+        annualIncome: state.annualIncome,
         allocation: state.allocation,
         withdrawal: state.withdrawal,
+        enableEvents: state.enableEvents,
       },
       numPaths: state.numPaths,
       masterSeed: Date.now(),
     }
 
     worker.postMessage(request)
+  },
+
+  runStory: () => {
+    const state = get()
+    set({ isStoryRunning: true, storyResult: null })
+
+    // 在主執行緒跑單一路徑（有事件紀錄）
+    setTimeout(() => {
+      const result = simulatePath(
+        historicalData as HistoricalData,
+        {
+          currentAge: state.currentAge,
+          retirementAge: state.retirementAge,
+          endAge: state.endAge,
+          initialPortfolio: state.initialPortfolio,
+          annualContribution: state.annualContribution,
+          annualIncome: state.annualIncome,
+          allocation: state.allocation,
+          withdrawal: state.withdrawal,
+          enableEvents: true,  // 故事模式強制啟用事件
+        },
+        Date.now(),
+      )
+      set({ storyResult: result, isStoryRunning: false })
+    }, 50)
   },
 }))

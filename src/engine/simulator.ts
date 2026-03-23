@@ -3,13 +3,16 @@
  *
  * 模擬邏輯（每年）：
  * 1. Block Bootstrap 抽出該年各資產報酬
- * 2. 依玩家資產配置計算加權報酬
- * 3. 資產成長：portfolio *= (1 + weightedReturn)
- * 4. 扣除提領金額（通膨調整後）
- * 5. 檢查破產（資產 ≤ 0）
+ * 2. （可選）觸發隨機事件，影響資產/收入
+ * 3. 依玩家資產配置計算加權報酬
+ * 4. 資產成長：portfolio *= (1 + weightedReturn)
+ * 5. 扣除提領金額（通膨調整後）
+ * 6. 檢查破產（資產 ≤ 0）
  */
 
 import { blockBootstrap, type HistoricalData, type YearReturns } from './bootstrap'
+import { rollEventsForYear } from '../events/eventEngine'
+import type { TriggeredEvent } from '../events/eventTypes'
 
 /** 資產配置權重（總和必須為 1） */
 export interface Allocation {
@@ -22,33 +25,39 @@ export interface Allocation {
 
 /** 提領策略 */
 export type WithdrawalStrategy =
-  | { type: 'fixed_rate'; rate: number }        // 如 4% 法則：每年提領初始資產的 rate%（通膨調整）
-  | { type: 'fixed_amount'; amount: number }     // 固定金額（通膨調整）
-  | { type: 'dynamic'; floor: number; ceiling: number } // 動態：依當年資產 rate%，但有上下限
+  | { type: 'fixed_rate'; rate: number }
+  | { type: 'fixed_amount'; amount: number }
+  | { type: 'dynamic'; floor: number; ceiling: number }
 
 /** 模擬參數 */
 export interface SimulationParams {
   currentAge: number
   retirementAge: number
-  endAge: number            // 模擬結束年齡（如 95 歲）
-  initialPortfolio: number  // 起始資產（美元）
-  annualContribution: number // 退休前每年存入金額
+  endAge: number
+  initialPortfolio: number
+  annualContribution: number
+  annualIncome: number      // 年收入（事件影響計算用）
   allocation: Allocation
   withdrawal: WithdrawalStrategy
+  enableEvents: boolean     // 是否啟用隨機事件
 }
 
 /** 單年模擬快照 */
 export interface YearSnapshot {
   age: number
-  year: number               // 模擬第幾年（0-based）
-  portfolioStart: number     // 年初資產
-  returns: YearReturns       // 該年抽到的報酬
-  weightedReturn: number     // 加權報酬率
-  withdrawal: number         // 該年實際提領金額
-  contribution: number       // 該年存入金額
-  portfolioEnd: number       // 年末資產
-  cumulativeInflation: number // 累計通膨倍數
+  year: number
+  portfolioStart: number
+  returns: YearReturns
+  weightedReturn: number
+  withdrawal: number
+  contribution: number
+  portfolioEnd: number
+  cumulativeInflation: number
   bankrupt: boolean
+  events: TriggeredEvent[]       // 該年觸發的事件
+  eventPortfolioImpact: number   // 事件對資產的影響
+  eventIncomeImpact: number      // 事件對收入的影響
+  eventExpense: number           // 事件額外支出
 }
 
 /** 單條路徑結果 */
@@ -58,11 +67,11 @@ export interface PathResult {
   finalPortfolio: number
   bankrupt: boolean
   bankruptAge: number | null
+  allEvents: TriggeredEvent[]    // 整條路徑所有觸發事件
 }
 
 const ASSET_KEYS: (keyof Allocation)[] = ['sp500', 'bond', 'gold', 'cash', 'reits']
 
-/** 驗證配置權重總和為 1 */
 function validateAllocation(alloc: Allocation): void {
   const sum = ASSET_KEYS.reduce((s, k) => s + alloc[k], 0)
   if (Math.abs(sum - 1.0) > 0.001) {
@@ -70,12 +79,10 @@ function validateAllocation(alloc: Allocation): void {
   }
 }
 
-/** 計算加權報酬率 */
 function calcWeightedReturn(returns: YearReturns, alloc: Allocation): number {
   return ASSET_KEYS.reduce((sum, key) => sum + alloc[key] * returns[key], 0)
 }
 
-/** 計算該年提領金額 */
 function calcWithdrawal(
   strategy: WithdrawalStrategy,
   initialPortfolio: number,
@@ -84,16 +91,11 @@ function calcWithdrawal(
 ): number {
   switch (strategy.type) {
     case 'fixed_rate':
-      // 4% 法則：第一年提領 initialPortfolio * rate，之後通膨調整
       return initialPortfolio * strategy.rate * cumulativeInflation
-
     case 'fixed_amount':
-      // 固定金額，通膨調整
       return strategy.amount * cumulativeInflation
-
     case 'dynamic': {
-      // 動態提領：取當前資產的某比例，但限制在 floor ~ ceiling（通膨調整後）
-      const base = currentPortfolio * 0.04 // 基礎 4% 當前資產
+      const base = currentPortfolio * 0.04
       const floor = strategy.floor * cumulativeInflation
       const ceiling = strategy.ceiling * cumulativeInflation
       return Math.max(floor, Math.min(ceiling, base))
@@ -101,14 +103,6 @@ function calcWithdrawal(
   }
 }
 
-/**
- * 模擬單條路徑
- *
- * @param data    歷史資料
- * @param params  模擬參數
- * @param seed    該路徑的隨機種子
- * @returns       完整路徑結果
- */
 export function simulatePath(
   data: HistoricalData,
   params: SimulationParams,
@@ -117,33 +111,62 @@ export function simulatePath(
   validateAllocation(params.allocation)
 
   const totalYears = params.endAge - params.currentAge
-  const yearsToRetirement = params.retirementAge - params.currentAge
-
-  // 一次抽出整條路徑所需的報酬序列
   const returnSequence = blockBootstrap(data, totalYears, seed)
 
   let portfolio = params.initialPortfolio
   let cumulativeInflation = 1.0
   let bankrupt = false
   let bankruptAge: number | null = null
+  let effectiveIncome = params.annualIncome
   const snapshots: YearSnapshot[] = []
+  const allEvents: TriggeredEvent[] = []
 
   for (let y = 0; y < totalYears; y++) {
     const age = params.currentAge + y
     const yearReturns = returnSequence[y]
     const portfolioStart = portfolio
 
-    // 累計通膨（第 0 年為 1.0，第 1 年起開始累計）
     if (y > 0) {
       cumulativeInflation *= 1 + yearReturns.cpi
     }
 
-    // 退休前：存入；退休後：提領
+    // === 隨機事件 ===
+    let events: TriggeredEvent[] = []
+    let eventPortfolioImpact = 0
+    let eventIncomeImpact = 0
+    let eventExpense = 0
+
+    if (params.enableEvents && !bankrupt) {
+      // 每年事件用不同 seed（路徑 seed + 年份偏移）
+      const eventSeed = seed * 1000 + y * 37
+      const isRetired = age >= params.retirementAge
+      const result = rollEventsForYear(eventSeed, age, y, portfolio, effectiveIncome, isRetired)
+      events = result.events
+      eventPortfolioImpact = result.totalPortfolioImpact
+      eventIncomeImpact = result.totalIncomeImpact
+      eventExpense = result.totalExpense
+      allEvents.push(...events)
+
+      // 套用事件影響
+      portfolio += eventPortfolioImpact
+      if (portfolio < 0) portfolio = 0
+
+      // 永久性收入變化
+      for (const evt of events) {
+        for (const impact of evt.actualImpacts) {
+          if (impact.type === 'income_boost') {
+            effectiveIncome += impact.amount
+          }
+        }
+      }
+    }
+
+    // === 正常模擬流程 ===
     const isRetired = age >= params.retirementAge
     let contribution = 0
     let withdrawal = 0
 
-    if (!isRetired) {
+    if (!isRetired && !bankrupt) {
       contribution = params.annualContribution * cumulativeInflation
     } else if (!bankrupt) {
       withdrawal = calcWithdrawal(
@@ -154,17 +177,16 @@ export function simulatePath(
       )
     }
 
-    // 年初加入存款
     portfolio += contribution
 
-    // 資產成長
     const weightedReturn = calcWeightedReturn(yearReturns, params.allocation)
     portfolio *= 1 + weightedReturn
 
-    // 扣除提領
     portfolio -= withdrawal
 
-    // 破產檢查
+    // 扣除事件額外支出
+    portfolio -= eventExpense
+
     if (portfolio <= 0 && !bankrupt) {
       portfolio = 0
       bankrupt = true
@@ -182,6 +204,10 @@ export function simulatePath(
       portfolioEnd: portfolio,
       cumulativeInflation,
       bankrupt,
+      events,
+      eventPortfolioImpact,
+      eventIncomeImpact,
+      eventExpense,
     })
   }
 
@@ -191,5 +217,6 @@ export function simulatePath(
     finalPortfolio: portfolio,
     bankrupt,
     bankruptAge,
+    allEvents,
   }
 }

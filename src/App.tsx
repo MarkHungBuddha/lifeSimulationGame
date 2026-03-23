@@ -7,6 +7,8 @@ import CasinoIcon from '@mui/icons-material/Casino'
 import { useState } from 'react'
 import { Controls } from './components/Controls'
 import { ResultPanel } from './components/ResultPanel'
+import { StoryPanel } from './components/StoryPanel'
+import { useGameStore } from './store/gameStore'
 
 const DRAWER_WIDTH = 380
 
@@ -14,6 +16,7 @@ export function App() {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const viewMode = useGameStore(s => s.viewMode)
 
   const sidebar = (
     <Box sx={{ width: DRAWER_WIDTH, height: '100%', overflowY: 'auto' }}>
@@ -66,7 +69,7 @@ export function App() {
         flexGrow: 1, pt: '64px', minHeight: '100vh',
         bgcolor: 'background.default',
       }}>
-        <ResultPanel />
+        {viewMode === 'simulation' ? <ResultPanel /> : <StoryPanel />}
       </Box>
     </Box>
   )

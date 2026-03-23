@@ -112,8 +112,10 @@ describe('simulatePath', () => {
     endAge: 95,
     initialPortfolio: 100000,
     annualContribution: 20000,
+    annualIncome: 70000,
     allocation: { sp500: 0.6, bond: 0.2, gold: 0.1, cash: 0.05, reits: 0.05 },
     withdrawal: { type: 'fixed_rate', rate: 0.04 },
+    enableEvents: false,
   }
 
   it('相同 seed 產出相同路徑', () => {

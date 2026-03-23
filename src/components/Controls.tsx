@@ -1,10 +1,15 @@
 import {
   Box, Typography, Slider, Divider, Button, MenuItem, Select,
   FormControl, InputLabel, Alert, LinearProgress, Stack, Chip,
+  Card, CardActionArea, CardContent, Grid, Switch, FormControlLabel,
+  ToggleButtonGroup, ToggleButton,
 } from '@mui/material'
 import PlayArrowIcon from '@mui/icons-material/PlayArrow'
 import HourglassTopIcon from '@mui/icons-material/HourglassTop'
+import AutoStoriesIcon from '@mui/icons-material/AutoStories'
+import BarChartIcon from '@mui/icons-material/BarChart'
 import { useGameStore } from '../store/gameStore'
+import { LIFESTYLE_LIST, type LifestyleId } from '../engine/lifestyle'
 import type { Allocation } from '../engine/simulator'
 
 const ASSET_KEYS: (keyof Allocation)[] = ['sp500', 'bond', 'gold', 'cash', 'reits']
@@ -28,9 +33,76 @@ export function Controls() {
 
   const allocSum = ASSET_KEYS.reduce((s, k) => s + store.allocation[k], 0)
   const allocValid = Math.abs(allocSum - 1) <= 0.001
+  const savingsRate = store.annualIncome > 0
+    ? store.annualContribution / store.annualIncome : 0
 
   return (
     <Box sx={{ p: 2.5, display: 'flex', flexDirection: 'column', gap: 1 }}>
+      {/* 生活風格選擇 */}
+      <Typography variant="overline" color="text.secondary" fontWeight={700}>
+        生活風格
+      </Typography>
+
+      <Grid container spacing={1}>
+        {LIFESTYLE_LIST.map(preset => (
+          <Grid size={6} key={preset.id}>
+            <Card variant={store.lifestyleId === preset.id ? 'elevation' : 'outlined'}
+              elevation={store.lifestyleId === preset.id ? 4 : 0}
+              sx={{
+                border: store.lifestyleId === preset.id ? '2px solid' : '1px solid',
+                borderColor: store.lifestyleId === preset.id ? 'primary.main' : 'divider',
+                transition: 'all 0.15s',
+              }}>
+              <CardActionArea onClick={() => store.applyLifestyle(preset.id as Exclude<LifestyleId, 'custom'>)}>
+                <CardContent sx={{ p: 1.2, '&:last-child': { pb: 1.2 } }}>
+                  <Typography variant="body2" fontWeight={700} noWrap>
+                    {preset.emoji} {preset.name}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" noWrap>
+                    {preset.tagline}
+                  </Typography>
+                </CardContent>
+              </CardActionArea>
+            </Card>
+          </Grid>
+        ))}
+      </Grid>
+
+      {store.lifestyleId !== 'custom' && (
+        <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, lineHeight: 1.4 }}>
+          {LIFESTYLE_LIST.find(p => p.id === store.lifestyleId)?.description}
+        </Typography>
+      )}
+      {store.lifestyleId === 'custom' && (
+        <Chip size="small" label="自訂模式" color="default" variant="outlined" />
+      )}
+
+      <Divider sx={{ my: 1 }} />
+
+      {/* 收支概況 */}
+      <Typography variant="overline" color="text.secondary" fontWeight={700}>
+        收支概況
+      </Typography>
+
+      <SliderField label="年收入" value={store.annualIncome} unit=""
+        min={20000} max={500000} step={5000} onChange={store.setAnnualIncome}
+        format={v => `$${v.toLocaleString()}`} />
+      <SliderField label="年生活開銷" value={store.annualExpense} unit=""
+        min={10000} max={300000} step={5000} onChange={store.setAnnualExpense}
+        format={v => `$${v.toLocaleString()}`} />
+      <SliderField label="年存入投資" value={store.annualContribution} unit=""
+        min={0} max={200000} step={1000} onChange={store.setAnnualContribution}
+        format={v => `$${v.toLocaleString()}`} />
+
+      <Stack direction="row" spacing={1} sx={{ mb: 0.5 }}>
+        <Chip size="small" variant="outlined" color={savingsRate >= 0.3 ? 'success' : savingsRate >= 0.15 ? 'warning' : 'error'}
+          label={`儲蓄率 ${(savingsRate * 100).toFixed(0)}%`} />
+        <Chip size="small" variant="outlined"
+          label={`月開銷 $${Math.round(store.annualExpense / 12).toLocaleString()}`} />
+      </Stack>
+
+      <Divider sx={{ my: 1 }} />
+
       {/* 基本設定 */}
       <Typography variant="overline" color="text.secondary" fontWeight={700}>
         基本設定
@@ -44,9 +116,6 @@ export function Controls() {
         min={store.retirementAge + 1} max={100} onChange={store.setEndAge} />
       <SliderField label="起始資產" value={store.initialPortfolio} unit=""
         min={0} max={2000000} step={10000} onChange={store.setInitialPortfolio}
-        format={v => `$${v.toLocaleString()}`} />
-      <SliderField label="年存入額" value={store.annualContribution} unit=""
-        min={0} max={100000} step={1000} onChange={store.setAnnualContribution}
         format={v => `$${v.toLocaleString()}`} />
 
       <Divider sx={{ my: 1 }} />
@@ -96,8 +165,8 @@ export function Controls() {
           onChange={e => {
             const t = e.target.value
             if (t === 'fixed_rate') store.setWithdrawal({ type: 'fixed_rate', rate: 0.04 })
-            else if (t === 'fixed_amount') store.setWithdrawal({ type: 'fixed_amount', amount: 40000 })
-            else store.setWithdrawal({ type: 'dynamic', floor: 30000, ceiling: 80000 })
+            else if (t === 'fixed_amount') store.setWithdrawal({ type: 'fixed_amount', amount: store.annualExpense })
+            else store.setWithdrawal({ type: 'dynamic', floor: store.annualExpense * 0.7, ceiling: store.annualExpense * 1.5 })
           }}>
           <MenuItem value="fixed_rate">4% 法則</MenuItem>
           <MenuItem value="fixed_amount">固定金額</MenuItem>
@@ -113,10 +182,45 @@ export function Controls() {
       )}
       {store.withdrawal.type === 'fixed_amount' && (
         <SliderField label="年提領額" value={store.withdrawal.amount} unit=""
-          min={10000} max={200000} step={5000}
+          min={10000} max={300000} step={5000}
           onChange={v => store.setWithdrawal({ type: 'fixed_amount', amount: v })}
           format={v => `$${v.toLocaleString()}`} />
       )}
+      {store.withdrawal.type === 'dynamic' && (
+        <>
+          <SliderField label="提領下限" value={store.withdrawal.floor} unit=""
+            min={10000} max={200000} step={5000}
+            onChange={v => store.setWithdrawal({ ...store.withdrawal, type: 'dynamic', floor: v })}
+            format={v => `$${v.toLocaleString()}`} />
+          <SliderField label="提領上限" value={store.withdrawal.ceiling} unit=""
+            min={20000} max={300000} step={5000}
+            onChange={v => store.setWithdrawal({ ...store.withdrawal, type: 'dynamic', ceiling: v })}
+            format={v => `$${v.toLocaleString()}`} />
+        </>
+      )}
+
+      <Divider sx={{ my: 1 }} />
+
+      {/* 隨機事件 */}
+      <Typography variant="overline" color="text.secondary" fontWeight={700}>
+        隨機事件
+      </Typography>
+      <FormControlLabel
+        control={
+          <Switch checked={store.enableEvents}
+            onChange={(_, v) => store.setEnableEvents(v)} color="warning" />
+        }
+        label={
+          <Stack>
+            <Typography variant="body2" fontWeight={600}>
+              {store.enableEvents ? '已啟用' : '未啟用'}
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              市場崩盤、失業、疾病、家庭事件等 24 種隨機事件
+            </Typography>
+          </Stack>
+        }
+      />
 
       <Divider sx={{ my: 1 }} />
 
@@ -128,25 +232,44 @@ export function Controls() {
         min={1000} max={50000} step={1000} onChange={store.setNumPaths}
         format={v => v.toLocaleString()} />
 
-      {/* 進度條 */}
+      {/* 頁面切換 */}
+      <ToggleButtonGroup fullWidth size="small" exclusive
+        value={store.viewMode} onChange={(_, v) => v && store.setViewMode(v)}
+        sx={{ mb: 1 }}>
+        <ToggleButton value="simulation">
+          <BarChartIcon sx={{ mr: 0.5, fontSize: 18 }} /> 批次模擬
+        </ToggleButton>
+        <ToggleButton value="story">
+          <AutoStoriesIcon sx={{ mr: 0.5, fontSize: 18 }} /> 人生故事
+        </ToggleButton>
+      </ToggleButtonGroup>
+
       {store.isRunning && (
         <LinearProgress variant="determinate" value={store.progress * 100}
           sx={{ borderRadius: 1 }} />
       )}
 
-      {/* 執行按鈕 */}
-      <Button variant="contained" size="large" fullWidth
-        disabled={store.isRunning || !allocValid}
-        onClick={store.runSimulation}
-        startIcon={store.isRunning ? <HourglassTopIcon /> : <PlayArrowIcon />}
-        sx={{ mt: 1, py: 1.5, fontWeight: 700, fontSize: 16 }}>
-        {store.isRunning ? `模擬中 ${(store.progress * 100).toFixed(0)}%` : '執行模擬'}
-      </Button>
+      {store.viewMode === 'simulation' ? (
+        <Button variant="contained" size="large" fullWidth
+          disabled={store.isRunning || !allocValid}
+          onClick={store.runSimulation}
+          startIcon={store.isRunning ? <HourglassTopIcon /> : <PlayArrowIcon />}
+          sx={{ mt: 1, py: 1.5, fontWeight: 700, fontSize: 16 }}>
+          {store.isRunning ? `模擬中 ${(store.progress * 100).toFixed(0)}%` : '執行模擬'}
+        </Button>
+      ) : (
+        <Button variant="contained" size="large" fullWidth color="secondary"
+          disabled={store.isStoryRunning || !allocValid}
+          onClick={store.runStory}
+          startIcon={<AutoStoriesIcon />}
+          sx={{ mt: 1, py: 1.5, fontWeight: 700, fontSize: 16 }}>
+          {store.isStoryRunning ? '生成中...' : '生成人生故事'}
+        </Button>
+      )}
     </Box>
   )
 }
 
-/** 可重用 Slider 欄位 */
 function SliderField({ label, value, unit, min, max, step = 1, onChange, format }: {
   label: string; value: number; unit: string
   min: number; max: number; step?: number

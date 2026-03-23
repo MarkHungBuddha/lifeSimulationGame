@@ -19,6 +19,14 @@ export interface PercentileData {
   p90: number[]
 }
 
+/** 最大跌幅統計 */
+export interface DrawdownStats {
+  median: number    // 中位最大跌幅（百分比，如 0.35 = 35%）
+  p75: number       // 75th percentile（較嚴重情境）
+  p90: number       // 90th percentile（極端情境）
+  worst: number     // 所有路徑中最大跌幅
+}
+
 /** 批次模擬結果 */
 export interface MonteCarloResult {
   masterSeed: number
@@ -27,6 +35,7 @@ export interface MonteCarloResult {
   percentiles: PercentileData
   medianFinalPortfolio: number
   medianDepletionAge: number | null
+  maxDrawdown: DrawdownStats
   paths: PathResult[]
 }
 
@@ -97,6 +106,27 @@ export function runMonteCarlo(
     medianDepletionAge = percentile(ages, 0.5)
   }
 
+  // 每條路徑的最大跌幅（peak-to-trough）
+  const drawdowns = paths.map(p => {
+    let peak = p.snapshots[0].portfolioStart
+    let maxDd = 0
+    for (const s of p.snapshots) {
+      if (s.portfolioEnd > peak) peak = s.portfolioEnd
+      if (peak > 0) {
+        const dd = (peak - s.portfolioEnd) / peak
+        if (dd > maxDd) maxDd = dd
+      }
+    }
+    return maxDd
+  }).sort((a, b) => a - b)
+
+  const maxDrawdown: DrawdownStats = {
+    median: percentile(drawdowns, 0.5),
+    p75: percentile(drawdowns, 0.75),
+    p90: percentile(drawdowns, 0.90),
+    worst: drawdowns[drawdowns.length - 1],
+  }
+
   onProgress?.(1)
 
   return {
@@ -106,6 +136,7 @@ export function runMonteCarlo(
     percentiles,
     medianFinalPortfolio,
     medianDepletionAge,
+    maxDrawdown,
     paths,
   }
 }

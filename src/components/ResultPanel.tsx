@@ -3,15 +3,22 @@ import {
   TableContainer, TableHead, TableRow, Stack, useTheme,
 } from '@mui/material'
 import TrendingUpIcon from '@mui/icons-material/TrendingUp'
+import TrendingDownIcon from '@mui/icons-material/TrendingDown'
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance'
 import WarningIcon from '@mui/icons-material/Warning'
 import InsightsIcon from '@mui/icons-material/Insights'
+import SavingsIcon from '@mui/icons-material/Savings'
 import { useGameStore } from '../store/gameStore'
+import { LIFESTYLE_PRESETS } from '../engine/lifestyle'
 
 export function ResultPanel() {
   const result = useGameStore(s => s.result)
   const currentAge = useGameStore(s => s.currentAge)
   const retirementAge = useGameStore(s => s.retirementAge)
+  const lifestyleId = useGameStore(s => s.lifestyleId)
+  const annualIncome = useGameStore(s => s.annualIncome)
+  const annualExpense = useGameStore(s => s.annualExpense)
+  const annualContribution = useGameStore(s => s.annualContribution)
 
   if (!result) {
     return (
@@ -34,6 +41,50 @@ export function ResultPanel() {
 
   return (
     <Box sx={{ p: 3 }}>
+      {/* 生活風格摘要 */}
+      <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+        <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
+          <SavingsIcon color="primary" />
+          <Typography variant="subtitle1" fontWeight={700}>
+            生活風格摘要
+            {lifestyleId !== 'custom' && (() => {
+              const preset = LIFESTYLE_PRESETS[lifestyleId as keyof typeof LIFESTYLE_PRESETS]
+              return preset ? ` — ${preset.emoji} ${preset.name}` : ''
+            })()}
+          </Typography>
+        </Stack>
+        <Grid container spacing={2}>
+          <Grid size={{ xs: 6, sm: 3 }}>
+            <Typography variant="caption" color="text.secondary">年收入</Typography>
+            <Typography variant="body1" fontWeight={700}>${annualIncome.toLocaleString()}</Typography>
+          </Grid>
+          <Grid size={{ xs: 6, sm: 3 }}>
+            <Typography variant="caption" color="text.secondary">年開銷</Typography>
+            <Typography variant="body1" fontWeight={700}>${annualExpense.toLocaleString()}</Typography>
+          </Grid>
+          <Grid size={{ xs: 6, sm: 3 }}>
+            <Typography variant="caption" color="text.secondary">年投資</Typography>
+            <Typography variant="body1" fontWeight={700}>${annualContribution.toLocaleString()}</Typography>
+          </Grid>
+          <Grid size={{ xs: 6, sm: 3 }}>
+            <Typography variant="caption" color="text.secondary">儲蓄率</Typography>
+            <Typography variant="body1" fontWeight={700}
+              color={annualIncome > 0 && annualContribution / annualIncome >= 0.3 ? 'success.main' : 'text.primary'}>
+              {annualIncome > 0 ? `${(annualContribution / annualIncome * 100).toFixed(0)}%` : '—'}
+            </Typography>
+          </Grid>
+        </Grid>
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+          月開銷 ${Math.round(annualExpense / 12).toLocaleString()} ・
+          退休年齡 {retirementAge} 歲 ・
+          工作年數 {retirementAge - currentAge} 年
+          {lifestyleId !== 'custom' && (() => {
+            const preset = LIFESTYLE_PRESETS[lifestyleId as keyof typeof LIFESTYLE_PRESETS]
+            return preset ? ` ・ ${preset.description}` : ''
+          })()}
+        </Typography>
+      </Paper>
+
       {/* 成功率 Hero */}
       <Paper elevation={2} sx={{
         p: 4, mb: 3, textAlign: 'center',
@@ -71,6 +122,38 @@ export function ResultPanel() {
             color="#e65100" />
         </Grid>
       </Grid>
+
+      {/* 最大跌幅卡片 */}
+      <Paper elevation={1} sx={{ p: 2, mb: 3 }}>
+        <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 1.5 }}>
+          最大跌幅（Max Drawdown）
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          模擬期間內，資產從高峰到低谷的最大跌幅百分比
+        </Typography>
+        <Grid container spacing={2}>
+          <Grid size={{ xs: 6, sm: 3 }}>
+            <StatCard icon={<TrendingDownIcon />} label="中位跌幅"
+              value={`-${(result.maxDrawdown.median * 100).toFixed(1)}%`}
+              color={result.maxDrawdown.median > 0.3 ? '#d32f2f' : '#e65100'} />
+          </Grid>
+          <Grid size={{ xs: 6, sm: 3 }}>
+            <StatCard icon={<TrendingDownIcon />} label="P75 跌幅"
+              value={`-${(result.maxDrawdown.p75 * 100).toFixed(1)}%`}
+              color={result.maxDrawdown.p75 > 0.4 ? '#d32f2f' : '#e65100'} />
+          </Grid>
+          <Grid size={{ xs: 6, sm: 3 }}>
+            <StatCard icon={<TrendingDownIcon />} label="P90 跌幅"
+              value={`-${(result.maxDrawdown.p90 * 100).toFixed(1)}%`}
+              color="#d32f2f" />
+          </Grid>
+          <Grid size={{ xs: 6, sm: 3 }}>
+            <StatCard icon={<TrendingDownIcon />} label="最大跌幅"
+              value={`-${(result.maxDrawdown.worst * 100).toFixed(1)}%`}
+              color="#b71c1c" />
+          </Grid>
+        </Grid>
+      </Paper>
 
       {/* Percentile Band Chart */}
       <Paper elevation={1} sx={{ p: 2, mb: 3 }}>
