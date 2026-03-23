@@ -20,6 +20,7 @@ import TrendingDownIcon from '@mui/icons-material/TrendingDown'
 import AutoStoriesIcon from '@mui/icons-material/AutoStories'
 import CakeIcon from '@mui/icons-material/Cake'
 import type { EventCategory } from '../events/eventTypes'
+import type { ImmigrationPhase } from '../engine/immigrationTypes'
 import { CATEGORY_LABELS } from '../events/eventDatabase'
 import { CATEGORY_LABELS_TW } from '../events/eventDatabase_tw'
 import { CATEGORY_LABELS_JP } from '../events/eventDatabase_jp'
@@ -79,6 +80,34 @@ export function StoryPanel() {
   const peakPortfolio = Math.max(...snapshots.map(s => s.portfolioEnd))
   const peakAge = snapshots.find(s => s.portfolioEnd === peakPortfolio)?.age ?? 0
 
+  // 移民結果
+  const hasImmigration = snapshots.some(s => s.immigrationPhase && s.immigrationPhase !== 'none')
+  let immigrationOutcome: { success: boolean; phase: ImmigrationPhase; settledAge: number | null; prAge: number | null; returnedAge: number | null; targetRegion: string | null } | null = null
+  if (hasImmigration) {
+    const settledSnap = snapshots.find(s => s.immigrationPhase === 'transition')
+    const prSnap = snapshots.find(s => s.immigrationPhase === 'permanent')
+    const returnedSnap = snapshots.find(s => s.immigrationPhase === 'forced_return' || s.immigrationPhase === 'returned')
+    const abandonedSnap = snapshots.find(s => s.immigrationPhase === 'abandoned')
+    const lastPhase = snapshots[snapshots.length - 1].immigrationPhase ?? 'none'
+    const targetRegion = settledSnap?.activeRegion ?? snapshots.find(s => s.activeRegion && s.activeRegion !== region)?.activeRegion ?? null
+
+    const isSettled = ['transition', 'settled', 'permanent'].includes(lastPhase)
+    immigrationOutcome = {
+      success: isSettled || lastPhase === 'permanent',
+      phase: lastPhase,
+      settledAge: settledSnap?.age ?? null,
+      prAge: prSnap?.age ?? null,
+      returnedAge: returnedSnap?.age ?? null,
+      targetRegion: targetRegion ?? null,
+    }
+    if (abandonedSnap && !isSettled) {
+      immigrationOutcome.success = false
+    }
+  }
+
+  const targetFlag = immigrationOutcome?.targetRegion === 'jp' ? '🇯🇵' : immigrationOutcome?.targetRegion === 'us' ? '🇺🇸' : ''
+  const targetName = immigrationOutcome?.targetRegion === 'jp' ? '日本' : immigrationOutcome?.targetRegion === 'us' ? '美國' : ''
+
   // 篩選有事件的年份 + 關鍵年份（退休、破產、第一年、最後一年、資產最高）
   const keyYears = new Set<number>()
   keyYears.add(0)
@@ -110,13 +139,50 @@ export function StoryPanel() {
         <Typography variant="h6" color="text.secondary" sx={{ mt: 1 }}>
           最終資產 {fmtP(finalPortfolio)}
         </Typography>
-        <Stack direction="row" spacing={2} justifyContent="center" sx={{ mt: 2 }}>
+        <Stack direction="row" spacing={2} justifyContent="center" sx={{ mt: 2 }} flexWrap="wrap" useFlexGap>
           <Chip label={`${allEvents.length} 個事件`} variant="outlined" />
           <Chip label={`${positiveEvents.length} 正面`} color="success" variant="outlined" />
           <Chip label={`${negativeEvents.length} 負面`} color="error" variant="outlined" />
           <Chip label={`峰值 ${fmtP(peakPortfolio)} @ ${peakAge}歲`} variant="outlined" />
         </Stack>
       </Paper>
+
+      {/* 移民結果 */}
+      {immigrationOutcome && (
+        <Paper elevation={2} sx={{
+          p: 2.5, mb: 3, textAlign: 'center',
+          background: immigrationOutcome.success
+            ? 'linear-gradient(135deg, #00838f11, #00838f08)'
+            : 'linear-gradient(135deg, #ff6f0011, #ff6f0008)',
+          border: immigrationOutcome.success ? '1px solid #00838f33' : '1px solid #ff6f0033',
+        }}>
+          <Typography variant="h4" fontWeight={800}
+            color={immigrationOutcome.success ? '#00838f' : '#e65100'}>
+            {immigrationOutcome.success
+              ? `${targetFlag} ${immigrationOutcome.settledAge} 歲成功移民${targetName}`
+              : immigrationOutcome.phase === 'abandoned'
+                ? `移民${targetName}失敗（簽證未通過）`
+                : immigrationOutcome.returnedAge
+                  ? `${immigrationOutcome.returnedAge} 歲被迫回國`
+                  : `移民${targetName}未成功`}
+          </Typography>
+          <Stack direction="row" spacing={2} justifyContent="center" sx={{ mt: 1.5 }} flexWrap="wrap" useFlexGap>
+            {immigrationOutcome.settledAge && (
+              <Chip icon={<span>{targetFlag}</span>} label={`${immigrationOutcome.settledAge} 歲抵達${targetName}`}
+                color="info" variant="outlined" />
+            )}
+            {immigrationOutcome.prAge && (
+              <Chip label={`${immigrationOutcome.prAge} 歲取得永住權 🎉`} color="success" variant="outlined" />
+            )}
+            {immigrationOutcome.returnedAge && (
+              <Chip label={`${immigrationOutcome.returnedAge} 歲回國`} color="warning" variant="outlined" />
+            )}
+            {immigrationOutcome.phase === 'abandoned' && (
+              <Chip label="簽證多次被拒，放棄移民" color="error" variant="outlined" />
+            )}
+          </Stack>
+        </Paper>
+      )}
 
       {/* 資產走勢迷你圖 */}
       <Paper elevation={1} sx={{ p: 2, mb: 3 }}>
