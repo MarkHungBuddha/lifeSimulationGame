@@ -43,6 +43,12 @@ export interface RandomEvent {
   impacts: EventImpact[]
   correlatedWith?: string[]        // 相關事件 ID（可能同時觸發）
   isPositive?: boolean             // 正面事件
+  /** 購屋條件：'owner_only' = 僅有房觸發, 'renter_only' = 僅租屋觸發 */
+  housingCondition?: 'owner_only' | 'renter_only'
+  /** 有房時的機率倍數（如天災對有房者影響更大） */
+  ownerProbabilityMultiplier?: number
+  /** 有房時的額外影響（附加在原始 impacts 之上） */
+  ownerExtraImpacts?: EventImpact[]
 }
 
 /** 模擬中觸發的事件紀錄 */

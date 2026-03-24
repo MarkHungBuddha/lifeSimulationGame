@@ -99,6 +99,10 @@ export const EVENT_DATABASE_TW: RandomEvent[] = [
     impacts: [
       { type: 'portfolio_change', value: -0.08 },
     ],
+    ownerProbabilityMultiplier: 1.5,
+    ownerExtraImpacts: [
+      { type: 'portfolio_change', value: -0.05 },
+    ],
   },
 
   // ================================================================
@@ -453,6 +457,10 @@ export const EVENT_DATABASE_TW: RandomEvent[] = [
       { type: 'savings_change', value: -0.02 },
       { type: 'extra_expense', value: 0.8 },
     ],
+    ownerProbabilityMultiplier: 1.5,
+    ownerExtraImpacts: [
+      { type: 'extra_expense', value: 1.5 },
+    ],
   },
   {
     id: 'tw_earthquake',
@@ -464,6 +472,10 @@ export const EVENT_DATABASE_TW: RandomEvent[] = [
     impacts: [
       { type: 'savings_change', value: -0.05 },
       { type: 'extra_expense', value: 2 },
+    ],
+    ownerProbabilityMultiplier: 2.0,
+    ownerExtraImpacts: [
+      { type: 'extra_expense', value: 3 },
     ],
   },
   {
@@ -506,6 +518,7 @@ export const EVENT_DATABASE_TW: RandomEvent[] = [
     impacts: [
       { type: 'extra_expense', value: 0.8 },
     ],
+    housingCondition: 'owner_only',
   },
   {
     id: 'tw_rent_increase',
@@ -517,6 +530,56 @@ export const EVENT_DATABASE_TW: RandomEvent[] = [
     impacts: [
       { type: 'extra_expense', value: 0.5 },
     ],
+    housingCondition: 'renter_only',
+  },
+
+  {
+    id: 'tw_credit_tightening',
+    name: '央行信用管制/打房',
+    category: 'property',
+    description: '央行選擇性信用管制，第二戶限貸、利率加碼',
+    baseProbability: 0.05,
+    durationMonths: [12, 36],
+    impacts: [
+      { type: 'extra_expense', value: 0.5 },
+    ],
+    housingCondition: 'owner_only',
+  },
+  {
+    id: 'tw_mortgage_rate_increase',
+    name: '房貸利率上升',
+    category: 'property',
+    description: '央行升息，機動利率房貸月付增加 10-15%',
+    baseProbability: 0.10,
+    durationMonths: [12, 36],
+    impacts: [
+      { type: 'extra_expense', value: 1 },
+    ],
+    housingCondition: 'owner_only',
+  },
+  {
+    id: 'tw_building_special_levy',
+    name: '大樓管委會特別決議',
+    category: 'property',
+    description: '外牆/電梯/消防設備大修，需一次性繳納特別費',
+    baseProbability: 0.03,
+    durationMonths: [1, 6],
+    impacts: [
+      { type: 'extra_expense', value: 1.5 },
+    ],
+    housingCondition: 'owner_only',
+  },
+  {
+    id: 'tw_neighbor_issue',
+    name: '鄰居/社區問題',
+    category: 'property',
+    description: '噪音、漏水糾紛、嫌惡設施，影響生活品質',
+    baseProbability: 0.03,
+    durationMonths: [6, 24],
+    impacts: [
+      { type: 'extra_expense', value: 0.3 },
+    ],
+    housingCondition: 'owner_only',
   },
 
   // ================================================================

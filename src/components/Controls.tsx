@@ -1,6 +1,6 @@
 import {
   Box, Typography, Slider, Divider, Button, MenuItem, Select,
-  FormControl, InputLabel, Alert, LinearProgress, Stack, Chip,
+  FormControl, InputLabel, Alert, LinearProgress, Stack, Chip, Paper,
   Card, CardActionArea, CardContent, Grid, Switch, FormControlLabel,
   ToggleButtonGroup, ToggleButton,
 } from '@mui/material'
@@ -13,10 +13,11 @@ import { LIFESTYLE_LIST, type LifestyleId } from '../engine/lifestyle'
 import { LIFESTYLE_LIST_TW } from '../engine/lifestyle_tw'
 import { LIFESTYLE_LIST_JP } from '../engine/lifestyle_jp'
 import type { Allocation } from '../engine/simulator'
-import { REGION_CONFIGS, formatSliderValue, type Region } from '../config/regions'
+import { REGION_CONFIGS, formatSliderValue, formatCurrency, type Region } from '../config/regions'
 import { EVENT_DATABASE } from '../events/eventDatabase'
 import { EVENT_DATABASE_TW } from '../events/eventDatabase_tw'
 import { EVENT_DATABASE_JP } from '../events/eventDatabase_jp'
+import { HOUSING_PARAMS } from '../engine/housingData'
 
 const ASSET_KEYS: (keyof Allocation)[] = ['sp500', 'intlStock', 'bond', 'gold', 'cash', 'reits']
 const ASSET_COLORS: Record<keyof Allocation, string> = {
@@ -275,6 +276,110 @@ export function Controls() {
           </Stack>
         }
       />
+
+      <Divider sx={{ my: 1 }} />
+
+      {/* 購屋計畫 */}
+      <Typography variant="overline" color="text.secondary" fontWeight={700}>
+        購屋計畫
+      </Typography>
+      <FormControlLabel
+        control={
+          <Switch checked={store.housingEnabled}
+            onChange={(_, v) => store.setHousingEnabled(v)} color="success" />
+        }
+        label={
+          <Stack>
+            <Typography variant="body2" fontWeight={600}>
+              {store.housingEnabled ? '計畫購屋' : '不買房'}
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              模擬自住房購買對長期財務的影響
+            </Typography>
+          </Stack>
+        }
+      />
+      {store.housingEnabled && (() => {
+        const hp = HOUSING_PARAMS[region]
+        const effectiveRegion = store.immigrationEnabled && store.immigrationTarget ? store.immigrationTarget : region
+        const ehp = HOUSING_PARAMS[effectiveRegion]
+        const estimatedPrice = store.annualIncome * store.housingPriceToIncomeRatio
+        const downPayment = estimatedPrice * store.housingDownPaymentRatio
+        const loanAmount = estimatedPrice - downPayment
+        const closingCost = estimatedPrice * ehp.closingCostRatio
+        // 簡易月付估算
+        const monthlyRate = ehp.mortgageRate / 12
+        const totalMonths = store.housingMortgageYears * 12
+        const monthlyPayment = monthlyRate > 0
+          ? loanAmount * (monthlyRate * Math.pow(1 + monthlyRate, totalMonths)) / (Math.pow(1 + monthlyRate, totalMonths) - 1)
+          : loanAmount / totalMonths
+
+        return (
+          <>
+            <SliderField label="購屋年齡" value={store.housingPurchaseAge} unit="歲"
+              min={store.currentAge} max={store.retirementAge}
+              onChange={store.setHousingPurchaseAge} />
+
+            <SliderField label="房價所得比" value={store.housingPriceToIncomeRatio} unit="倍"
+              min={hp.priceToIncomeRange.min} max={hp.priceToIncomeRange.max}
+              step={hp.priceToIncomeRange.step}
+              onChange={store.setHousingPriceToIncomeRatio}
+              format={v => `${v} 倍`} />
+
+            <SliderField label="頭期款比例" value={store.housingDownPaymentRatio * 100} unit="%"
+              min={10} max={50} step={5}
+              onChange={v => store.setHousingDownPaymentRatio(v / 100)}
+              format={v => `${v.toFixed(0)}%`} />
+
+            <FormControl size="small" fullWidth>
+              <InputLabel>房貸年限</InputLabel>
+              <Select label="房貸年限" value={store.housingMortgageYears}
+                onChange={e => store.setHousingMortgageYears(e.target.value as number)}>
+                {hp.mortgageYearsOptions.map(y => (
+                  <MenuItem key={y} value={y}>{y} 年</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <Paper variant="outlined" sx={{ p: 1.5, mt: 1, bgcolor: 'action.hover' }}>
+              <Stack spacing={0.5}>
+                <Stack direction="row" justifyContent="space-between">
+                  <Typography variant="caption" color="text.secondary">預估房價</Typography>
+                  <Typography variant="caption" fontWeight={700}>
+                    {formatCurrency(estimatedPrice, region)}
+                  </Typography>
+                </Stack>
+                <Stack direction="row" justifyContent="space-between">
+                  <Typography variant="caption" color="text.secondary">頭期款+交易成本</Typography>
+                  <Typography variant="caption" fontWeight={700}>
+                    {formatCurrency(downPayment + closingCost, region)}
+                  </Typography>
+                </Stack>
+                <Stack direction="row" justifyContent="space-between">
+                  <Typography variant="caption" color="text.secondary">月付房貸</Typography>
+                  <Typography variant="caption" fontWeight={700} color="warning.main">
+                    {formatCurrency(Math.round(monthlyPayment), region)}/月
+                  </Typography>
+                </Stack>
+                <Stack direction="row" justifyContent="space-between">
+                  <Typography variant="caption" color="text.secondary">房貸利率</Typography>
+                  <Typography variant="caption" fontWeight={700}>
+                    {(ehp.mortgageRate * 100).toFixed(1)}%
+                  </Typography>
+                </Stack>
+              </Stack>
+            </Paper>
+
+            <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, lineHeight: 1.4 }}>
+              {region === 'tw'
+                ? '購屋後房貸+持有成本將從年投資額中扣除，頭期款+交易成本從投資組合中扣除'
+                : region === 'jp'
+                ? '購入後、住宅ローン+維持費は年間投資額から控除、頭金+諸費用は投資ポートフォリオから控除'
+                : 'Mortgage + holding costs reduce annual investment; down payment + closing costs deducted from portfolio'}
+            </Typography>
+          </>
+        )
+      })()}
 
       <Divider sx={{ my: 1 }} />
 

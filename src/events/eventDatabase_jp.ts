@@ -490,6 +490,10 @@ export const EVENT_DATABASE_JP: RandomEvent[] = [
       { type: 'extra_expense', value: 2 },
     ],
     correlatedWith: ['jp_market_crash'],
+    ownerProbabilityMultiplier: 2.5,
+    ownerExtraImpacts: [
+      { type: 'extra_expense', value: 4 },
+    ],
   },
   {
     id: 'jp_earthquake_indirect',
@@ -512,6 +516,10 @@ export const EVENT_DATABASE_JP: RandomEvent[] = [
     impacts: [
       { type: 'savings_change', value: -0.02 },
       { type: 'extra_expense', value: 0.6 },
+    ],
+    ownerProbabilityMultiplier: 1.5,
+    ownerExtraImpacts: [
+      { type: 'extra_expense', value: 1 },
     ],
   },
   {
@@ -560,6 +568,7 @@ export const EVENT_DATABASE_JP: RandomEvent[] = [
     impacts: [
       { type: 'extra_expense', value: 0.6 },
     ],
+    housingCondition: 'owner_only',
   },
   {
     id: 'jp_rent_increase',
@@ -571,6 +580,75 @@ export const EVENT_DATABASE_JP: RandomEvent[] = [
     impacts: [
       { type: 'extra_expense', value: 0.4 },
     ],
+    housingCondition: 'renter_only',
+  },
+
+  {
+    id: 'jp_boj_rate_shock',
+    name: 'BOJ利上げで住宅ローン増',
+    category: 'property',
+    description: '80%が変動金利。BOJ利上げ→月額返済+20-30%の衝撃',
+    baseProbability: 0.10,
+    durationMonths: [12, 36],
+    impacts: [
+      { type: 'extra_expense', value: 1.5 },
+    ],
+    housingCondition: 'owner_only',
+    correlatedWith: ['jp_boj_shock'],
+  },
+  {
+    id: 'jp_mansion_repair_fund_shortage',
+    name: '修繕積立金不足',
+    category: 'property',
+    description: '築古マンションの修繕積立金不足が社会問題化。一時金徴収',
+    baseProbability: 0.05,
+    durationMonths: [1, 6],
+    impacts: [
+      { type: 'extra_expense', value: 1.5 },
+    ],
+    housingCondition: 'owner_only',
+  },
+  {
+    id: 'jp_property_revaluation',
+    name: '固定資産税評価額見直し',
+    category: 'property',
+    description: '3年ごとの評価替えで固定資産税が増加',
+    baseProbability: 0.02,
+    durationMonths: [0, 0],
+    impacts: [
+      { type: 'extra_expense', value: 0.5 },
+    ],
+    housingCondition: 'owner_only',
+  },
+  {
+    id: 'jp_building_depreciation',
+    name: '建物老朽化問題',
+    category: 'property',
+    description: '木造22年・RC47年の法定耐用年限。建物価値が大幅に下落',
+    baseProbability: 0.03,
+    ageProbabilities: [
+      { minAge: 25, maxAge: 39, probability: 0.01 },
+      { minAge: 40, maxAge: 49, probability: 0.02 },
+      { minAge: 50, maxAge: 59, probability: 0.04 },
+      { minAge: 60, maxAge: 99, probability: 0.05 },
+    ],
+    durationMonths: [0, 0],
+    impacts: [
+      { type: 'portfolio_change', value: -0.03 },
+    ],
+    housingCondition: 'owner_only',
+  },
+  {
+    id: 'jp_neighbor_issue',
+    name: '近隣トラブル',
+    category: 'property',
+    description: '騒音・ゴミ・マナー問題。マンションでは管理組合で対応',
+    baseProbability: 0.03,
+    durationMonths: [6, 24],
+    impacts: [
+      { type: 'extra_expense', value: 0.3 },
+    ],
+    housingCondition: 'owner_only',
   },
 
   // ================================================================

@@ -373,6 +373,10 @@ export const EVENT_DATABASE: RandomEvent[] = [
       { type: 'savings_change', value: -0.05 },
       { type: 'extra_expense', value: 3 },
     ],
+    ownerProbabilityMultiplier: 2.0,
+    ownerExtraImpacts: [
+      { type: 'extra_expense', value: 3 },
+    ],
   },
   {
     id: 'car_accident',
@@ -419,6 +423,68 @@ export const EVENT_DATABASE: RandomEvent[] = [
       { type: 'savings_change', value: -0.03 },
       { type: 'extra_expense', value: 2 },
     ],
+    housingCondition: 'owner_only',
+  },
+
+  {
+    id: 'rent_increase',
+    name: '房租大幅調漲',
+    category: 'property',
+    description: '房東漲租或被迫搬遷，租屋族獨有風險',
+    baseProbability: 0.08,
+    durationMonths: [1, 2],
+    impacts: [
+      { type: 'extra_expense', value: 1 },
+    ],
+    housingCondition: 'renter_only',
+  },
+  {
+    id: 'property_tax_hike',
+    name: 'Property Tax 大幅調漲',
+    category: 'property',
+    description: '地方政府重新評估房產價值，Property Tax 大幅上漲',
+    baseProbability: 0.05,
+    durationMonths: [0, 0],
+    impacts: [
+      { type: 'extra_expense', value: 1.5 },
+    ],
+    housingCondition: 'owner_only',
+  },
+  {
+    id: 'mortgage_rate_increase',
+    name: '房貸利率上升',
+    category: 'property',
+    description: 'ARM 利率重置或轉貸時利率上升，月付增加',
+    baseProbability: 0.05,
+    durationMonths: [12, 36],
+    impacts: [
+      { type: 'extra_expense', value: 1 },
+    ],
+    housingCondition: 'owner_only',
+  },
+  {
+    id: 'hoa_special_assessment',
+    name: 'HOA 特別費用',
+    category: 'property',
+    description: 'HOA 通過特別決議，需一次性繳納大額修繕費',
+    baseProbability: 0.03,
+    durationMonths: [1, 3],
+    impacts: [
+      { type: 'extra_expense', value: 2 },
+    ],
+    housingCondition: 'owner_only',
+  },
+  {
+    id: 'neighbor_issue',
+    name: '鄰居/社區問題',
+    category: 'property',
+    description: '噪音、治安惡化或嫌惡設施，影響生活品質與房價',
+    baseProbability: 0.03,
+    durationMonths: [6, 24],
+    impacts: [
+      { type: 'extra_expense', value: 0.5 },
+    ],
+    housingCondition: 'owner_only',
   },
 
   // ================================================================

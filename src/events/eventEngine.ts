@@ -6,6 +6,7 @@
  * 2. 用 RNG 擲骰子決定觸發
  * 3. 處理事件相關性（經濟衰退 → 股市崩盤 / 裁員）
  * 4. 計算實際財務影響
+ * 5. 根據是否有房調整事件觸發條件與影響
  */
 
 import { createSeededRNG } from '../engine/rng'
@@ -73,15 +74,6 @@ function calcImpactAmount(
   }
 }
 
-/**
- * 擲骰子決定當年觸發的所有事件
- *
- * @param seed       該年的隨機種子
- * @param age        當前年齡
- * @param portfolio  當前資產
- * @param annualIncome 年收入
- * @returns 觸發的事件列表 + 總財務影響
- */
 /** 退休後不觸發的事件類別與 ID */
 const WORK_ONLY_CATEGORIES: Set<string> = new Set(['career'])
 const WORK_ONLY_EVENTS: Set<string> = new Set([
@@ -96,6 +88,11 @@ const WORK_ONLY_EVENTS: Set<string> = new Set([
   'jp_karoshi_health',
 ])
 
+/** 當購屋模組啟用時，跳過這些事件（避免重複計算） */
+const HOUSING_MODULE_SKIP: Set<string> = new Set([
+  'tw_purchase_home', 'jp_purchase_home',
+])
+
 /** 取得地區對應的事件資料 */
 function getEventData(region: Region) {
   if (region === 'tw') return { database: EVENT_DATABASE_TW, map: EVENT_MAP_TW }
@@ -103,6 +100,20 @@ function getEventData(region: Region) {
   return { database: EVENT_DATABASE, map: EVENT_MAP }
 }
 
+/**
+ * 擲骰子決定當年觸發的所有事件
+ *
+ * @param seed       該年的隨機種子
+ * @param age        當前年齡
+ * @param year       模擬第幾年
+ * @param portfolio  當前資產
+ * @param annualIncome 年收入
+ * @param isRetired  是否已退休
+ * @param region     地區
+ * @param ownsHome   是否擁有自住房
+ * @param housingModuleEnabled 是否啟用購屋模組（啟用時跳過購屋隨機事件）
+ * @returns 觸發的事件列表 + 總財務影響
+ */
 export function rollEventsForYear(
   seed: number,
   age: number,
@@ -111,6 +122,8 @@ export function rollEventsForYear(
   annualIncome: number,
   isRetired: boolean = false,
   region: Region = 'us',
+  ownsHome: boolean = false,
+  housingModuleEnabled: boolean = false,
 ): { events: TriggeredEvent[]; totalPortfolioImpact: number; totalIncomeImpact: number; totalExpense: number } {
   const { database, map } = getEventData(region)
   const rng = createSeededRNG(seed)
@@ -128,7 +141,27 @@ export function rollEventsForYear(
       rng() // 消耗 RNG 保持序列一致
       continue
     }
-    const prob = getAdjustedProbability(event, age)
+    // 購屋模組啟用時跳過購屋隨機事件（避免重複）
+    if (housingModuleEnabled && HOUSING_MODULE_SKIP.has(event.id)) {
+      rng() // 消耗 RNG 保持序列一致
+      continue
+    }
+    // 購屋條件篩選
+    if (event.housingCondition === 'owner_only' && !ownsHome) {
+      rng() // 消耗 RNG 保持序列一致
+      continue
+    }
+    if (event.housingCondition === 'renter_only' && ownsHome) {
+      rng() // 消耗 RNG 保持序列一致
+      continue
+    }
+
+    let prob = getAdjustedProbability(event, age)
+    // 有房者機率倍數調整
+    if (ownsHome && event.ownerProbabilityMultiplier) {
+      prob *= event.ownerProbabilityMultiplier
+    }
+
     if (rng() < prob) {
       triggeredIds.add(event.id)
     }
@@ -140,12 +173,21 @@ export function rollEventsForYear(
     if (event.correlatedWith) {
       for (const correlatedId of event.correlatedWith) {
         if (!triggeredIds.has(correlatedId)) {
-          // 退休後不拉動工作事件
           const correlated = map.get(correlatedId)
-          if (isRetired && correlated &&
+          if (!correlated) continue
+          // 退休後不拉動工作事件
+          if (isRetired &&
               (WORK_ONLY_CATEGORIES.has(correlated.category) || WORK_ONLY_EVENTS.has(correlated.id))) {
             continue
           }
+          // 購屋模組啟用時不拉動購屋事件
+          if (housingModuleEnabled && HOUSING_MODULE_SKIP.has(correlatedId)) {
+            continue
+          }
+          // 購屋條件篩選
+          if (correlated.housingCondition === 'owner_only' && !ownsHome) continue
+          if (correlated.housingCondition === 'renter_only' && ownsHome) continue
+
           // 相關事件有 50% 額外機率被拉動觸發
           if (rng() < 0.5) {
             triggeredIds.add(correlatedId)
@@ -164,7 +206,12 @@ export function rollEventsForYear(
     let eventPortfolioHit = 0
     let eventPortfolioHitPositive = 0
 
-    for (const impact of event.impacts) {
+    // 合併基礎影響 + 有房者額外影響
+    const allImpacts = ownsHome && event.ownerExtraImpacts
+      ? [...event.impacts, ...event.ownerExtraImpacts]
+      : event.impacts
+
+    for (const impact of allImpacts) {
       const { amount, description } = calcImpactAmount(
         impact.type, impact.value, portfolio, annualIncome,
       )

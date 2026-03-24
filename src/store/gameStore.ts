@@ -7,6 +7,8 @@ import { LIFESTYLE_PRESETS_TW } from '../engine/lifestyle_tw'
 import { LIFESTYLE_PRESETS_JP } from '../engine/lifestyle_jp'
 import type { Region } from '../config/regions'
 import type { ImmigrationPlan } from '../engine/immigrationTypes'
+import type { HousingPlan } from '../engine/housingTypes'
+import { HOUSING_PARAMS } from '../engine/housingData'
 import historicalData from '../../data/assets_returns.json'
 import type { HistoricalData } from '../engine/bootstrap'
 
@@ -55,6 +57,13 @@ interface GameState {
   immigrationAge: number
   immigrationAllocation: Allocation
 
+  // 購屋
+  housingEnabled: boolean
+  housingPurchaseAge: number
+  housingPriceToIncomeRatio: number
+  housingDownPaymentRatio: number
+  housingMortgageYears: number
+
   // 頁面
   viewMode: ViewMode
 
@@ -85,6 +94,11 @@ interface GameState {
   setImmigrationTarget: (r: Region | null) => void
   setImmigrationAge: (v: number) => void
   setImmigrationAllocation: (a: Allocation) => void
+  setHousingEnabled: (v: boolean) => void
+  setHousingPurchaseAge: (v: number) => void
+  setHousingPriceToIncomeRatio: (v: number) => void
+  setHousingDownPaymentRatio: (v: number) => void
+  setHousingMortgageYears: (v: number) => void
   setViewMode: (m: ViewMode) => void
   runSimulation: () => void
   runStory: () => void
@@ -93,6 +107,7 @@ interface GameState {
 let worker: Worker | null = null
 
 const defaultPreset = LIFESTYLE_PRESETS.moderate
+const defaultHousingParams = HOUSING_PARAMS.us
 
 export const useGameStore = create<GameState>((set, get) => ({
   region: 'us',
@@ -115,6 +130,12 @@ export const useGameStore = create<GameState>((set, get) => ({
   immigrationAge: 30,
   immigrationAllocation: { ...LIFESTYLE_PRESETS_JP.moderate.allocation },
 
+  housingEnabled: false,
+  housingPurchaseAge: 35,
+  housingPriceToIncomeRatio: defaultHousingParams.defaultPriceToIncomeRatio,
+  housingDownPaymentRatio: defaultHousingParams.defaultDownPaymentRatio,
+  housingMortgageYears: defaultHousingParams.defaultMortgageYears,
+
   viewMode: 'simulation',
 
   isRunning: false,
@@ -127,6 +148,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   setRegion: (r) => {
     const presets = getLifestylePresets(r)
     const preset = presets.moderate
+    const hp = HOUSING_PARAMS[r]
     set({
       region: r,
       lifestyleId: 'moderate',
@@ -141,6 +163,9 @@ export const useGameStore = create<GameState>((set, get) => ({
       storyResult: null,
       immigrationEnabled: r === 'tw' ? get().immigrationEnabled : false,
       immigrationTarget: r === 'tw' ? get().immigrationTarget : null,
+      housingPriceToIncomeRatio: hp.defaultPriceToIncomeRatio,
+      housingDownPaymentRatio: hp.defaultDownPaymentRatio,
+      housingMortgageYears: hp.defaultMortgageYears,
     })
   },
 
@@ -177,6 +202,11 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
   setImmigrationAge: (v) => set({ immigrationAge: v }),
   setImmigrationAllocation: (a) => set({ immigrationAllocation: a }),
+  setHousingEnabled: (v) => set({ housingEnabled: v }),
+  setHousingPurchaseAge: (v) => set({ housingPurchaseAge: v }),
+  setHousingPriceToIncomeRatio: (v) => set({ housingPriceToIncomeRatio: v }),
+  setHousingDownPaymentRatio: (v) => set({ housingDownPaymentRatio: v }),
+  setHousingMortgageYears: (v) => set({ housingMortgageYears: v }),
   setViewMode: (m) => set({ viewMode: m }),
 
   runSimulation: () => {
@@ -219,6 +249,17 @@ export const useGameStore = create<GameState>((set, get) => ({
           }
         : undefined
 
+    const housingPlan: HousingPlan | undefined =
+      state.housingEnabled
+        ? {
+            enabled: true,
+            purchaseAge: state.housingPurchaseAge,
+            priceToIncomeRatio: state.housingPriceToIncomeRatio,
+            downPaymentRatio: state.housingDownPaymentRatio,
+            mortgageYears: state.housingMortgageYears,
+          }
+        : undefined
+
     const request: WorkerRequest = {
       type: 'run',
       data: historicalData as HistoricalData,
@@ -234,6 +275,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         enableEvents: state.enableEvents,
         region: state.region,
         immigrationPlan,
+        housingPlan,
       },
       numPaths: state.numPaths,
       masterSeed: Date.now(),
@@ -258,6 +300,17 @@ export const useGameStore = create<GameState>((set, get) => ({
           }
         : undefined
 
+    const housingPlan: HousingPlan | undefined =
+      state.housingEnabled
+        ? {
+            enabled: true,
+            purchaseAge: state.housingPurchaseAge,
+            priceToIncomeRatio: state.housingPriceToIncomeRatio,
+            downPaymentRatio: state.housingDownPaymentRatio,
+            mortgageYears: state.housingMortgageYears,
+          }
+        : undefined
+
     // 在主執行緒跑單一路徑（有事件紀錄）
     setTimeout(() => {
       const result = simulatePath(
@@ -274,6 +327,7 @@ export const useGameStore = create<GameState>((set, get) => ({
           enableEvents: true,  // 故事模式強制啟用事件
           region: state.region,
           immigrationPlan,
+          housingPlan,
         },
         Date.now(),
       )

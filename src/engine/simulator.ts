@@ -4,10 +4,11 @@
  * 模擬邏輯（每年）：
  * 1. Block Bootstrap 抽出該年各資產報酬
  * 2. （可選）觸發隨機事件，影響資產/收入
- * 3. 依玩家資產配置計算加權報酬
- * 4. 資產成長：portfolio *= (1 + weightedReturn)
- * 5. 扣除提領金額（通膨調整後）
- * 6. 檢查破產（資產 ≤ 0）
+ * 3. （可選）購屋處理：頭期款、房貸、持有成本
+ * 4. 依玩家資產配置計算加權報酬
+ * 5. 資產成長：portfolio *= (1 + weightedReturn)
+ * 6. 扣除提領金額（通膨調整後）
+ * 7. 檢查破產（資產 ≤ 0）
  */
 
 import { blockBootstrap, type HistoricalData, type YearReturns } from './bootstrap'
@@ -16,6 +17,9 @@ import { createSeededRNG } from './rng'
 import { processImmigrationYear } from './immigrationEngine'
 import type { ImmigrationPlan, ImmigrationState, ImmigrationPhase } from './immigrationTypes'
 import { INITIAL_IMMIGRATION_STATE } from './immigrationTypes'
+import { processHousingYear } from './housingEngine'
+import type { HousingPlan, HousingState, YearHousingSnapshot } from './housingTypes'
+import { INITIAL_HOUSING_STATE } from './housingTypes'
 import type { TriggeredEvent } from '../events/eventTypes'
 import type { Region } from '../config/regions'
 
@@ -48,6 +52,7 @@ export interface SimulationParams {
   enableEvents: boolean     // 是否啟用隨機事件
   region?: Region           // 地區（影響事件資料庫）
   immigrationPlan?: ImmigrationPlan  // 移民計畫
+  housingPlan?: HousingPlan          // 購屋計畫
 }
 
 /** 單年模擬快照 */
@@ -68,6 +73,7 @@ export interface YearSnapshot {
   eventExpense: number           // 事件額外支出
   immigrationPhase?: ImmigrationPhase   // 移民階段
   activeRegion?: Region                  // 該年實際所在國家
+  housing?: YearHousingSnapshot          // 購屋快照
 }
 
 /** 單條路徑結果 */
@@ -117,6 +123,13 @@ function calcWithdrawal(
   }
 }
 
+/** Box-Muller 轉換：從均勻分布生成標準常態分布 */
+function boxMuller(rng: () => number): number {
+  const u1 = rng()
+  const u2 = rng()
+  return Math.sqrt(-2 * Math.log(u1 || 1e-10)) * Math.cos(2 * Math.PI * u2)
+}
+
 export function simulatePath(
   data: HistoricalData,
   params: SimulationParams,
@@ -133,7 +146,9 @@ export function simulatePath(
   let bankruptAge: number | null = null
   let effectiveIncome = params.annualIncome
   let immState: ImmigrationState = { ...INITIAL_IMMIGRATION_STATE }
+  let housingState: HousingState = { ...INITIAL_HOUSING_STATE }
   const immRng = createSeededRNG(seed * 7919 + 13)  // 移民用獨立 RNG
+  const housingRng = createSeededRNG(seed * 6271 + 37)  // 購屋用獨立 RNG
   const snapshots: YearSnapshot[] = []
   const allEvents: TriggeredEvent[] = []
 
@@ -192,7 +207,9 @@ export function simulatePath(
     if (params.enableEvents && !bankrupt) {
       const eventSeed = seed * 1000 + y * 37
       const isRetired = age >= params.retirementAge
-      const result = rollEventsForYear(eventSeed, age, y, portfolio, effectiveIncome, isRetired, activeRegion)
+      const ownsHome = housingState.phase === 'purchased' || housingState.phase === 'paid_off'
+      const housingModuleEnabled = !!params.housingPlan?.enabled
+      const result = rollEventsForYear(eventSeed, age, y, portfolio, effectiveIncome, isRetired, activeRegion, ownsHome, housingModuleEnabled)
       events = result.events
       eventPortfolioImpact = result.totalPortfolioImpact
       eventIncomeImpact = result.totalIncomeImpact
@@ -216,6 +233,33 @@ export function simulatePath(
     events = [...events, ...immigrationEvents]
     allEvents.push(...events)
 
+    // === 購屋處理 ===
+    let housingSnapshot: YearHousingSnapshot | undefined
+    let housingUpfrontCost = 0
+    let annualHousingExpense = 0
+
+    if (params.housingPlan?.enabled && !bankrupt) {
+      const adjustedIncome = effectiveIncome * immIncomeMultiplier * cumulativeInflation
+      const normalRandom = boxMuller(housingRng)
+      const housingResult = processHousingYear(
+        housingState,
+        params.housingPlan,
+        age,
+        adjustedIncome,
+        portfolio,
+        activeRegion,
+        normalRandom,
+      )
+      housingState = housingResult.newState
+      housingSnapshot = housingResult.snapshot
+      housingUpfrontCost = housingResult.upfrontCost
+      annualHousingExpense = housingResult.annualHousingExpense
+
+      // 扣除購屋頭期款+交易成本
+      portfolio -= housingUpfrontCost
+      if (portfolio < 0) portfolio = 0
+    }
+
     // === 正常模擬流程（套用移民收入/支出倍率）===
     const isRetired = age >= params.retirementAge
     let contribution = 0
@@ -228,6 +272,8 @@ export function simulatePath(
         const extraExpense = params.annualContribution * cumulativeInflation * (immExpenseMultiplier - 1) * 0.5
         contribution = Math.max(0, contribution - extraExpense)
       }
+      // 購屋後房貸+持有成本 → 可存入額減少
+      contribution = Math.max(0, contribution - annualHousingExpense)
     } else if (!bankrupt) {
       withdrawal = calcWithdrawal(
         params.withdrawal,
@@ -235,6 +281,8 @@ export function simulatePath(
         portfolio,
         cumulativeInflation,
       ) * immExpenseMultiplier
+      // 退休後房屋支出也從 portfolio 扣除
+      withdrawal += annualHousingExpense
     }
 
     portfolio += contribution
@@ -270,6 +318,7 @@ export function simulatePath(
       eventExpense,
       immigrationPhase: params.immigrationPlan?.enabled ? immState.phase : undefined,
       activeRegion: params.immigrationPlan?.enabled ? activeRegion : undefined,
+      housing: housingSnapshot,
     })
   }
 

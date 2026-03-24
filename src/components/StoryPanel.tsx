@@ -19,6 +19,7 @@ import TrendingUpIcon from '@mui/icons-material/TrendingUp'
 import TrendingDownIcon from '@mui/icons-material/TrendingDown'
 import AutoStoriesIcon from '@mui/icons-material/AutoStories'
 import CakeIcon from '@mui/icons-material/Cake'
+import HomeIcon from '@mui/icons-material/Home'
 import type { EventCategory } from '../events/eventTypes'
 import type { ImmigrationPhase } from '../engine/immigrationTypes'
 import { CATEGORY_LABELS } from '../events/eventDatabase'
@@ -108,6 +109,13 @@ export function StoryPanel() {
   const targetFlag = immigrationOutcome?.targetRegion === 'jp' ? '🇯🇵' : immigrationOutcome?.targetRegion === 'us' ? '🇺🇸' : ''
   const targetName = immigrationOutcome?.targetRegion === 'jp' ? '日本' : immigrationOutcome?.targetRegion === 'us' ? '美國' : ''
 
+  // 購屋結果
+  const housingPurchaseSnap = snapshots.find(s => s.housing?.ownsHouse)
+  const hasHousing = !!housingPurchaseSnap
+  const lastHousingSnap = snapshots[snapshots.length - 1].housing
+  const housingPurchaseAge = housingPurchaseSnap?.age ?? null
+  // 加入購屋年份到 keyYears 會在下面處理
+
   // 篩選有事件的年份 + 關鍵年份（退休、破產、第一年、最後一年、資產最高）
   const keyYears = new Set<number>()
   keyYears.add(0)
@@ -115,6 +123,7 @@ export function StoryPanel() {
   keyYears.add(retirementAge - currentAge)
   if (bankruptAge) keyYears.add(bankruptAge - currentAge)
   keyYears.add(peakAge - currentAge)
+  if (housingPurchaseAge) keyYears.add(housingPurchaseAge - currentAge)
   snapshots.forEach((s, i) => { if (s.events.length > 0) keyYears.add(i) })
 
   // 每 5 年也加入
@@ -184,6 +193,32 @@ export function StoryPanel() {
         </Paper>
       )}
 
+      {/* 購屋結果 */}
+      {hasHousing && lastHousingSnap && (
+        <Paper elevation={2} sx={{
+          p: 2.5, mb: 3, textAlign: 'center',
+          background: 'linear-gradient(135deg, #e6510011, #e6510008)',
+          border: '1px solid #e6510033',
+        }}>
+          <Typography variant="h4" fontWeight={800} color="#e65100">
+            {housingPurchaseAge} 歲購屋
+          </Typography>
+          <Stack direction="row" spacing={2} justifyContent="center" sx={{ mt: 1.5 }} flexWrap="wrap" useFlexGap>
+            <Chip icon={<HomeIcon />} label={`房屋市值 ${fmtP(lastHousingSnap.houseValue)}`}
+              color="warning" variant="outlined" />
+            <Chip label={`淨值 ${fmtP(lastHousingSnap.equity)}`}
+              color="success" variant="outlined" />
+            {lastHousingSnap.mortgageBalance > 0 && (
+              <Chip label={`房貸餘額 ${fmtP(lastHousingSnap.mortgageBalance)}`}
+                color="error" variant="outlined" />
+            )}
+            {lastHousingSnap.mortgageBalance === 0 && (
+              <Chip label="房貸已繳清" color="success" variant="outlined" />
+            )}
+          </Stack>
+        </Paper>
+      )}
+
       {/* 資產走勢迷你圖 */}
       <Paper elevation={1} sx={{ p: 2, mb: 3 }}>
         <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 1 }}>
@@ -212,10 +247,12 @@ export function StoryPanel() {
             const isLast = yearIdx === totalYears - 1
 
             const hasImmigrationEvent = snap.events.some(e => e.event.category === 'immigration')
+            const isHousingPurchase = snap.housing?.ownsHouse && (!snapshots[yearIdx - 1]?.housing?.ownsHouse)
 
             let dotColor: 'success' | 'error' | 'primary' | 'warning' | 'info' | 'grey' = 'grey'
             if (isBankrupt) dotColor = 'error'
             else if (isRetirement) dotColor = 'primary'
+            else if (isHousingPurchase) dotColor = 'warning'
             else if (hasImmigrationEvent) dotColor = 'info'
             else if (hasEvents) dotColor = 'warning'
             else if (isPeak) dotColor = 'success'
@@ -254,6 +291,34 @@ export function StoryPanel() {
                     {snap.withdrawal > 0 && ` ・ 提領 ${fmtP(snap.withdrawal)}`}
                     {snap.eventExpense > 0 && ` ・ 事件支出 ${fmtP(snap.eventExpense)}`}
                   </Typography>
+
+                  {/* 購屋事件 */}
+                  {isHousingPurchase && snap.housing && (
+                    <Paper variant="outlined" sx={{
+                      mt: 1, p: 1.5,
+                      borderLeft: '3px solid #e65100',
+                      bgcolor: '#fff3e010',
+                    }}>
+                      <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 0.5 }}>
+                        <HomeIcon sx={{ fontSize: 16, color: '#e65100' }} />
+                        <Typography variant="body2" fontWeight={700}>購入自住房</Typography>
+                      </Stack>
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
+                        房價 {fmtP(snap.housing.houseValue)} ・ 房貸 {fmtP(snap.housing.mortgageBalance)}
+                      </Typography>
+                    </Paper>
+                  )}
+
+                  {/* 房屋資訊（非購屋年顯示簡要） */}
+                  {snap.housing?.ownsHouse && !isHousingPurchase && (
+                    <Typography variant="caption" color="#e65100">
+                      房屋 {fmtP(snap.housing.houseValue)}
+                      {snap.housing.mortgageBalance > 0
+                        ? ` ・ 房貸餘額 ${fmtP(snap.housing.mortgageBalance)}`
+                        : ' ・ 房貸已清'}
+                      {` ・ 年住房支出 ${fmtP(snap.housing.annualHousingCost)}`}
+                    </Typography>
+                  )}
 
                   {/* 事件卡片 */}
                   {snap.events.map((evt, j) => (
