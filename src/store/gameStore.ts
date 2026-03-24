@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
 import type { Allocation, WithdrawalStrategy, PathResult } from '../engine/simulator'
 import { simulatePath } from '../engine/simulator'
 import type { WorkerDoneMsg, WorkerRequest } from '../engine/worker'
@@ -109,7 +110,7 @@ let worker: Worker | null = null
 const defaultPreset = LIFESTYLE_PRESETS.moderate
 const defaultHousingParams = HOUSING_PARAMS.us
 
-export const useGameStore = create<GameState>((set, get) => ({
+export const useGameStore = create<GameState>()(persist((set, get) => ({
   region: 'us',
   lifestyleId: 'moderate',
   annualIncome: defaultPreset.annualIncome,
@@ -334,4 +335,31 @@ export const useGameStore = create<GameState>((set, get) => ({
       set({ storyResult: result, isStoryRunning: false })
     }, 50)
   },
+}), {
+  name: 'monte-carlo-sim-params',
+  partialize: (state) => ({
+    region: state.region,
+    lifestyleId: state.lifestyleId,
+    annualIncome: state.annualIncome,
+    annualExpense: state.annualExpense,
+    currentAge: state.currentAge,
+    retirementAge: state.retirementAge,
+    endAge: state.endAge,
+    initialPortfolio: state.initialPortfolio,
+    annualContribution: state.annualContribution,
+    allocation: state.allocation,
+    withdrawal: state.withdrawal,
+    numPaths: state.numPaths,
+    enableEvents: state.enableEvents,
+    immigrationEnabled: state.immigrationEnabled,
+    immigrationTarget: state.immigrationTarget,
+    immigrationAge: state.immigrationAge,
+    immigrationAllocation: state.immigrationAllocation,
+    housingEnabled: state.housingEnabled,
+    housingPurchaseAge: state.housingPurchaseAge,
+    housingPriceToIncomeRatio: state.housingPriceToIncomeRatio,
+    housingDownPaymentRatio: state.housingDownPaymentRatio,
+    housingMortgageYears: state.housingMortgageYears,
+    viewMode: state.viewMode,
+  }),
 }))

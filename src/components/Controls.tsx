@@ -1,14 +1,19 @@
+import { useState, useRef, useEffect } from 'react'
 import {
   Box, Typography, Slider, Divider, Button, MenuItem, Select,
   FormControl, InputLabel, Alert, LinearProgress, Stack, Chip, Paper,
   Card, CardActionArea, CardContent, Grid, Switch, FormControlLabel,
-  ToggleButtonGroup, ToggleButton,
+  ToggleButtonGroup, ToggleButton, TextField, InputAdornment,
 } from '@mui/material'
 import PlayArrowIcon from '@mui/icons-material/PlayArrow'
 import HourglassTopIcon from '@mui/icons-material/HourglassTop'
 import AutoStoriesIcon from '@mui/icons-material/AutoStories'
 import BarChartIcon from '@mui/icons-material/BarChart'
+import SaveIcon from '@mui/icons-material/Save'
+import FolderOpenIcon from '@mui/icons-material/FolderOpen'
 import { useGameStore } from '../store/gameStore'
+import { useSavedRecords } from '../store/savedRecords'
+import { SavedRecordsDialog } from './SavedRecordsDialog'
 import { LIFESTYLE_LIST, type LifestyleId } from '../engine/lifestyle'
 import { LIFESTYLE_LIST_TW } from '../engine/lifestyle_tw'
 import { LIFESTYLE_LIST_JP } from '../engine/lifestyle_jp'
@@ -33,6 +38,10 @@ const ZERO_ALLOCATION: Allocation = { sp500: 0, intlStock: 0, bond: 0, gold: 0, 
 
 export function Controls() {
   const store = useGameStore()
+  const { saveRecord, records } = useSavedRecords()
+  const [recordsDialogOpen, setRecordsDialogOpen] = useState(false)
+  const [saveNameInput, setSaveNameInput] = useState('')
+  const [showSaveInput, setShowSaveInput] = useState(false)
   const region = store.region
   const cfg = REGION_CONFIGS[region]
   const lifestyleList = region === 'jp' ? LIFESTYLE_LIST_JP : region === 'tw' ? LIFESTYLE_LIST_TW : LIFESTYLE_LIST
@@ -513,6 +522,119 @@ export function Controls() {
           {store.isStoryRunning ? '生成中...' : '生成人生故事'}
         </Button>
       )}
+
+      <Divider sx={{ my: 1 }} />
+
+      {/* 儲存 / 載入紀錄 */}
+      {showSaveInput ? (
+        <Stack spacing={1}>
+          <TextField size="small" fullWidth autoFocus
+            placeholder="為這組設定命名…"
+            value={saveNameInput}
+            onChange={e => setSaveNameInput(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Enter' && saveNameInput.trim()) {
+                saveRecord({
+                  name: saveNameInput.trim(),
+                  region: store.region,
+                  lifestyleId: store.lifestyleId,
+                  annualIncome: store.annualIncome,
+                  annualExpense: store.annualExpense,
+                  currentAge: store.currentAge,
+                  retirementAge: store.retirementAge,
+                  endAge: store.endAge,
+                  initialPortfolio: store.initialPortfolio,
+                  annualContribution: store.annualContribution,
+                  allocation: { ...store.allocation },
+                  withdrawal: store.withdrawal,
+                  numPaths: store.numPaths,
+                  enableEvents: store.enableEvents,
+                  immigrationEnabled: store.immigrationEnabled,
+                  immigrationTarget: store.immigrationTarget,
+                  immigrationAge: store.immigrationAge,
+                  immigrationAllocation: { ...store.immigrationAllocation },
+                  housingEnabled: store.housingEnabled,
+                  housingPurchaseAge: store.housingPurchaseAge,
+                  housingPriceToIncomeRatio: store.housingPriceToIncomeRatio,
+                  housingDownPaymentRatio: store.housingDownPaymentRatio,
+                  housingMortgageYears: store.housingMortgageYears,
+                  resultSummary: store.result ? {
+                    successRate: store.result.successRate,
+                    medianFinalPortfolio: store.result.medianFinalPortfolio,
+                  } : undefined,
+                })
+                setSaveNameInput('')
+                setShowSaveInput(false)
+              }
+              if (e.key === 'Escape') {
+                setSaveNameInput('')
+                setShowSaveInput(false)
+              }
+            }}
+            slotProps={{ htmlInput: { maxLength: 50 } }}
+          />
+          <Stack direction="row" spacing={1}>
+            <Button size="small" variant="contained" fullWidth
+              disabled={!saveNameInput.trim()}
+              onClick={() => {
+                saveRecord({
+                  name: saveNameInput.trim(),
+                  region: store.region,
+                  lifestyleId: store.lifestyleId,
+                  annualIncome: store.annualIncome,
+                  annualExpense: store.annualExpense,
+                  currentAge: store.currentAge,
+                  retirementAge: store.retirementAge,
+                  endAge: store.endAge,
+                  initialPortfolio: store.initialPortfolio,
+                  annualContribution: store.annualContribution,
+                  allocation: { ...store.allocation },
+                  withdrawal: store.withdrawal,
+                  numPaths: store.numPaths,
+                  enableEvents: store.enableEvents,
+                  immigrationEnabled: store.immigrationEnabled,
+                  immigrationTarget: store.immigrationTarget,
+                  immigrationAge: store.immigrationAge,
+                  immigrationAllocation: { ...store.immigrationAllocation },
+                  housingEnabled: store.housingEnabled,
+                  housingPurchaseAge: store.housingPurchaseAge,
+                  housingPriceToIncomeRatio: store.housingPriceToIncomeRatio,
+                  housingDownPaymentRatio: store.housingDownPaymentRatio,
+                  housingMortgageYears: store.housingMortgageYears,
+                  resultSummary: store.result ? {
+                    successRate: store.result.successRate,
+                    medianFinalPortfolio: store.result.medianFinalPortfolio,
+                  } : undefined,
+                })
+                setSaveNameInput('')
+                setShowSaveInput(false)
+              }}>
+              確認儲存
+            </Button>
+            <Button size="small" variant="outlined" fullWidth
+              onClick={() => { setSaveNameInput(''); setShowSaveInput(false) }}>
+              取消
+            </Button>
+          </Stack>
+        </Stack>
+      ) : (
+        <Stack direction="row" spacing={1}>
+          <Button variant="outlined" fullWidth
+            startIcon={<SaveIcon />}
+            onClick={() => setShowSaveInput(true)}
+            sx={{ fontWeight: 600 }}>
+            儲存紀錄
+          </Button>
+          <Button variant="outlined" fullWidth
+            startIcon={<FolderOpenIcon />}
+            onClick={() => setRecordsDialogOpen(true)}
+            sx={{ fontWeight: 600 }}>
+            載入紀錄{records.length > 0 ? ` (${records.length})` : ''}
+          </Button>
+        </Stack>
+      )}
+
+      <SavedRecordsDialog open={recordsDialogOpen} onClose={() => setRecordsDialogOpen(false)} />
     </Box>
   )
 }
@@ -523,12 +645,67 @@ function SliderField({ label, value, unit, min, max, step = 1, onChange, format 
   onChange: (v: number) => void
   format?: (v: number) => string
 }) {
+  const [editing, setEditing] = useState(false)
+  const [editValue, setEditValue] = useState('')
+  const inputRef = useRef<HTMLInputElement>(null)
   const display = format ? format(value) : `${value} ${unit}`
+
+  useEffect(() => {
+    if (editing && inputRef.current) {
+      inputRef.current.focus()
+      inputRef.current.select()
+    }
+  }, [editing])
+
+  const commitEdit = () => {
+    setEditing(false)
+    const parsed = parseFloat(editValue.replace(/[^0-9.\-]/g, ''))
+    if (isNaN(parsed)) return
+    // Clamp to range and snap to step
+    const clamped = Math.min(max, Math.max(min, parsed))
+    const snapped = step < 1 ? Math.round(clamped / step) * step : Math.round(clamped / step) * step
+    onChange(snapped)
+  }
+
   return (
     <Box>
       <Stack direction="row" justifyContent="space-between" alignItems="center">
         <Typography variant="body2" color="text.secondary">{label}</Typography>
-        <Typography variant="body2" fontWeight={700}>{display}</Typography>
+        {editing ? (
+          <TextField
+            inputRef={inputRef}
+            size="small"
+            variant="standard"
+            value={editValue}
+            onChange={e => setEditValue(e.target.value)}
+            onBlur={commitEdit}
+            onKeyDown={e => {
+              if (e.key === 'Enter') commitEdit()
+              if (e.key === 'Escape') setEditing(false)
+            }}
+            slotProps={{
+              input: {
+                endAdornment: unit ? <InputAdornment position="end"><Typography variant="caption">{unit}</Typography></InputAdornment> : undefined,
+                sx: { fontSize: '0.875rem', fontWeight: 700 },
+              },
+              htmlInput: { inputMode: 'decimal' },
+            }}
+            sx={{ width: 100, '& .MuiInput-underline:before': { borderBottom: '2px solid', borderColor: 'primary.main' } }}
+          />
+        ) : (
+          <Typography variant="body2" fontWeight={700}
+            onClick={() => { setEditValue(String(value)); setEditing(true) }}
+            sx={{
+              cursor: 'pointer',
+              px: 0.5,
+              borderRadius: 0.5,
+              '&:hover': { bgcolor: 'action.hover' },
+              borderBottom: '1px dashed',
+              borderColor: 'text.disabled',
+            }}>
+            {display}
+          </Typography>
+        )}
       </Stack>
       <Slider size="small" min={min} max={max} step={step} value={value}
         onChange={(_, v) => onChange(v as number)} sx={{ py: 0.5 }} />
