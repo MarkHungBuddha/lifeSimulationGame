@@ -18,8 +18,11 @@ import { processImmigrationYear } from './immigrationEngine'
 import type { ImmigrationPlan, ImmigrationState, ImmigrationPhase } from './immigrationTypes'
 import { INITIAL_IMMIGRATION_STATE } from './immigrationTypes'
 import { processHousingYear } from './housingEngine'
+import { HOUSING_PARAMS } from './housingData'
 import type { HousingPlan, HousingState, YearHousingSnapshot } from './housingTypes'
 import { INITIAL_HOUSING_STATE } from './housingTypes'
+import { getAnnualRaise } from './occupationEngine'
+import type { OccupationPlan } from './occupationTypes'
 import type { TriggeredEvent } from '../events/eventTypes'
 import type { Region } from '../config/regions'
 
@@ -53,6 +56,7 @@ export interface SimulationParams {
   region?: Region           // 地區（影響事件資料庫）
   immigrationPlan?: ImmigrationPlan  // 移民計畫
   housingPlan?: HousingPlan          // 購屋計畫
+  occupationPlan?: OccupationPlan    // 職業計畫
 }
 
 /** 單年模擬快照 */
@@ -74,6 +78,8 @@ export interface YearSnapshot {
   immigrationPhase?: ImmigrationPhase   // 移民階段
   activeRegion?: Region                  // 該年實際所在國家
   housing?: YearHousingSnapshot          // 購屋快照
+  currentSalary?: number                 // 職業啟用時的當前年薪
+  raiseRate?: number                     // 職業啟用時的當年加薪率
 }
 
 /** 單條路徑結果 */
@@ -149,8 +155,11 @@ export function simulatePath(
   let housingState: HousingState = { ...INITIAL_HOUSING_STATE }
   const immRng = createSeededRNG(seed * 7919 + 13)  // 移民用獨立 RNG
   const housingRng = createSeededRNG(seed * 6271 + 37)  // 購屋用獨立 RNG
+  const occRng = createSeededRNG(seed * 8761 + 29)  // 職業用獨立 RNG
   const snapshots: YearSnapshot[] = []
   const allEvents: TriggeredEvent[] = []
+  const baseSavingsRate = params.annualIncome > 0
+    ? params.annualContribution / params.annualIncome : 0
 
   for (let y = 0; y < totalYears; y++) {
     const age = params.currentAge + y
@@ -160,6 +169,8 @@ export function simulatePath(
     if (y > 0) {
       cumulativeInflation *= 1 + yearReturns.cpi
     }
+
+    const isRetired = age >= params.retirementAge
 
     // === 移民處理 ===
     let activeRegion = params.region ?? 'us'
@@ -192,7 +203,7 @@ export function simulatePath(
       for (const evt of immigrationEvents) {
         for (const impact of evt.actualImpacts) {
           if (impact.type === 'income_boost') {
-            effectiveIncome += impact.amount
+            effectiveIncome = Math.max(0, effectiveIncome + impact.amount)
           }
         }
       }
@@ -206,10 +217,13 @@ export function simulatePath(
 
     if (params.enableEvents && !bankrupt) {
       const eventSeed = seed * 1000 + y * 37
-      const isRetired = age >= params.retirementAge
       const ownsHome = housingState.phase === 'purchased' || housingState.phase === 'paid_off'
       const housingModuleEnabled = !!params.housingPlan?.enabled
-      const result = rollEventsForYear(eventSeed, age, y, portfolio, effectiveIncome, isRetired, activeRegion, ownsHome, housingModuleEnabled)
+      const result = rollEventsForYear({
+        seed: eventSeed, age, year: y, portfolio, annualIncome: effectiveIncome,
+        isRetired, region: activeRegion, ownsHome, housingModuleEnabled,
+        occupationId: params.occupationPlan?.enabled ? params.occupationPlan.occupationId : 0,
+      })
       events = result.events
       eventPortfolioImpact = result.totalPortfolioImpact
       eventIncomeImpact = result.totalIncomeImpact
@@ -223,10 +237,22 @@ export function simulatePath(
       for (const evt of events) {
         for (const impact of evt.actualImpacts) {
           if (impact.type === 'income_boost') {
-            effectiveIncome += impact.amount
+            effectiveIncome = Math.max(0, effectiveIncome + impact.amount)
           }
         }
       }
+    }
+
+    // === 職業薪資成長 ===
+    let currentRaiseRate = 0
+    if (!isRetired && !bankrupt && params.occupationPlan?.enabled) {
+      currentRaiseRate = getAnnualRaise(
+        params.occupationPlan.occupationId,
+        age,
+        activeRegion,
+        occRng,
+      )
+      effectiveIncome *= (1 + currentRaiseRate)
     }
 
     // 合併移民事件到事件列表
@@ -258,18 +284,23 @@ export function simulatePath(
       // 扣除購屋頭期款+交易成本
       portfolio -= housingUpfrontCost
       if (portfolio < 0) portfolio = 0
+
+      // 退休後已繳清房貸：持有成本改以購入價計算（不隨通膨房價膨脹）
+      if (isRetired && housingState.phase === 'paid_off' && annualHousingExpense > 0) {
+        const hParams = HOUSING_PARAMS[activeRegion]
+        annualHousingExpense = housingState.purchasePrice * hParams.annualHoldingCostRatio
+      }
     }
 
     // === 正常模擬流程（套用移民收入/支出倍率）===
-    const isRetired = age >= params.retirementAge
     let contribution = 0
     let withdrawal = 0
 
     if (!isRetired && !bankrupt) {
-      contribution = params.annualContribution * cumulativeInflation * immIncomeMultiplier
+      contribution = effectiveIncome * baseSavingsRate * cumulativeInflation * immIncomeMultiplier
       // 移民後支出增加 → 可存入額減少
       if (immExpenseMultiplier > 1) {
-        const extraExpense = params.annualContribution * cumulativeInflation * (immExpenseMultiplier - 1) * 0.5
+        const extraExpense = contribution * (immExpenseMultiplier - 1) * 0.5
         contribution = Math.max(0, contribution - extraExpense)
       }
       // 購屋後房貸+持有成本 → 可存入額減少
@@ -319,6 +350,8 @@ export function simulatePath(
       immigrationPhase: params.immigrationPlan?.enabled ? immState.phase : undefined,
       activeRegion: params.immigrationPlan?.enabled ? activeRegion : undefined,
       housing: housingSnapshot,
+      currentSalary: params.occupationPlan?.enabled ? effectiveIncome : undefined,
+      raiseRate: params.occupationPlan?.enabled ? currentRaiseRate : undefined,
     })
   }
 

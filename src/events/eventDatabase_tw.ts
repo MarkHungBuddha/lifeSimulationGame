@@ -25,7 +25,7 @@ export const EVENT_DATABASE_TW: RandomEvent[] = [
     baseProbability: 0.10,
     durationMonths: [6, 24],
     impacts: [
-      { type: 'portfolio_change', value: -0.12 },
+      { type: 'portfolio_change', value: -0.06 },
     ],
     correlatedWith: ['tw_recession'],
   },
@@ -34,10 +34,10 @@ export const EVENT_DATABASE_TW: RandomEvent[] = [
     name: '台股修正',
     category: 'market',
     description: '10-20% 回調，台股波動度高於美股',
-    baseProbability: 0.18,
+    baseProbability: 0.13,
     durationMonths: [2, 6],
     impacts: [
-      { type: 'portfolio_change', value: -0.04 },
+      { type: 'portfolio_change', value: -0.02 },
     ],
   },
   {
@@ -49,7 +49,7 @@ export const EVENT_DATABASE_TW: RandomEvent[] = [
     durationMonths: [12, 18],
     impacts: [
       { type: 'income_change', value: -0.05 },
-      { type: 'portfolio_change', value: -0.08 },
+      { type: 'portfolio_change', value: -0.04 },
     ],
     correlatedWith: ['tw_market_crash', 'tw_layoff', 'tw_unpaid_leave'],
   },
@@ -127,6 +127,14 @@ export const EVENT_DATABASE_TW: RandomEvent[] = [
       { type: 'savings_change', value: -0.03 },
     ],
     correlatedWith: ['tw_recession', 'tw_mental_health'],
+    occupationModifiers: {
+      1: { probabilityMultiplier: 0.8, name: '高層人事異動', description: '董事會改組或併購後管理層洗牌，你被列入調整名單，可領資遣費' },
+      3: { probabilityMultiplier: 1.3, name: '行政職裁撤', description: '公司導入自動化後精簡行政人力，你的職位被裁撤，可申請失業給付' },
+      4: { probabilityMultiplier: 1.2, name: '業績不達標遭汰換', description: '連續季度業績墊底，公司啟動末位淘汰，可領資遣費' },
+      6: { probabilityMultiplier: 0.3, impactMultiplier: 0.8, name: '農場經營困難', description: '經營成本攀升被迫縮減人力，農委會有部分紓困方案' },
+      9: { probabilityMultiplier: 1.5, name: '科技業裁員潮', description: '公司大規模裁員，你所在的部門被整組砍掉，可領資遣費加失業給付' },
+      10: { probabilityMultiplier: 0.1, impactMultiplier: 0.5, name: '提前退伍', description: '軍方精簡人力提前退伍，可領退伍金' },
+    },
   },
   {
     id: 'tw_unpaid_leave',
@@ -139,17 +147,30 @@ export const EVENT_DATABASE_TW: RandomEvent[] = [
       { type: 'income_change', value: -0.25 },
     ],
     correlatedWith: ['tw_recession'],
+    occupationModifiers: {
+      1: { probabilityMultiplier: 0.5, name: '管理層減薪', description: '公司高層帶頭減薪共體時艱，實質減少20-30%' },
+      7: { probabilityMultiplier: 1.5, name: '產線停工放假', description: '訂單銳減工廠產線停工，被迫放無薪假' },
+      8: { probabilityMultiplier: 1.5, name: '工地停工', description: '景氣差工地無案可接，被迫放無薪假' },
+      9: { probabilityMultiplier: 1.3, name: '科技業無薪假', description: '景氣循環期科技公司實施無薪假，等待訂單回溫' },
+      10: { probabilityMultiplier: 0.05 },
+    },
   },
   {
     id: 'tw_career_break',
     name: '自願離職空窗',
     category: 'career',
     description: '台灣科技業平均2-3年換工作，空窗期1-3個月',
-    baseProbability: 0.08,
+    baseProbability: 0.05,
     durationMonths: [1, 3],
     impacts: [
       { type: 'income_change', value: -0.15 },
     ],
+    occupationModifiers: {
+      2: { probabilityMultiplier: 1.3, name: '轉職進修空窗', description: '為了取得更高階證照或轉換跑道，主動離職進修數月' },
+      8: { probabilityMultiplier: 0.5, impactMultiplier: 0.7, name: '等待派工空窗', description: '前一份工作結束，等待下一份臨時工或派遣工作' },
+      9: { probabilityMultiplier: 1.5, name: '工程師充電期', description: '辭職去進修或做 side project，科技業慣例的充電期' },
+      10: { probabilityMultiplier: 0.2, impactMultiplier: 0.5 },
+    },
   },
   {
     id: 'tw_promotion',
@@ -163,6 +184,12 @@ export const EVENT_DATABASE_TW: RandomEvent[] = [
       { type: 'savings_boost', value: 0.03 },
     ],
     isPositive: true,
+    occupationModifiers: {
+      1: { probabilityMultiplier: 0.7, impactMultiplier: 1.5, name: '晉升高階主管', description: '進入公司最高管理層，薪資與分紅大幅提升' },
+      3: { impactMultiplier: 0.7, name: '升任組長/主辦', description: '升為小主管，薪資微幅調升但責任增加' },
+      8: { probabilityMultiplier: 0.8, impactMultiplier: 0.6, name: '升任帶班/小組長', description: '升為現場小組長，加薪有限但工作穩定度提高' },
+      9: { probabilityMultiplier: 1.2, impactMultiplier: 1.2, name: '升任技術主管', description: '技術職晉升 Tech Lead，薪資加上股票大幅成長' },
+    },
   },
   {
     id: 'tw_job_hop',
@@ -190,13 +217,18 @@ export const EVENT_DATABASE_TW: RandomEvent[] = [
     name: '職業倦怠',
     category: 'career',
     description: '身心耗竭，需要強制休息',
-    baseProbability: 0.06,
+    baseProbability: 0.04,
     durationMonths: [1, 6],
     impacts: [
       { type: 'income_change', value: -0.15 },
       { type: 'extra_expense', value: 0.3 },
     ],
     correlatedWith: ['tw_mental_health'],
+    occupationModifiers: {
+      2: { probabilityMultiplier: 1.3, name: '專業耗竭', description: '長期高壓高責任累積，身心俱疲需要強制休養' },
+      6: { probabilityMultiplier: 0.5, impactMultiplier: 0.8, name: '體能透支', description: '長期體力勞動累積疲勞，身體發出警訊' },
+      9: { probabilityMultiplier: 1.5, impactMultiplier: 1.2, name: '工程師 burnout', description: '連續 on-call 和趕 deadline，螢幕前的過勞，需要徹底抽離' },
+    },
   },
   {
     id: 'tw_company_bankrupt',
@@ -233,6 +265,14 @@ export const EVENT_DATABASE_TW: RandomEvent[] = [
       { type: 'income_change', value: -0.05 },
       { type: 'extra_expense', value: 0.5 },  // 健保後自費1-5萬
     ],
+    occupationModifiers: {
+      3: { probabilityMultiplier: 0.7, impactMultiplier: 0.8 },
+      5: { probabilityMultiplier: 1.5, impactMultiplier: 1.2, name: '設備操作傷害', description: '操作機台或設備時受傷，勞保傷病給付可補貼部分損失' },
+      6: { probabilityMultiplier: 1.3, name: '農務勞動傷害', description: '農務操作受傷，農保有部分傷病給付' },
+      7: { probabilityMultiplier: 1.8, impactMultiplier: 1.3, name: '機台操作事故', description: '機台捲夾或重物砸傷，可申請勞保職災給付' },
+      8: { probabilityMultiplier: 1.8, impactMultiplier: 1.3, name: '工地事故', description: '高處墜落或被物體砸傷等工地事故，可申請勞保職災給付' },
+      9: { probabilityMultiplier: 0.6, impactMultiplier: 0.7, name: '久坐職業病', description: '長期久坐導致椎間盤突出或腕隧道症候群，健保可給付' },
+    },
   },
   {
     id: 'tw_critical_illness',
@@ -273,6 +313,12 @@ export const EVENT_DATABASE_TW: RandomEvent[] = [
       { type: 'extra_expense', value: 2 },  // 看護費
     ],
     correlatedWith: ['tw_critical_illness'],
+    occupationModifiers: {
+      3: { probabilityMultiplier: 0.6, impactMultiplier: 0.8 },
+      7: { probabilityMultiplier: 2.0, impactMultiplier: 1.5, name: '重大職災致殘', description: '嚴重機械事故導致長期失去工作能力，可領勞保失能年金' },
+      8: { probabilityMultiplier: 1.8, impactMultiplier: 1.5, name: '工地重大傷害', description: '營建工地重大事故，脊椎或四肢嚴重受損，可領勞保失能年金' },
+      9: { probabilityMultiplier: 0.5, impactMultiplier: 0.7 },
+    },
   },
   {
     id: 'tw_er_visit',
@@ -291,6 +337,11 @@ export const EVENT_DATABASE_TW: RandomEvent[] = [
     impacts: [
       { type: 'extra_expense', value: 0.1 },  // 健保後僅500-5000
     ],
+    occupationModifiers: {
+      3: { probabilityMultiplier: 0.8 },
+      7: { probabilityMultiplier: 1.5, impactMultiplier: 1.2, name: '工作現場急救送醫', description: '作業中受傷緊急送醫，健保給付大部分費用' },
+      8: { probabilityMultiplier: 1.3, impactMultiplier: 1.2, name: '勞動現場急診', description: '體力勞動中受傷或中暑，急診處理後回家休養' },
+    },
   },
   {
     id: 'tw_mental_health',
@@ -311,6 +362,13 @@ export const EVENT_DATABASE_TW: RandomEvent[] = [
       { type: 'extra_expense', value: 0.5 },
     ],
     correlatedWith: ['tw_burnout', 'tw_layoff'],
+    occupationModifiers: {
+      2: { probabilityMultiplier: 1.2, name: '專業人員高壓焦慮', description: '醫療/法律/研究領域的高壓環境導致焦慮或憂鬱' },
+      4: { probabilityMultiplier: 1.1, name: '業績壓力焦慮', description: '持續的業績目標壓力造成焦慮和睡眠障礙' },
+      7: { probabilityMultiplier: 0.7, impactMultiplier: 0.8 },
+      8: { probabilityMultiplier: 0.7, impactMultiplier: 0.8 },
+      9: { probabilityMultiplier: 1.4, impactMultiplier: 1.2, name: '工程師心理健康危機', description: '長期遠端高壓工作、冒名頂替症候群、隨時待命的焦慮' },
+    },
   },
 
   // ================================================================
@@ -461,6 +519,9 @@ export const EVENT_DATABASE_TW: RandomEvent[] = [
     ownerExtraImpacts: [
       { type: 'extra_expense', value: 1.5 },
     ],
+    occupationModifiers: {
+      6: { impactMultiplier: 2.0, name: '颱風農損加倍', description: '颱風不只損壞住宅，農田/漁場/畜牧場同步受創，損失加倍' },
+    },
   },
   {
     id: 'tw_earthquake',
@@ -477,6 +538,9 @@ export const EVENT_DATABASE_TW: RandomEvent[] = [
     ownerExtraImpacts: [
       { type: 'extra_expense', value: 3 },
     ],
+    occupationModifiers: {
+      6: { impactMultiplier: 2.0, name: '地震農損加倍', description: '地震不只損壞住宅，農業設施也嚴重受損，損失加倍' },
+    },
   },
   {
     id: 'tw_car_accident',
@@ -507,6 +571,10 @@ export const EVENT_DATABASE_TW: RandomEvent[] = [
     impacts: [
       { type: 'savings_change', value: -0.03 },
     ],
+    occupationModifiers: {
+      1: { impactMultiplier: 1.3, name: '高額投資詐騙', description: '被精心設計的私募基金或商業詐騙騙走大筆資金' },
+      9: { probabilityMultiplier: 0.7, impactMultiplier: 0.8 },
+    },
   },
   {
     id: 'tw_home_repair',
@@ -619,6 +687,432 @@ export const EVENT_DATABASE_TW: RandomEvent[] = [
     impacts: [
       { type: 'income_change', value: -0.02, permanent: true },
     ],
+  },
+
+  // ================================================================
+  // 職業專屬事件（台灣版）
+  // ================================================================
+
+  // --- 主管及經理人員 (id: 1) ---
+  {
+    id: 'tw_occ1_board_bonus',
+    name: '董事會績效獎金',
+    category: 'career',
+    description: '公司業績亮眼，董事會核發高額績效獎金。',
+    baseProbability: 0.04,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'savings_boost', value: 0.08 },
+    ],
+    isPositive: true,
+    occupationIds: [1],
+  },
+  {
+    id: 'tw_occ1_restructure',
+    name: '組織重整降職',
+    category: 'career',
+    description: '公司進行組織重整，你的職位被調整，薪資連帶受影響。',
+    baseProbability: 0.03,
+    durationMonths: [3, 12],
+    impacts: [
+      { type: 'income_change', value: -0.15 },
+    ],
+    occupationIds: [1],
+  },
+  {
+    id: 'tw_occ1_ipo',
+    name: '公司 IPO 上市',
+    category: 'career',
+    description: '你任職的公司成功 IPO，手中持股大幅增值。',
+    baseProbability: 0.02,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'savings_boost', value: 0.15 },
+    ],
+    isPositive: true,
+    occupationIds: [1],
+  },
+
+  // --- 專業人員 (id: 2) ---
+  {
+    id: 'tw_occ2_patent',
+    name: '取得專利/重大發表',
+    category: 'career',
+    description: '你的研究成果獲得專利，公司給予獎金肯定。',
+    baseProbability: 0.03,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'savings_boost', value: 0.05 },
+      { type: 'income_boost', value: 0.05 },
+    ],
+    isPositive: true,
+    occupationIds: [2],
+  },
+  {
+    id: 'tw_occ2_malpractice',
+    name: '專業責任糾紛',
+    category: 'legal',
+    description: '客戶/病患投訴，你面臨專業責任調查和律師費支出。',
+    baseProbability: 0.02,
+    ageProbabilities: [
+      { minAge: 35, maxAge: 60, probability: 0.03 },
+    ],
+    durationMonths: [6, 18],
+    impacts: [
+      { type: 'extra_expense', value: 6 },
+      { type: 'income_change', value: -0.10 },
+    ],
+    occupationIds: [2],
+  },
+  {
+    id: 'tw_occ2_certification',
+    name: '取得高階證照',
+    category: 'career',
+    description: '通過高階專業證照考試，市場價值大增。',
+    baseProbability: 0.03,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'income_boost', value: 0.08 },
+    ],
+    isPositive: true,
+    occupationIds: [2],
+  },
+
+  // --- 事務工作人員 (id: 3) ---
+  {
+    id: 'tw_occ3_automation',
+    name: '業務自動化威脅',
+    category: 'career',
+    description: '公司導入 AI/RPA 自動化，你的職務內容被部分取代。',
+    baseProbability: 0.04,
+    durationMonths: [3, 12],
+    impacts: [
+      { type: 'income_change', value: -0.08 },
+    ],
+    occupationIds: [3],
+  },
+  {
+    id: 'tw_occ3_efficiency_bonus',
+    name: '流程改善獎勵',
+    category: 'career',
+    description: '你提出的流程改善方案被採納，獲得特別獎金。',
+    baseProbability: 0.04,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'savings_boost', value: 0.03 },
+    ],
+    isPositive: true,
+    occupationIds: [3],
+  },
+  {
+    id: 'tw_occ3_outsource',
+    name: '業務外包裁撤',
+    category: 'career',
+    description: '公司將行政業務外包，你面臨裁撤風險。',
+    baseProbability: 0.03,
+    durationMonths: [1, 6],
+    impacts: [
+      { type: 'income_change', value: -0.20 },
+    ],
+    occupationIds: [3],
+  },
+
+  // --- 服務及銷售人員 (id: 4) ---
+  {
+    id: 'tw_occ4_top_sales',
+    name: '業績 MVP 獎',
+    category: 'career',
+    description: '年度業績衝上冠軍，獲得豐厚提成獎金。',
+    baseProbability: 0.05,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'savings_boost', value: 0.06 },
+    ],
+    isPositive: true,
+    occupationIds: [4],
+  },
+  {
+    id: 'tw_occ4_ecommerce_hit',
+    name: '電商衝擊實體店',
+    category: 'career',
+    description: '線上購物搶走客源，門市業績大幅下滑。',
+    baseProbability: 0.05,
+    durationMonths: [6, 18],
+    impacts: [
+      { type: 'income_change', value: -0.12 },
+    ],
+    occupationIds: [4],
+  },
+  {
+    id: 'tw_occ4_customer_complaint',
+    name: '客訴糾紛',
+    category: 'legal',
+    description: '重大客訴導致你被記過，影響考績。',
+    baseProbability: 0.04,
+    durationMonths: [1, 3],
+    impacts: [
+      { type: 'income_change', value: -0.05 },
+    ],
+    occupationIds: [4],
+  },
+
+  // --- 技術員及助理專業人員 (id: 5) ---
+  {
+    id: 'tw_occ5_skill_upgrade',
+    name: '技術升級加薪',
+    category: 'career',
+    description: '學會新技術/設備操作，公司調薪獎勵。',
+    baseProbability: 0.04,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'income_boost', value: 0.05 },
+    ],
+    isPositive: true,
+    occupationIds: [5],
+  },
+  {
+    id: 'tw_occ5_equipment_accident',
+    name: '設備操作意外',
+    category: 'health',
+    description: '操作設備時發生意外，需要休養一段時間。',
+    baseProbability: 0.03,
+    durationMonths: [1, 6],
+    impacts: [
+      { type: 'extra_expense', value: 2 },
+      { type: 'income_change', value: -0.10 },
+    ],
+    occupationIds: [5, 7, 8],
+  },
+  {
+    id: 'tw_occ5_outsource_overseas',
+    name: '產線外移東南亞',
+    category: 'career',
+    description: '公司將生產線外移，技術人員面臨轉職壓力。',
+    baseProbability: 0.03,
+    durationMonths: [3, 12],
+    impacts: [
+      { type: 'income_change', value: -0.15 },
+    ],
+    occupationIds: [5, 7],
+  },
+
+  // --- 農林漁牧業 (id: 6) ---
+  {
+    id: 'tw_occ6_harvest_boom',
+    name: '豐收好年',
+    category: 'career',
+    description: '今年氣候條件絕佳，農作豐收價格也好。',
+    baseProbability: 0.06,
+    durationMonths: [3, 6],
+    impacts: [
+      { type: 'savings_boost', value: 0.06 },
+    ],
+    isPositive: true,
+    occupationIds: [6],
+  },
+  {
+    id: 'tw_occ6_typhoon_damage',
+    name: '颱風農損',
+    category: 'property',
+    description: '颱風重創農田/漁場，損失慘重。',
+    baseProbability: 0.08,
+    durationMonths: [2, 6],
+    impacts: [
+      { type: 'extra_expense', value: 4 },
+      { type: 'income_change', value: -0.25 },
+    ],
+    occupationIds: [6],
+  },
+  {
+    id: 'tw_occ6_subsidy',
+    name: '政府農業補助',
+    category: 'career',
+    description: '申請到農委會的農業補助款。',
+    baseProbability: 0.05,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'savings_boost', value: 0.03 },
+    ],
+    isPositive: true,
+    occupationIds: [6],
+  },
+
+  // --- 機械設備操作及組裝 (id: 7) ---
+  {
+    id: 'tw_occ7_overtime_bonus',
+    name: '旺季加班獎金',
+    category: 'career',
+    description: '訂單爆量，加班費和獎金讓收入大增。',
+    baseProbability: 0.06,
+    durationMonths: [2, 4],
+    impacts: [
+      { type: 'savings_boost', value: 0.04 },
+    ],
+    isPositive: true,
+    occupationIds: [7, 8],
+  },
+  {
+    id: 'tw_occ7_factory_close',
+    name: '工廠關廠',
+    category: 'career',
+    description: '工廠因訂單銳減或經營不善而關廠，你被資遣。',
+    baseProbability: 0.03,
+    durationMonths: [3, 12],
+    impacts: [
+      { type: 'income_change', value: -0.30 },
+    ],
+    occupationIds: [7, 8],
+  },
+  {
+    id: 'tw_occ7_injury',
+    name: '職業傷害',
+    category: 'health',
+    description: '工作中受傷，需要長時間復健。',
+    baseProbability: 0.03,
+    durationMonths: [3, 12],
+    impacts: [
+      { type: 'extra_expense', value: 3 },
+      { type: 'income_change', value: -0.20 },
+    ],
+    occupationIds: [7, 8],
+  },
+
+  // --- 基層技術工及勞力工 (id: 8) ---
+  {
+    id: 'tw_occ8_minimum_wage_raise',
+    name: '基本工資調漲',
+    category: 'career',
+    description: '政府宣布調高基本工資，你的薪水跟著微調。',
+    baseProbability: 0.06,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'income_boost', value: 0.03 },
+    ],
+    isPositive: true,
+    occupationIds: [8],
+  },
+  {
+    id: 'tw_occ8_construction_boom',
+    name: '營建景氣大好',
+    category: 'career',
+    description: '公共工程標案大增，工地需求旺盛。',
+    baseProbability: 0.05,
+    durationMonths: [6, 12],
+    impacts: [
+      { type: 'income_change', value: 0.10 },
+    ],
+    isPositive: true,
+    occupationIds: [8],
+  },
+  {
+    id: 'tw_occ8_heat_illness',
+    name: '高溫中暑住院',
+    category: 'health',
+    description: '戶外高溫作業導致嚴重中暑，需要住院治療。',
+    baseProbability: 0.03,
+    durationMonths: [1, 3],
+    impacts: [
+      { type: 'extra_expense', value: 1 },
+      { type: 'income_change', value: -0.08 },
+    ],
+    occupationIds: [8],
+  },
+
+  // --- 資訊科技人員 (id: 9) ---
+  {
+    id: 'tw_occ9_stock_options',
+    name: '科技公司股票分紅',
+    category: 'career',
+    description: '公司股價大漲，你的限制型股票大幅增值。',
+    baseProbability: 0.05,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'savings_boost', value: 0.10 },
+    ],
+    isPositive: true,
+    occupationIds: [9],
+  },
+  {
+    id: 'tw_occ9_ai_disruption',
+    name: 'AI 取代部分工作',
+    category: 'career',
+    description: 'AI 工具快速進步，部分程式碼撰寫工作被自動化。',
+    baseProbability: 0.04,
+    durationMonths: [6, 18],
+    impacts: [
+      { type: 'income_change', value: -0.08 },
+    ],
+    occupationIds: [9],
+  },
+  {
+    id: 'tw_occ9_startup_bonus',
+    name: '新創公司挖角',
+    category: 'career',
+    description: '新創公司高薪挖角，跳槽後薪水大幅成長。',
+    baseProbability: 0.04,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'income_boost', value: 0.12 },
+    ],
+    isPositive: true,
+    occupationIds: [9],
+  },
+  {
+    id: 'tw_occ9_open_source_fame',
+    name: '開源專案爆紅',
+    category: 'career',
+    description: '你維護的開源專案被大公司採用，業界知名度暴增。',
+    baseProbability: 0.02,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'income_boost', value: 0.06 },
+    ],
+    isPositive: true,
+    occupationIds: [9],
+  },
+
+  // --- 軍人 (id: 10) ---
+  {
+    id: 'tw_occ10_combat_pay',
+    name: '戰備加給',
+    category: 'career',
+    description: '因應台海情勢升溫，國防部發放戰備加給。',
+    baseProbability: 0.04,
+    durationMonths: [3, 12],
+    impacts: [
+      { type: 'income_change', value: 0.08 },
+    ],
+    isPositive: true,
+    occupationIds: [10],
+  },
+  {
+    id: 'tw_occ10_training_injury',
+    name: '演訓受傷',
+    category: 'health',
+    description: '軍事演訓中受傷，需要住院休養。',
+    baseProbability: 0.04,
+    durationMonths: [1, 6],
+    impacts: [
+      { type: 'extra_expense', value: 1 },
+      { type: 'income_change', value: -0.05 },
+    ],
+    occupationIds: [10],
+  },
+  {
+    id: 'tw_occ10_early_pension',
+    name: '軍職退撫金',
+    category: 'career',
+    description: '服役滿20年可領終身俸，退休生活有保障。',
+    baseProbability: 0.03,
+    ageProbabilities: [
+      { minAge: 40, maxAge: 50, probability: 0.08 },
+    ],
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'savings_boost', value: 0.10 },
+    ],
+    isPositive: true,
+    occupationIds: [10],
   },
 ]
 

@@ -30,6 +30,8 @@ export interface SavedRecord {
   immigrationTarget: Region | null
   immigrationAge: number
   immigrationAllocation: Allocation
+  occupationEnabled: boolean
+  occupationId: number
   housingEnabled: boolean
   housingPurchaseAge: number
   housingPriceToIncomeRatio: number

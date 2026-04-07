@@ -100,31 +100,34 @@ function getEventData(region: Region) {
   return { database: EVENT_DATABASE, map: EVENT_MAP }
 }
 
+/** rollEventsForYear 參數 */
+export interface EventRollParams {
+  seed: number
+  age: number
+  year: number
+  portfolio: number
+  annualIncome: number
+  isRetired?: boolean
+  region?: Region
+  ownsHome?: boolean
+  housingModuleEnabled?: boolean
+  occupationId?: number
+}
+
 /**
  * 擲骰子決定當年觸發的所有事件
  *
- * @param seed       該年的隨機種子
- * @param age        當前年齡
- * @param year       模擬第幾年
- * @param portfolio  當前資產
- * @param annualIncome 年收入
- * @param isRetired  是否已退休
- * @param region     地區
- * @param ownsHome   是否擁有自住房
- * @param housingModuleEnabled 是否啟用購屋模組（啟用時跳過購屋隨機事件）
+ * @param params     事件擲骰參數
  * @returns 觸發的事件列表 + 總財務影響
  */
 export function rollEventsForYear(
-  seed: number,
-  age: number,
-  year: number,
-  portfolio: number,
-  annualIncome: number,
-  isRetired: boolean = false,
-  region: Region = 'us',
-  ownsHome: boolean = false,
-  housingModuleEnabled: boolean = false,
+  params: EventRollParams,
 ): { events: TriggeredEvent[]; totalPortfolioImpact: number; totalIncomeImpact: number; totalExpense: number } {
+  const {
+    seed, age, year, portfolio, annualIncome,
+    isRetired = false, region = 'us', ownsHome = false,
+    housingModuleEnabled = false, occupationId = 0,
+  } = params
   const { database, map } = getEventData(region)
   const rng = createSeededRNG(seed)
   const triggered: TriggeredEvent[] = []
@@ -155,11 +158,23 @@ export function rollEventsForYear(
       rng() // 消耗 RNG 保持序列一致
       continue
     }
+    // 職業篩選
+    if (event.occupationIds && event.occupationIds.length > 0) {
+      if (occupationId === 0 || !event.occupationIds.includes(occupationId)) {
+        rng() // 消耗 RNG 保持序列一致
+        continue
+      }
+    }
 
     let prob = getAdjustedProbability(event, age)
     // 有房者機率倍數調整
     if (ownsHome && event.ownerProbabilityMultiplier) {
       prob *= event.ownerProbabilityMultiplier
+    }
+    // 職業機率倍數調整
+    const occMod = event.occupationModifiers?.[occupationId]
+    if (occMod?.probabilityMultiplier) {
+      prob *= occMod.probabilityMultiplier
     }
 
     if (rng() < prob) {
@@ -201,6 +216,8 @@ export function rollEventsForYear(
   for (const id of triggeredIds) {
     const event = map.get(id)!
     const actualImpacts: TriggeredEvent['actualImpacts'] = []
+    const occMod2 = event.occupationModifiers?.[occupationId]
+    const impactMult = occMod2?.impactMultiplier ?? 1.0
 
     // 每個事件內，savings_change 和 portfolio_change 只取較大損失（不疊加）
     let eventPortfolioHit = 0
@@ -212,8 +229,13 @@ export function rollEventsForYear(
       : event.impacts
 
     for (const impact of allImpacts) {
+      // 職業影響倍率：僅作用於 income_change / extra_expense / savings_change
+      const shouldApplyMult = impact.type === 'income_change'
+        || impact.type === 'extra_expense'
+        || impact.type === 'savings_change'
+      const effectiveValue = shouldApplyMult ? impact.value * impactMult : impact.value
       const { amount, description } = calcImpactAmount(
-        impact.type, impact.value, portfolio, annualIncome,
+        impact.type, effectiveValue, portfolio, annualIncome,
       )
       actualImpacts.push({ type: impact.type, description, amount })
 
@@ -234,7 +256,11 @@ export function rollEventsForYear(
     }
 
     totalPortfolioImpact += eventPortfolioHit + eventPortfolioHitPositive
-    triggered.push({ event, age, year, actualImpacts })
+    triggered.push({
+      event, age, year, actualImpacts,
+      displayName: occMod2?.name,
+      displayDescription: occMod2?.description,
+    })
   }
 
   // 年度保護上限：資產損失不超過 -30%，額外支出不超過 3 個月收入

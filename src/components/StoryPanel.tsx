@@ -27,6 +27,7 @@ import { CATEGORY_LABELS_TW } from '../events/eventDatabase_tw'
 import { CATEGORY_LABELS_JP } from '../events/eventDatabase_jp'
 import { useGameStore } from '../store/gameStore'
 import { formatCurrency, formatCurrencySigned, type Region } from '../config/regions'
+import { OCCUPATION_MAP } from '../engine/occupationData'
 
 const CATEGORY_COLORS: Record<EventCategory, string> = {
   market: '#1565c0',
@@ -53,6 +54,8 @@ export function StoryPanel() {
   const currentAge = useGameStore(s => s.currentAge)
   const retirementAge = useGameStore(s => s.retirementAge)
   const region = useGameStore(s => s.region)
+  const occupationEnabled = useGameStore(s => s.occupationEnabled)
+  const occupationId = useGameStore(s => s.occupationId)
   const categoryLabels = region === 'jp' ? CATEGORY_LABELS_JP : region === 'tw' ? CATEGORY_LABELS_TW : CATEGORY_LABELS
   const fmtP = (n: number) => formatCurrency(n, region)
   const fmtM = (n: number) => formatCurrencySigned(n, region)
@@ -219,6 +222,34 @@ export function StoryPanel() {
         </Paper>
       )}
 
+      {/* 職業摘要 */}
+      {occupationEnabled && (() => {
+        const occ = OCCUPATION_MAP.get(occupationId)
+        if (!occ) return null
+        const workYears = Math.max(0, retirementAge - currentAge)
+        const lastWorkSnap = snapshots.find(s => s.age === retirementAge - 1)
+        const salarySnaps = snapshots.filter(s => s.currentSalary != null).map(s => s.currentSalary!)
+        const peakSalary = salarySnaps.length > 0 ? Math.max(...salarySnaps) : 0
+        return (
+          <Paper elevation={2} sx={{
+            p: 2.5, mb: 3, textAlign: 'center',
+            background: 'linear-gradient(135deg, #1565c011, #1565c008)',
+            border: '1px solid #1565c033',
+          }}>
+            <Typography variant="h5" fontWeight={800} color="#1565c0">
+              {occ.emoji} {occ.name[region]}
+            </Typography>
+            <Typography variant="body1" color="text.secondary" sx={{ mt: 0.5 }}>
+              起薪 {fmtP(occ.baseSalary[region])} → 退休前 {lastWorkSnap?.currentSalary ? fmtP(lastWorkSnap.currentSalary) : '—'}
+            </Typography>
+            <Stack direction="row" spacing={2} justifyContent="center" sx={{ mt: 1.5 }} flexWrap="wrap" useFlexGap>
+              <Chip label={`工作 ${workYears} 年`} variant="outlined" />
+              <Chip label={`薪資巔峰 ${fmtP(peakSalary)}`} color="primary" variant="outlined" />
+            </Stack>
+          </Paper>
+        )
+      })()}
+
       {/* 資產走勢迷你圖 */}
       <Paper elevation={1} sx={{ p: 2, mb: 3 }}>
         <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 1 }}>
@@ -291,6 +322,13 @@ export function StoryPanel() {
                     {snap.withdrawal > 0 && ` ・ 提領 ${fmtP(snap.withdrawal)}`}
                     {snap.eventExpense > 0 && ` ・ 事件支出 ${fmtP(snap.eventExpense)}`}
                   </Typography>
+                  {/* 職業薪資 */}
+                  {snap.currentSalary != null && snap.raiseRate != null && !isRetirement && age < retirementAge && (
+                    <Typography variant="caption" color="#1565c0">
+                      💰 年薪 {fmtP(snap.currentSalary)}
+                      {snap.raiseRate > 0 && `（+${(snap.raiseRate * 100).toFixed(1)}%）`}
+                    </Typography>
+                  )}
 
                   {/* 購屋事件 */}
                   {isHousingPurchase && snap.housing && (
@@ -332,7 +370,7 @@ export function StoryPanel() {
                           {CATEGORY_EMOJI[evt.event.category]}
                         </Typography>
                         <Typography variant="body2" fontWeight={700}>
-                          {evt.event.name}
+                          {evt.displayName ?? evt.event.name}
                         </Typography>
                         <Chip size="small" variant="outlined"
                           label={categoryLabels[evt.event.category]}
@@ -343,7 +381,7 @@ export function StoryPanel() {
                           }} />
                       </Stack>
                       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
-                        {evt.event.description}
+                        {evt.displayDescription ?? evt.event.description}
                       </Typography>
                       <Stack direction="row" spacing={1} flexWrap="wrap">
                         {evt.actualImpacts.map((impact, k) => (

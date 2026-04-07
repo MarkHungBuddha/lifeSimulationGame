@@ -26,7 +26,7 @@ export const EVENT_DATABASE_JP: RandomEvent[] = [
     baseProbability: 0.10,
     durationMonths: [6, 36],
     impacts: [
-      { type: 'portfolio_change', value: -0.15 },
+      { type: 'portfolio_change', value: -0.075 },
     ],
     correlatedWith: ['jp_recession', 'jp_yen_spike'],
   },
@@ -35,10 +35,10 @@ export const EVENT_DATABASE_JP: RandomEvent[] = [
     name: '日経調整',
     category: 'market',
     description: '10-20%の調整。年に1-2回の10%調整は日常的',
-    baseProbability: 0.20,
+    baseProbability: 0.14,
     durationMonths: [2, 12],
     impacts: [
-      { type: 'portfolio_change', value: -0.05 },
+      { type: 'portfolio_change', value: -0.025 },
     ],
   },
   {
@@ -50,7 +50,7 @@ export const EVENT_DATABASE_JP: RandomEvent[] = [
     durationMonths: [12, 24],
     impacts: [
       { type: 'income_change', value: -0.05 },
-      { type: 'portfolio_change', value: -0.10 },
+      { type: 'portfolio_change', value: -0.05 },
     ],
     correlatedWith: ['jp_market_crash', 'jp_layoff', 'jp_bonus_cut'],
   },
@@ -98,7 +98,7 @@ export const EVENT_DATABASE_JP: RandomEvent[] = [
     baseProbability: 0.03,
     durationMonths: [1, 12],
     impacts: [
-      { type: 'portfolio_change', value: -0.10 },
+      { type: 'portfolio_change', value: -0.05 },
     ],
     correlatedWith: ['jp_yen_spike', 'jp_market_crash'],
   },
@@ -125,6 +125,14 @@ export const EVENT_DATABASE_JP: RandomEvent[] = [
       { type: 'savings_change', value: -0.05 },
     ],
     correlatedWith: ['jp_recession', 'jp_mental_health'],
+    occupationModifiers: {
+      1: { probabilityMultiplier: 0.8, name: '役員退任', description: '取締役会の刷新で管理職が入れ替え対象に。退職金は上乗せ' },
+      3: { probabilityMultiplier: 1.3, name: '事務職リストラ', description: 'AI・RPA導入で事務ポストが削減、整理解雇の対象に' },
+      4: { probabilityMultiplier: 1.2, name: '営業成績不振による退職勧奨', description: '業績不振が続き退職勧奨を受ける。雇用保険で対応' },
+      6: { probabilityMultiplier: 0.1, impactMultiplier: 0.5, name: '編制縮減', description: '機関の定員削減により配置転換。公務員保護で影響は軽微' },
+      9: { probabilityMultiplier: 1.5, name: 'IT業界リストラ', description: '外資IT企業のレイオフ波及。部門ごと廃止され、雇用保険で対応' },
+      10: { probabilityMultiplier: 1.3, impactMultiplier: 0.8, name: '雇い止め', description: '契約更新されず雇い止めに。雇用保険の基本手当で対応' },
+    },
   },
   {
     id: 'jp_early_retirement',
@@ -143,6 +151,12 @@ export const EVENT_DATABASE_JP: RandomEvent[] = [
       { type: 'income_change', value: -0.30 },
       { type: 'savings_boost', value: 0.20 },
     ],
+    occupationModifiers: {
+      1: { probabilityMultiplier: 1.3, impactMultiplier: 1.3, name: '役員の早期退職', description: '経営陣刷新で早期退職パッケージを提示される。割増退職金あり' },
+      3: { probabilityMultiplier: 1.2, name: '事務職の希望退職', description: '事務部門の合理化で希望退職を募集。応じると割増退職金' },
+      6: { probabilityMultiplier: 0.1, impactMultiplier: 0.5 },
+      9: { probabilityMultiplier: 0.7, name: 'IT人材の早期退職', description: 'IT業界では転職が容易なため、早期退職より転職を選ぶ傾向' },
+    },
   },
   {
     id: 'jp_job_change',
@@ -164,6 +178,12 @@ export const EVENT_DATABASE_JP: RandomEvent[] = [
       { type: 'savings_boost', value: 0.03 },
     ],
     isPositive: true,
+    occupationModifiers: {
+      2: { probabilityMultiplier: 1.2, name: '専門職の転職', description: '専門スキルを活かしてより待遇の良い職場へ転職' },
+      6: { probabilityMultiplier: 0.3, impactMultiplier: 0.7, name: '保安職からの転職', description: '公務員的な安定を捨てて民間に転職。リスクはあるが待遇向上' },
+      9: { probabilityMultiplier: 1.5, impactMultiplier: 1.2, name: 'ITエンジニア転職', description: '転職市場が活発なIT業界で、年収大幅アップの転職に成功' },
+      10: { probabilityMultiplier: 0.5, impactMultiplier: 0.6 },
+    },
   },
   {
     id: 'jp_promotion',
@@ -177,6 +197,12 @@ export const EVENT_DATABASE_JP: RandomEvent[] = [
       { type: 'savings_boost', value: 0.05 },
     ],
     isPositive: true,
+    occupationModifiers: {
+      1: { probabilityMultiplier: 0.7, impactMultiplier: 1.5, name: '役員昇進', description: '取締役に就任。報酬と株式報酬が大幅にアップ' },
+      3: { impactMultiplier: 0.7, name: '係長・課長補佐昇進', description: '事務職の管理職に昇進。小幅な昇給だが安定度が増す' },
+      8: { probabilityMultiplier: 0.8, impactMultiplier: 0.6, name: '職長・班長昇格', description: '現場のリーダーに昇格。手当がつくが昇給幅は限定的' },
+      9: { probabilityMultiplier: 1.2, impactMultiplier: 1.2, name: 'テックリード昇進', description: '技術職の上級ポジションに昇進。RSUや技術手当で大幅増収' },
+    },
   },
   {
     id: 'jp_bonus_cut',
@@ -189,19 +215,30 @@ export const EVENT_DATABASE_JP: RandomEvent[] = [
       { type: 'income_change', value: -0.15 },
     ],
     correlatedWith: ['jp_recession'],
+    occupationModifiers: {
+      1: { probabilityMultiplier: 1.3, impactMultiplier: 1.3, name: '役員報酬カット', description: '業績悪化で役員報酬が大幅カット。賞与ゼロの可能性も' },
+      4: { probabilityMultiplier: 1.2, name: '歩合給の減少', description: 'サービス業の業績不振で歩合・インセンティブが大幅減' },
+      6: { probabilityMultiplier: 0.3, impactMultiplier: 0.5 },
+      9: { probabilityMultiplier: 0.8, name: 'IT企業の賞与減', description: '業績連動型の賞与が減額。ただしベース給与は維持される傾向' },
+    },
   },
   {
     id: 'jp_burnout',
     name: '過労・バーンアウト',
     category: 'career',
     description: '長時間労働による心身の限界。傷病手当金で標準報酬の2/3',
-    baseProbability: 0.05,
+    baseProbability: 0.04,
     durationMonths: [1, 12],
     impacts: [
       { type: 'income_change', value: -0.20 },
       { type: 'extra_expense', value: 0.3 },
     ],
     correlatedWith: ['jp_mental_health'],
+    occupationModifiers: {
+      2: { probabilityMultiplier: 1.3, name: '専門職の過労', description: '医療・法律・研究分野の高プレッシャー環境で心身が限界に' },
+      6: { probabilityMultiplier: 0.5, impactMultiplier: 0.8, name: '任務疲労', description: '連続した緊急出動や夜勤で精神的に消耗。公務災害申請可' },
+      9: { probabilityMultiplier: 1.5, impactMultiplier: 1.2, name: 'ITエンジニアの過労', description: 'デスマーチ、深夜対応、常時オンコールの疲弊。傷病手当金で対応' },
+    },
   },
   {
     id: 'jp_non_regular',
@@ -251,6 +288,14 @@ export const EVENT_DATABASE_JP: RandomEvent[] = [
       { type: 'income_change', value: -0.05 },
       { type: 'extra_expense', value: 0.3 },
     ],
+    occupationModifiers: {
+      3: { probabilityMultiplier: 0.7, impactMultiplier: 0.8 },
+      5: { probabilityMultiplier: 1.5, impactMultiplier: 1.2, name: '設備操作による負傷', description: '工場で機械操作中に負傷。労災認定なら医療費全額補償' },
+      6: { probabilityMultiplier: 1.3, name: '訓練中の負傷', description: '訓練・演習中に負傷。公務災害として補償対象' },
+      7: { probabilityMultiplier: 1.8, impactMultiplier: 1.3, name: '運転中の事故負傷', description: '業務中の交通事故で負傷。労災保険で休業補償あり' },
+      8: { probabilityMultiplier: 1.8, impactMultiplier: 1.3, name: '建設現場の事故', description: '高所からの転落や資材による負傷。労災保険で対応' },
+      9: { probabilityMultiplier: 0.6, impactMultiplier: 0.7, name: 'VDT症候群', description: '長時間のPC作業で頸椎症や腱鞘炎を発症。健保で治療' },
+    },
   },
   {
     id: 'jp_critical_illness',
@@ -291,6 +336,12 @@ export const EVENT_DATABASE_JP: RandomEvent[] = [
       { type: 'extra_expense', value: 1.5 },
     ],
     correlatedWith: ['jp_critical_illness'],
+    occupationModifiers: {
+      3: { probabilityMultiplier: 0.6, impactMultiplier: 0.8 },
+      7: { probabilityMultiplier: 2.0, impactMultiplier: 1.5, name: '重大交通事故による障害', description: '業務中の重大事故で後遺障害。労災の障害補償年金で対応' },
+      8: { probabilityMultiplier: 1.8, impactMultiplier: 1.5, name: '建設現場の重大事故', description: '建設現場の重大事故で長期障害。労災補償+障害年金で対応' },
+      9: { probabilityMultiplier: 0.5, impactMultiplier: 0.7 },
+    },
   },
   {
     id: 'jp_er_visit',
@@ -309,6 +360,11 @@ export const EVENT_DATABASE_JP: RandomEvent[] = [
     impacts: [
       { type: 'extra_expense', value: 0.1 },
     ],
+    occupationModifiers: {
+      3: { probabilityMultiplier: 0.8 },
+      7: { probabilityMultiplier: 1.5, impactMultiplier: 1.2, name: '業務中の救急搬送', description: '運転中の事故で救急搬送。救急車は無料、健保適用で自己負担は軽微' },
+      8: { probabilityMultiplier: 1.3, impactMultiplier: 1.2, name: '現場からの救急搬送', description: '建設現場で負傷し救急搬送。幸い重症ではないが休業が必要' },
+    },
   },
   {
     id: 'jp_mental_health',
@@ -329,6 +385,13 @@ export const EVENT_DATABASE_JP: RandomEvent[] = [
       { type: 'extra_expense', value: 0.4 },
     ],
     correlatedWith: ['jp_burnout', 'jp_layoff'],
+    occupationModifiers: {
+      2: { probabilityMultiplier: 1.2, name: '専門職の高ストレス', description: '医師・弁護士・研究者など高責任職種の精神的負荷が限界に' },
+      4: { probabilityMultiplier: 1.1, name: '接客ストレス', description: 'カスタマーハラスメントや業績プレッシャーで不眠・不安に' },
+      7: { probabilityMultiplier: 0.7, impactMultiplier: 0.8 },
+      8: { probabilityMultiplier: 0.7, impactMultiplier: 0.8 },
+      9: { probabilityMultiplier: 1.4, impactMultiplier: 1.2, name: 'ITエンジニアのメンタル危機', description: '常時接続文化、インポスター症候群、孤立感が重なり精神的に追い詰められる' },
+    },
   },
   {
     id: 'jp_karoshi_health',
@@ -505,6 +568,9 @@ export const EVENT_DATABASE_JP: RandomEvent[] = [
     impacts: [
       { type: 'extra_expense', value: 0.3 },
     ],
+    occupationModifiers: {
+      6: { impactMultiplier: 1.5, name: '災害派遣による負担', description: '大規模災害で緊急出動。個人の出費も増加' },
+    },
   },
   {
     id: 'jp_typhoon',
@@ -521,6 +587,9 @@ export const EVENT_DATABASE_JP: RandomEvent[] = [
     ownerExtraImpacts: [
       { type: 'extra_expense', value: 1 },
     ],
+    occupationModifiers: {
+      6: { impactMultiplier: 1.5, name: '台風による業務被害', description: '台風で施設が被害を受け、復旧作業と個人負担が発生' },
+    },
   },
   {
     id: 'jp_car_accident',
@@ -557,6 +626,10 @@ export const EVENT_DATABASE_JP: RandomEvent[] = [
     impacts: [
       { type: 'savings_change', value: -0.04 },
     ],
+    occupationModifiers: {
+      1: { impactMultiplier: 1.3, name: '高額投資詐欺', description: '巧妙なプライベートファンド詐欺で大金を騙し取られる' },
+      9: { probabilityMultiplier: 0.7, impactMultiplier: 0.8 },
+    },
   },
   {
     id: 'jp_home_repair',
@@ -688,6 +761,430 @@ export const EVENT_DATABASE_JP: RandomEvent[] = [
     impacts: [
       { type: 'income_change', value: -0.02, permanent: true },
     ],
+  },
+
+  // ================================================================
+  // 職業専属イベント（日本版）
+  // ================================================================
+
+  // --- 管理的職業従事者 (id: 1) ---
+  {
+    id: 'jp_occ1_yakuin_bonus',
+    name: '役員賞与',
+    category: 'career',
+    description: '業績好調により、取締役賞与が支給された。',
+    baseProbability: 0.04,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'savings_boost', value: 0.08 },
+    ],
+    isPositive: true,
+    occupationIds: [1],
+  },
+  {
+    id: 'jp_occ1_restructure',
+    name: '組織再編・降格',
+    category: 'career',
+    description: '会社の組織再編により、ポストが削減された。',
+    baseProbability: 0.03,
+    durationMonths: [3, 12],
+    impacts: [
+      { type: 'income_change', value: -0.15 },
+    ],
+    occupationIds: [1],
+  },
+  {
+    id: 'jp_occ1_mna',
+    name: 'M&Aによる報奨',
+    category: 'career',
+    description: '担当したM&A案件が成功し、特別報奨金を受け取った。',
+    baseProbability: 0.02,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'savings_boost', value: 0.12 },
+    ],
+    isPositive: true,
+    occupationIds: [1],
+  },
+
+  // --- 専門的・技術的職業従事者 (id: 2) ---
+  {
+    id: 'jp_occ2_patent',
+    name: '特許取得・論文発表',
+    category: 'career',
+    description: '研究成果が特許として認められ、会社から報奨金が支給された。',
+    baseProbability: 0.03,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'savings_boost', value: 0.04 },
+      { type: 'income_boost', value: 0.04 },
+    ],
+    isPositive: true,
+    occupationIds: [2],
+  },
+  {
+    id: 'jp_occ2_iryou_jiko',
+    name: '医療事故・専門家責任',
+    category: 'legal',
+    description: '医療事故や専門家責任を問われ、訴訟費用が発生。',
+    baseProbability: 0.02,
+    ageProbabilities: [
+      { minAge: 35, maxAge: 60, probability: 0.03 },
+    ],
+    durationMonths: [6, 24],
+    impacts: [
+      { type: 'extra_expense', value: 6 },
+    ],
+    occupationIds: [2],
+  },
+  {
+    id: 'jp_occ2_shikaku',
+    name: '国家資格取得',
+    category: 'career',
+    description: '難関国家資格に合格し、市場価値が大幅にアップ。',
+    baseProbability: 0.03,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'income_boost', value: 0.07 },
+    ],
+    isPositive: true,
+    occupationIds: [2],
+  },
+
+  // --- 事務従事者 (id: 3) ---
+  {
+    id: 'jp_occ3_rpa',
+    name: 'RPA導入による業務縮小',
+    category: 'career',
+    description: '会社がRPA・AIを導入し、事務職のポストが減少。',
+    baseProbability: 0.05,
+    durationMonths: [3, 12],
+    impacts: [
+      { type: 'income_change', value: -0.08 },
+    ],
+    occupationIds: [3],
+  },
+  {
+    id: 'jp_occ3_kaizen',
+    name: '業務改善提案採用',
+    category: 'career',
+    description: '提案した業務改善が採用され、表彰と金一封を受けた。',
+    baseProbability: 0.04,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'savings_boost', value: 0.02 },
+    ],
+    isPositive: true,
+    occupationIds: [3],
+  },
+  {
+    id: 'jp_occ3_haken',
+    name: '派遣切り',
+    category: 'career',
+    description: '景気悪化で派遣契約を打ち切られた。',
+    baseProbability: 0.04,
+    durationMonths: [2, 8],
+    impacts: [
+      { type: 'income_change', value: -0.25 },
+    ],
+    occupationIds: [3],
+  },
+
+  // --- サービス職業従事者 (id: 4) ---
+  {
+    id: 'jp_occ4_inbound_boom',
+    name: 'インバウンド特需',
+    category: 'career',
+    description: '訪日外国人観光客の急増で、サービス業の売上が好調。',
+    baseProbability: 0.05,
+    durationMonths: [3, 12],
+    impacts: [
+      { type: 'income_change', value: 0.08 },
+    ],
+    isPositive: true,
+    occupationIds: [4],
+  },
+  {
+    id: 'jp_occ4_jinzai_busoku',
+    name: '人手不足による待遇改善',
+    category: 'career',
+    description: '深刻な人手不足で時給・待遇が改善された。',
+    baseProbability: 0.05,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'income_boost', value: 0.04 },
+    ],
+    isPositive: true,
+    occupationIds: [4],
+  },
+  {
+    id: 'jp_occ4_kustomer_claim',
+    name: 'カスハラ被害',
+    category: 'health',
+    description: '悪質なカスタマーハラスメントで精神的ダメージを受けた。',
+    baseProbability: 0.04,
+    durationMonths: [1, 6],
+    impacts: [
+      { type: 'extra_expense', value: 1 },
+      { type: 'income_change', value: -0.05 },
+    ],
+    occupationIds: [4],
+  },
+
+  // --- 生産工程・技能職 (id: 5) ---
+  {
+    id: 'jp_occ5_ginou_kentei',
+    name: '技能検定合格',
+    category: 'career',
+    description: '国家技能検定に合格し、技能手当が付いた。',
+    baseProbability: 0.04,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'income_boost', value: 0.05 },
+    ],
+    isPositive: true,
+    occupationIds: [5],
+  },
+  {
+    id: 'jp_occ5_rousai',
+    name: '労災事故',
+    category: 'health',
+    description: '工場で労災事故に遭い、休業が必要になった。',
+    baseProbability: 0.03,
+    durationMonths: [2, 8],
+    impacts: [
+      { type: 'extra_expense', value: 2 },
+      { type: 'income_change', value: -0.12 },
+    ],
+    occupationIds: [5, 7, 8],
+  },
+  {
+    id: 'jp_occ5_kaigai_iten',
+    name: '工場の海外移転',
+    category: 'career',
+    description: '生産拠点が東南アジアに移転し、リストラ対象に。',
+    baseProbability: 0.03,
+    durationMonths: [3, 12],
+    impacts: [
+      { type: 'income_change', value: -0.20 },
+    ],
+    occupationIds: [5, 7],
+  },
+
+  // --- 保安職業従事者 (id: 6) ---
+  {
+    id: 'jp_occ6_kiken_teate',
+    name: '危険手当支給',
+    category: 'career',
+    description: '災害派遣や危険任務への従事により、特別手当が支給された。',
+    baseProbability: 0.05,
+    durationMonths: [1, 6],
+    impacts: [
+      { type: 'income_change', value: 0.08 },
+    ],
+    isPositive: true,
+    occupationIds: [6],
+  },
+  {
+    id: 'jp_occ6_saigai_haken',
+    name: '災害派遣疲労',
+    category: 'health',
+    description: '大規模災害派遣で過度な疲労が蓄積し、体調を崩した。',
+    baseProbability: 0.04,
+    durationMonths: [1, 3],
+    impacts: [
+      { type: 'extra_expense', value: 1 },
+      { type: 'income_change', value: -0.05 },
+    ],
+    occupationIds: [6],
+  },
+  {
+    id: 'jp_occ6_shoushin',
+    name: '階級昇進',
+    category: 'career',
+    description: '試験に合格し階級が上がった。給与もアップ。',
+    baseProbability: 0.04,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'income_boost', value: 0.06 },
+    ],
+    isPositive: true,
+    occupationIds: [6],
+  },
+
+  // --- 輸送・機械運転従事者 (id: 7) ---
+  {
+    id: 'jp_occ7_2024_mondai',
+    name: '2024年問題・人手不足',
+    category: 'career',
+    description: '物流の2024年問題で人手不足が深刻化し、待遇が改善された。',
+    baseProbability: 0.05,
+    durationMonths: [6, 12],
+    impacts: [
+      { type: 'income_change', value: 0.08 },
+    ],
+    isPositive: true,
+    occupationIds: [7],
+  },
+  {
+    id: 'jp_occ7_jiko',
+    name: '運転中の事故',
+    category: 'health',
+    description: '業務中の交通事故で負傷。休業が必要に。',
+    baseProbability: 0.04,
+    durationMonths: [2, 8],
+    impacts: [
+      { type: 'extra_expense', value: 2 },
+      { type: 'income_change', value: -0.15 },
+    ],
+    occupationIds: [7],
+  },
+  {
+    id: 'jp_occ7_jidou_unten',
+    name: '自動運転技術の脅威',
+    category: 'career',
+    description: '自動運転技術の進展で、将来の雇用不安が増大。',
+    baseProbability: 0.03,
+    durationMonths: [6, 18],
+    impacts: [
+      { type: 'income_change', value: -0.06 },
+    ],
+    occupationIds: [7],
+  },
+
+  // --- 建設・採掘従事者 (id: 8) ---
+  {
+    id: 'jp_occ8_olympics_demand',
+    name: '大型公共工事',
+    category: 'career',
+    description: '万博やインフラ整備で建設需要が急増。',
+    baseProbability: 0.04,
+    durationMonths: [6, 18],
+    impacts: [
+      { type: 'income_change', value: 0.10 },
+    ],
+    isPositive: true,
+    occupationIds: [8],
+  },
+  {
+    id: 'jp_occ8_netchushou',
+    name: '熱中症で入院',
+    category: 'health',
+    description: '屋外作業中に熱中症で倒れ、入院治療が必要に。',
+    baseProbability: 0.04,
+    durationMonths: [1, 3],
+    impacts: [
+      { type: 'extra_expense', value: 1 },
+      { type: 'income_change', value: -0.08 },
+    ],
+    occupationIds: [8],
+  },
+  {
+    id: 'jp_occ8_saitech_bonus',
+    name: '技能士手当',
+    category: 'career',
+    description: '建設業技能者として資格を取得し、手当がついた。',
+    baseProbability: 0.04,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'income_boost', value: 0.04 },
+    ],
+    isPositive: true,
+    occupationIds: [8],
+  },
+
+  // --- 情報通信技術者 (id: 9) ---
+  {
+    id: 'jp_occ9_stock_options',
+    name: 'ストックオプション行使',
+    category: 'career',
+    description: '所属企業の株価上昇でストックオプションが大幅に増値。',
+    baseProbability: 0.04,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'savings_boost', value: 0.08 },
+    ],
+    isPositive: true,
+    occupationIds: [9],
+  },
+  {
+    id: 'jp_occ9_gafa_offer',
+    name: '外資IT企業からオファー',
+    category: 'career',
+    description: 'GAFAMからヘッドハンティングを受け、大幅年収アップ。',
+    baseProbability: 0.03,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'income_boost', value: 0.15 },
+    ],
+    isPositive: true,
+    occupationIds: [9],
+  },
+  {
+    id: 'jp_occ9_deathmarch',
+    name: 'デスマーチプロジェクト',
+    category: 'health',
+    description: '炎上プロジェクトで長時間労働が続き、心身を壊した。',
+    baseProbability: 0.04,
+    durationMonths: [3, 12],
+    impacts: [
+      { type: 'extra_expense', value: 2 },
+      { type: 'income_change', value: -0.10 },
+    ],
+    occupationIds: [9],
+  },
+  {
+    id: 'jp_occ9_freelance',
+    name: 'フリーランス転身',
+    category: 'career',
+    description: 'フリーランスに転身し、高単価案件を獲得。',
+    baseProbability: 0.03,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'income_boost', value: 0.10 },
+    ],
+    isPositive: true,
+    occupationIds: [9],
+  },
+
+  // --- 運搬・清掃・包装等従事者 (id: 10) ---
+  {
+    id: 'jp_occ10_saitei_chingin',
+    name: '最低賃金引上げ',
+    category: 'career',
+    description: '最低賃金の引上げにより、時給が改善された。',
+    baseProbability: 0.06,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'income_boost', value: 0.03 },
+    ],
+    isPositive: true,
+    occupationIds: [10],
+  },
+  {
+    id: 'jp_occ10_taijin_jiko',
+    name: '作業中の怪我',
+    category: 'health',
+    description: '重量物の運搬中に腰を痛め、休業が必要に。',
+    baseProbability: 0.05,
+    durationMonths: [1, 6],
+    impacts: [
+      { type: 'extra_expense', value: 1 },
+      { type: 'income_change', value: -0.10 },
+    ],
+    occupationIds: [10],
+  },
+  {
+    id: 'jp_occ10_robot_threat',
+    name: 'ロボット化の脅威',
+    category: 'career',
+    description: '倉庫や清掃のロボット化が進み、雇用不安が増大。',
+    baseProbability: 0.04,
+    durationMonths: [6, 18],
+    impacts: [
+      { type: 'income_change', value: -0.06 },
+    ],
+    occupationIds: [10],
   },
 ]
 
