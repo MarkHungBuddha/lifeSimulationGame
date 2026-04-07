@@ -93,6 +93,14 @@ export const EVENT_DATABASE: RandomEvent[] = [
       { type: 'extra_expense', value: 1 },
     ],
     correlatedWith: ['recession', 'mental_health'],
+    occupationModifiers: {
+      1: { probabilityMultiplier: 0.8, name: 'Executive Displacement', description: 'Board restructuring puts your position at risk' },
+      3: { probabilityMultiplier: 1.3, name: 'Position Automated Away', description: 'Your admin role is eliminated through automation' },
+      4: { probabilityMultiplier: 1.2, name: 'Sales Team Downsized', description: 'Missed targets lead to sales team restructuring' },
+      6: { probabilityMultiplier: 0.3, impactMultiplier: 0.8, name: 'Farm Labor Reduction', description: 'Rising costs force you to cut your own hours' },
+      9: { probabilityMultiplier: 1.5, name: 'Tech Layoff Wave', description: 'Mass layoffs sweep the industry; your team is eliminated' },
+      10: { name: 'Route Eliminated', description: 'Your company cuts the route you were assigned to' },
+    },
   },
   {
     id: 'pay_cut',
@@ -106,6 +114,11 @@ export const EVENT_DATABASE: RandomEvent[] = [
       { type: 'savings_change', value: -0.05 },
     ],
     correlatedWith: ['recession'],
+    occupationModifiers: {
+      1: { probabilityMultiplier: 1.3, impactMultiplier: 1.3, name: 'Bonus Clawback', description: 'Company misses targets; executive bonuses zeroed out' },
+      4: { probabilityMultiplier: 1.5, impactMultiplier: 1.2, name: 'Commission Restructured', description: 'New commission tiers slash your effective take-home' },
+      6: { probabilityMultiplier: 0.5, impactMultiplier: 0.8 },
+    },
   },
   {
     id: 'career_break',
@@ -118,6 +131,11 @@ export const EVENT_DATABASE: RandomEvent[] = [
       { type: 'income_change', value: -0.20 },
       { type: 'savings_change', value: -0.02 },
     ],
+    occupationModifiers: {
+      2: { probabilityMultiplier: 1.3, name: 'Sabbatical for Certification', description: 'You take time off to pursue an advanced credential' },
+      9: { probabilityMultiplier: 1.5, name: 'Gap Year / Recharge', description: 'You quit to travel or build a side project — standard in tech' },
+      8: { probabilityMultiplier: 0.5, impactMultiplier: 0.7, name: 'Waiting for Next Gig', description: 'Previous contract ended; waiting for the next assignment' },
+    },
   },
   {
     id: 'promotion',
@@ -131,6 +149,12 @@ export const EVENT_DATABASE: RandomEvent[] = [
       { type: 'savings_boost', value: 0.05 },
     ],
     isPositive: true,
+    occupationModifiers: {
+      1: { probabilityMultiplier: 0.7, impactMultiplier: 1.5, name: 'C-Suite Promotion', description: 'You join the executive team with a massive comp package' },
+      3: { impactMultiplier: 0.7, name: 'Office Manager Bump', description: 'Promoted to office manager — modest raise, more responsibility' },
+      8: { probabilityMultiplier: 0.8, impactMultiplier: 0.6, name: 'Shift Lead Promotion', description: 'You become shift lead — small raise, better job security' },
+      9: { probabilityMultiplier: 1.2, impactMultiplier: 1.2, name: 'Staff Engineer / Tech Lead', description: 'Promoted to senior technical track with significant RSU bump' },
+    },
   },
   {
     id: 'burnout',
@@ -144,6 +168,11 @@ export const EVENT_DATABASE: RandomEvent[] = [
       { type: 'savings_change', value: -0.02 },
     ],
     correlatedWith: ['mental_health'],
+    occupationModifiers: {
+      2: { probabilityMultiplier: 1.3, name: 'Professional Exhaustion', description: 'Years of high-stakes decisions take their toll' },
+      6: { probabilityMultiplier: 0.5, impactMultiplier: 0.8, name: 'Physical Exhaustion', description: 'Season after season of hard labor wears your body down' },
+      9: { probabilityMultiplier: 1.5, impactMultiplier: 1.2, name: 'Engineering Burnout', description: 'Endless on-call, sprint deadlines, and screen fatigue break you' },
+    },
   },
 
   // ================================================================
@@ -170,6 +199,14 @@ export const EVENT_DATABASE: RandomEvent[] = [
       { type: 'income_change', value: -0.15 },
       { type: 'extra_expense', value: 1.5 },
     ],
+    occupationModifiers: {
+      3: { probabilityMultiplier: 0.7, impactMultiplier: 0.8 },
+      5: { probabilityMultiplier: 1.5, impactMultiplier: 1.2, name: 'Equipment Injury', description: 'Injured while operating machinery; weeks of recovery needed' },
+      6: { probabilityMultiplier: 1.3, name: 'Farm Injury', description: 'Injured during farm work — machinery or livestock incident' },
+      7: { probabilityMultiplier: 1.8, impactMultiplier: 1.3, name: 'Construction Site Injury', description: 'Fall or struck-by incident on the job site' },
+      8: { probabilityMultiplier: 1.8, impactMultiplier: 1.3, name: 'Factory Floor Injury', description: 'Assembly line accident requires medical leave' },
+      9: { probabilityMultiplier: 0.6, impactMultiplier: 0.7, name: 'Repetitive Strain Injury', description: 'Carpal tunnel or herniated disc from years at a desk' },
+    },
   },
   {
     id: 'long_disability',
@@ -194,6 +231,12 @@ export const EVENT_DATABASE: RandomEvent[] = [
       { type: 'extra_expense', value: 3 },
     ],
     correlatedWith: ['critical_illness'],
+    occupationModifiers: {
+      3: { probabilityMultiplier: 0.6, impactMultiplier: 0.8 },
+      7: { probabilityMultiplier: 2.0, impactMultiplier: 1.5, name: 'Severe Workplace Accident', description: 'Major construction accident causes lasting disability' },
+      8: { probabilityMultiplier: 1.8, impactMultiplier: 1.5, name: 'Permanent Factory Injury', description: 'Severe manufacturing accident with long-term consequences' },
+      9: { probabilityMultiplier: 0.5, impactMultiplier: 0.7 },
+    },
   },
   {
     id: 'critical_illness',
@@ -239,6 +282,11 @@ export const EVENT_DATABASE: RandomEvent[] = [
     impacts: [
       { type: 'extra_expense', value: 1 },
     ],
+    occupationModifiers: {
+      3: { probabilityMultiplier: 0.8 },
+      7: { probabilityMultiplier: 1.5, impactMultiplier: 1.2, name: 'Jobsite Emergency', description: 'On-site injury requires emergency room treatment' },
+      8: { probabilityMultiplier: 1.3, impactMultiplier: 1.2, name: 'Workplace ER Visit', description: 'Injured on the job — ER visit, fortunately not critical' },
+    },
   },
   {
     id: 'mental_health',
@@ -262,6 +310,13 @@ export const EVENT_DATABASE: RandomEvent[] = [
       { type: 'extra_expense', value: 1 },
     ],
     correlatedWith: ['burnout', 'layoff'],
+    occupationModifiers: {
+      2: { probabilityMultiplier: 1.2, name: 'High-Stakes Anxiety', description: 'The weight of life-or-death decisions triggers anxiety' },
+      4: { probabilityMultiplier: 1.1, name: 'Sales Pressure Anxiety', description: 'Constant quota pressure leads to anxiety and insomnia' },
+      7: { probabilityMultiplier: 0.7, impactMultiplier: 0.8 },
+      8: { probabilityMultiplier: 0.7, impactMultiplier: 0.8 },
+      9: { probabilityMultiplier: 1.4, impactMultiplier: 1.2, name: 'Tech Worker Mental Health Crisis', description: 'Always-on culture, imposter syndrome, and isolation take hold' },
+    },
   },
 
   // ================================================================
@@ -377,6 +432,9 @@ export const EVENT_DATABASE: RandomEvent[] = [
     ownerExtraImpacts: [
       { type: 'extra_expense', value: 3 },
     ],
+    occupationModifiers: {
+      6: { impactMultiplier: 2.0, name: 'Farm Devastated by Disaster', description: 'The disaster destroys not just your home but your livelihood' },
+    },
   },
   {
     id: 'car_accident',
@@ -411,6 +469,10 @@ export const EVENT_DATABASE: RandomEvent[] = [
       { type: 'savings_change', value: -0.03 },
       { type: 'extra_expense', value: 1 },
     ],
+    occupationModifiers: {
+      1: { impactMultiplier: 1.3, name: 'Executive Investment Fraud', description: 'Targeted by a sophisticated private-equity scam' },
+      9: { probabilityMultiplier: 0.7, impactMultiplier: 0.8 },
+    },
   },
   {
     id: 'home_repair',

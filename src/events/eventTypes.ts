@@ -32,6 +32,14 @@ export interface AgeProbability {
   probability: number     // 該年齡區間的年機率
 }
 
+/** 職業事件修正器 — 覆寫特定職業的機率、影響和敘述 */
+export interface OccupationEventModifier {
+  probabilityMultiplier?: number   // 機率倍率（預設 1.0）
+  impactMultiplier?: number        // 影響值倍率（預設 1.0）
+  name?: string                    // 覆寫事件名稱
+  description?: string             // 覆寫事件描述
+}
+
 export interface RandomEvent {
   id: string
   name: string
@@ -51,6 +59,8 @@ export interface RandomEvent {
   ownerExtraImpacts?: EventImpact[]
   /** 僅特定職業觸發（空/undefined = 所有職業皆可觸發） */
   occupationIds?: number[]
+  /** 職業別事件修正（key = occupationId） */
+  occupationModifiers?: Partial<Record<number, OccupationEventModifier>>
 }
 
 /** 模擬中觸發的事件紀錄 */
@@ -63,4 +73,6 @@ export interface TriggeredEvent {
     description: string
     amount: number        // 實際美元金額（正=收益，負=損失）
   }[]
+  displayName?: string           // 職業覆寫後的事件名稱
+  displayDescription?: string    // 職業覆寫後的事件描述
 }

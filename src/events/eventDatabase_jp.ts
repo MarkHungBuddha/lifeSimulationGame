@@ -125,6 +125,14 @@ export const EVENT_DATABASE_JP: RandomEvent[] = [
       { type: 'savings_change', value: -0.05 },
     ],
     correlatedWith: ['jp_recession', 'jp_mental_health'],
+    occupationModifiers: {
+      1: { probabilityMultiplier: 0.8, name: '役員退任', description: '取締役会の刷新で管理職が入れ替え対象に。退職金は上乗せ' },
+      3: { probabilityMultiplier: 1.3, name: '事務職リストラ', description: 'AI・RPA導入で事務ポストが削減、整理解雇の対象に' },
+      4: { probabilityMultiplier: 1.2, name: '営業成績不振による退職勧奨', description: '業績不振が続き退職勧奨を受ける。雇用保険で対応' },
+      6: { probabilityMultiplier: 0.1, impactMultiplier: 0.5, name: '編制縮減', description: '機関の定員削減により配置転換。公務員保護で影響は軽微' },
+      9: { probabilityMultiplier: 1.5, name: 'IT業界リストラ', description: '外資IT企業のレイオフ波及。部門ごと廃止され、雇用保険で対応' },
+      10: { probabilityMultiplier: 1.3, impactMultiplier: 0.8, name: '雇い止め', description: '契約更新されず雇い止めに。雇用保険の基本手当で対応' },
+    },
   },
   {
     id: 'jp_early_retirement',
@@ -143,6 +151,12 @@ export const EVENT_DATABASE_JP: RandomEvent[] = [
       { type: 'income_change', value: -0.30 },
       { type: 'savings_boost', value: 0.20 },
     ],
+    occupationModifiers: {
+      1: { probabilityMultiplier: 1.3, impactMultiplier: 1.3, name: '役員の早期退職', description: '経営陣刷新で早期退職パッケージを提示される。割増退職金あり' },
+      3: { probabilityMultiplier: 1.2, name: '事務職の希望退職', description: '事務部門の合理化で希望退職を募集。応じると割増退職金' },
+      6: { probabilityMultiplier: 0.1, impactMultiplier: 0.5 },
+      9: { probabilityMultiplier: 0.7, name: 'IT人材の早期退職', description: 'IT業界では転職が容易なため、早期退職より転職を選ぶ傾向' },
+    },
   },
   {
     id: 'jp_job_change',
@@ -164,6 +178,12 @@ export const EVENT_DATABASE_JP: RandomEvent[] = [
       { type: 'savings_boost', value: 0.03 },
     ],
     isPositive: true,
+    occupationModifiers: {
+      2: { probabilityMultiplier: 1.2, name: '専門職の転職', description: '専門スキルを活かしてより待遇の良い職場へ転職' },
+      6: { probabilityMultiplier: 0.3, impactMultiplier: 0.7, name: '保安職からの転職', description: '公務員的な安定を捨てて民間に転職。リスクはあるが待遇向上' },
+      9: { probabilityMultiplier: 1.5, impactMultiplier: 1.2, name: 'ITエンジニア転職', description: '転職市場が活発なIT業界で、年収大幅アップの転職に成功' },
+      10: { probabilityMultiplier: 0.5, impactMultiplier: 0.6 },
+    },
   },
   {
     id: 'jp_promotion',
@@ -177,6 +197,12 @@ export const EVENT_DATABASE_JP: RandomEvent[] = [
       { type: 'savings_boost', value: 0.05 },
     ],
     isPositive: true,
+    occupationModifiers: {
+      1: { probabilityMultiplier: 0.7, impactMultiplier: 1.5, name: '役員昇進', description: '取締役に就任。報酬と株式報酬が大幅にアップ' },
+      3: { impactMultiplier: 0.7, name: '係長・課長補佐昇進', description: '事務職の管理職に昇進。小幅な昇給だが安定度が増す' },
+      8: { probabilityMultiplier: 0.8, impactMultiplier: 0.6, name: '職長・班長昇格', description: '現場のリーダーに昇格。手当がつくが昇給幅は限定的' },
+      9: { probabilityMultiplier: 1.2, impactMultiplier: 1.2, name: 'テックリード昇進', description: '技術職の上級ポジションに昇進。RSUや技術手当で大幅増収' },
+    },
   },
   {
     id: 'jp_bonus_cut',
@@ -189,6 +215,12 @@ export const EVENT_DATABASE_JP: RandomEvent[] = [
       { type: 'income_change', value: -0.15 },
     ],
     correlatedWith: ['jp_recession'],
+    occupationModifiers: {
+      1: { probabilityMultiplier: 1.3, impactMultiplier: 1.3, name: '役員報酬カット', description: '業績悪化で役員報酬が大幅カット。賞与ゼロの可能性も' },
+      4: { probabilityMultiplier: 1.2, name: '歩合給の減少', description: 'サービス業の業績不振で歩合・インセンティブが大幅減' },
+      6: { probabilityMultiplier: 0.3, impactMultiplier: 0.5 },
+      9: { probabilityMultiplier: 0.8, name: 'IT企業の賞与減', description: '業績連動型の賞与が減額。ただしベース給与は維持される傾向' },
+    },
   },
   {
     id: 'jp_burnout',
@@ -202,6 +234,11 @@ export const EVENT_DATABASE_JP: RandomEvent[] = [
       { type: 'extra_expense', value: 0.3 },
     ],
     correlatedWith: ['jp_mental_health'],
+    occupationModifiers: {
+      2: { probabilityMultiplier: 1.3, name: '専門職の過労', description: '医療・法律・研究分野の高プレッシャー環境で心身が限界に' },
+      6: { probabilityMultiplier: 0.5, impactMultiplier: 0.8, name: '任務疲労', description: '連続した緊急出動や夜勤で精神的に消耗。公務災害申請可' },
+      9: { probabilityMultiplier: 1.5, impactMultiplier: 1.2, name: 'ITエンジニアの過労', description: 'デスマーチ、深夜対応、常時オンコールの疲弊。傷病手当金で対応' },
+    },
   },
   {
     id: 'jp_non_regular',
@@ -251,6 +288,14 @@ export const EVENT_DATABASE_JP: RandomEvent[] = [
       { type: 'income_change', value: -0.05 },
       { type: 'extra_expense', value: 0.3 },
     ],
+    occupationModifiers: {
+      3: { probabilityMultiplier: 0.7, impactMultiplier: 0.8 },
+      5: { probabilityMultiplier: 1.5, impactMultiplier: 1.2, name: '設備操作による負傷', description: '工場で機械操作中に負傷。労災認定なら医療費全額補償' },
+      6: { probabilityMultiplier: 1.3, name: '訓練中の負傷', description: '訓練・演習中に負傷。公務災害として補償対象' },
+      7: { probabilityMultiplier: 1.8, impactMultiplier: 1.3, name: '運転中の事故負傷', description: '業務中の交通事故で負傷。労災保険で休業補償あり' },
+      8: { probabilityMultiplier: 1.8, impactMultiplier: 1.3, name: '建設現場の事故', description: '高所からの転落や資材による負傷。労災保険で対応' },
+      9: { probabilityMultiplier: 0.6, impactMultiplier: 0.7, name: 'VDT症候群', description: '長時間のPC作業で頸椎症や腱鞘炎を発症。健保で治療' },
+    },
   },
   {
     id: 'jp_critical_illness',
@@ -291,6 +336,12 @@ export const EVENT_DATABASE_JP: RandomEvent[] = [
       { type: 'extra_expense', value: 1.5 },
     ],
     correlatedWith: ['jp_critical_illness'],
+    occupationModifiers: {
+      3: { probabilityMultiplier: 0.6, impactMultiplier: 0.8 },
+      7: { probabilityMultiplier: 2.0, impactMultiplier: 1.5, name: '重大交通事故による障害', description: '業務中の重大事故で後遺障害。労災の障害補償年金で対応' },
+      8: { probabilityMultiplier: 1.8, impactMultiplier: 1.5, name: '建設現場の重大事故', description: '建設現場の重大事故で長期障害。労災補償+障害年金で対応' },
+      9: { probabilityMultiplier: 0.5, impactMultiplier: 0.7 },
+    },
   },
   {
     id: 'jp_er_visit',
@@ -309,6 +360,11 @@ export const EVENT_DATABASE_JP: RandomEvent[] = [
     impacts: [
       { type: 'extra_expense', value: 0.1 },
     ],
+    occupationModifiers: {
+      3: { probabilityMultiplier: 0.8 },
+      7: { probabilityMultiplier: 1.5, impactMultiplier: 1.2, name: '業務中の救急搬送', description: '運転中の事故で救急搬送。救急車は無料、健保適用で自己負担は軽微' },
+      8: { probabilityMultiplier: 1.3, impactMultiplier: 1.2, name: '現場からの救急搬送', description: '建設現場で負傷し救急搬送。幸い重症ではないが休業が必要' },
+    },
   },
   {
     id: 'jp_mental_health',
@@ -329,6 +385,13 @@ export const EVENT_DATABASE_JP: RandomEvent[] = [
       { type: 'extra_expense', value: 0.4 },
     ],
     correlatedWith: ['jp_burnout', 'jp_layoff'],
+    occupationModifiers: {
+      2: { probabilityMultiplier: 1.2, name: '専門職の高ストレス', description: '医師・弁護士・研究者など高責任職種の精神的負荷が限界に' },
+      4: { probabilityMultiplier: 1.1, name: '接客ストレス', description: 'カスタマーハラスメントや業績プレッシャーで不眠・不安に' },
+      7: { probabilityMultiplier: 0.7, impactMultiplier: 0.8 },
+      8: { probabilityMultiplier: 0.7, impactMultiplier: 0.8 },
+      9: { probabilityMultiplier: 1.4, impactMultiplier: 1.2, name: 'ITエンジニアのメンタル危機', description: '常時接続文化、インポスター症候群、孤立感が重なり精神的に追い詰められる' },
+    },
   },
   {
     id: 'jp_karoshi_health',
@@ -505,6 +568,9 @@ export const EVENT_DATABASE_JP: RandomEvent[] = [
     impacts: [
       { type: 'extra_expense', value: 0.3 },
     ],
+    occupationModifiers: {
+      6: { impactMultiplier: 1.5, name: '災害派遣による負担', description: '大規模災害で緊急出動。個人の出費も増加' },
+    },
   },
   {
     id: 'jp_typhoon',
@@ -521,6 +587,9 @@ export const EVENT_DATABASE_JP: RandomEvent[] = [
     ownerExtraImpacts: [
       { type: 'extra_expense', value: 1 },
     ],
+    occupationModifiers: {
+      6: { impactMultiplier: 1.5, name: '台風による業務被害', description: '台風で施設が被害を受け、復旧作業と個人負担が発生' },
+    },
   },
   {
     id: 'jp_car_accident',
@@ -557,6 +626,10 @@ export const EVENT_DATABASE_JP: RandomEvent[] = [
     impacts: [
       { type: 'savings_change', value: -0.04 },
     ],
+    occupationModifiers: {
+      1: { impactMultiplier: 1.3, name: '高額投資詐欺', description: '巧妙なプライベートファンド詐欺で大金を騙し取られる' },
+      9: { probabilityMultiplier: 0.7, impactMultiplier: 0.8 },
+    },
   },
   {
     id: 'jp_home_repair',

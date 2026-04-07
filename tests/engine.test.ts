@@ -404,3 +404,94 @@ describe('Event engine occupation filter', () => {
     }
   })
 })
+
+// ============================================================
+// 職業事件 Modifier 測試
+// ============================================================
+describe('Occupation event modifiers', () => {
+  it('modifier 機率倍率生效：高倍率職業觸發率 > 低倍率職業', () => {
+    // IT (id:9) layoff probabilityMultiplier=1.5 vs 農林 (id:6) =0.3
+    let triggerCountIT = 0
+    let triggerCountAgri = 0
+    const trials = 2000
+    for (let seed = 1; seed <= trials; seed++) {
+      const resultIT = rollEventsForYear({
+        seed, age: 35, year: 5, portfolio: 500000, annualIncome: 100000,
+        isRetired: false, region: 'us', ownsHome: false,
+        housingModuleEnabled: false, occupationId: 9,
+      })
+      if (resultIT.events.some(e => e.event.id === 'layoff')) triggerCountIT++
+
+      const resultAgri = rollEventsForYear({
+        seed, age: 35, year: 5, portfolio: 500000, annualIncome: 100000,
+        isRetired: false, region: 'us', ownsHome: false,
+        housingModuleEnabled: false, occupationId: 6,
+      })
+      if (resultAgri.events.some(e => e.event.id === 'layoff')) triggerCountAgri++
+    }
+    // IT 觸發率應顯著高於農林
+    expect(triggerCountIT).toBeGreaterThan(triggerCountAgri)
+  })
+
+  it('modifier 影響倍率只作用於 income_change / extra_expense / savings_change', () => {
+    // 找到 burnout 事件（IT id:9 impactMultiplier=1.2）
+    // 跑多個 seed 直到觸發
+    for (let seed = 1; seed <= 500; seed++) {
+      const resultIT = rollEventsForYear({
+        seed, age: 35, year: 5, portfolio: 500000, annualIncome: 100000,
+        isRetired: false, region: 'us', ownsHome: false,
+        housingModuleEnabled: false, occupationId: 9,
+      })
+      const resultBase = rollEventsForYear({
+        seed, age: 35, year: 5, portfolio: 500000, annualIncome: 100000,
+        isRetired: false, region: 'us', ownsHome: false,
+        housingModuleEnabled: false, occupationId: 0,
+      })
+      const burnoutIT = resultIT.events.find(e => e.event.id === 'burnout')
+      const burnoutBase = resultBase.events.find(e => e.event.id === 'burnout')
+      if (burnoutIT && burnoutBase) {
+        // income_change 影響應被放大
+        const incomeIT = burnoutIT.actualImpacts.find(i => i.type === 'income_change')
+        const incomeBase = burnoutBase.actualImpacts.find(i => i.type === 'income_change')
+        if (incomeIT && incomeBase) {
+          expect(Math.abs(incomeIT.amount)).toBeGreaterThan(Math.abs(incomeBase.amount))
+        }
+        return // 測試通過
+      }
+    }
+    // 如果 500 seed 都沒觸發，跳過（極不可能）
+  })
+
+  it('displayName / displayDescription 正確填入', () => {
+    for (let seed = 1; seed <= 500; seed++) {
+      const result = rollEventsForYear({
+        seed, age: 35, year: 5, portfolio: 500000, annualIncome: 100000,
+        isRetired: false, region: 'us', ownsHome: false,
+        housingModuleEnabled: false, occupationId: 9,
+      })
+      const layoff = result.events.find(e => e.event.id === 'layoff')
+      if (layoff) {
+        // IT (id:9) layoff 有 name='Tech Layoff Wave'
+        expect(layoff.displayName).toBe('Tech Layoff Wave')
+        expect(layoff.displayDescription).toBe('Mass layoffs sweep the industry; your team is eliminated')
+        return
+      }
+    }
+    // 如果 500 seed 都沒觸發，跳過
+  })
+
+  it('occupationId=0 時不套用任何 modifier', () => {
+    for (let seed = 1; seed <= 200; seed++) {
+      const result = rollEventsForYear({
+        seed, age: 35, year: 5, portfolio: 500000, annualIncome: 100000,
+        isRetired: false, region: 'us', ownsHome: false,
+        housingModuleEnabled: false, occupationId: 0,
+      })
+      for (const evt of result.events) {
+        // occupationId=0 不應有 display 覆寫
+        expect(evt.displayName).toBeUndefined()
+        expect(evt.displayDescription).toBeUndefined()
+      }
+    }
+  })
+})

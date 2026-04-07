@@ -171,6 +171,11 @@ export function rollEventsForYear(
     if (ownsHome && event.ownerProbabilityMultiplier) {
       prob *= event.ownerProbabilityMultiplier
     }
+    // 職業機率倍數調整
+    const occMod = event.occupationModifiers?.[occupationId]
+    if (occMod?.probabilityMultiplier) {
+      prob *= occMod.probabilityMultiplier
+    }
 
     if (rng() < prob) {
       triggeredIds.add(event.id)
@@ -211,6 +216,8 @@ export function rollEventsForYear(
   for (const id of triggeredIds) {
     const event = map.get(id)!
     const actualImpacts: TriggeredEvent['actualImpacts'] = []
+    const occMod2 = event.occupationModifiers?.[occupationId]
+    const impactMult = occMod2?.impactMultiplier ?? 1.0
 
     // 每個事件內，savings_change 和 portfolio_change 只取較大損失（不疊加）
     let eventPortfolioHit = 0
@@ -222,8 +229,13 @@ export function rollEventsForYear(
       : event.impacts
 
     for (const impact of allImpacts) {
+      // 職業影響倍率：僅作用於 income_change / extra_expense / savings_change
+      const shouldApplyMult = impact.type === 'income_change'
+        || impact.type === 'extra_expense'
+        || impact.type === 'savings_change'
+      const effectiveValue = shouldApplyMult ? impact.value * impactMult : impact.value
       const { amount, description } = calcImpactAmount(
-        impact.type, impact.value, portfolio, annualIncome,
+        impact.type, effectiveValue, portfolio, annualIncome,
       )
       actualImpacts.push({ type: impact.type, description, amount })
 
@@ -244,7 +256,11 @@ export function rollEventsForYear(
     }
 
     totalPortfolioImpact += eventPortfolioHit + eventPortfolioHitPositive
-    triggered.push({ event, age, year, actualImpacts })
+    triggered.push({
+      event, age, year, actualImpacts,
+      displayName: occMod2?.name,
+      displayDescription: occMod2?.description,
+    })
   }
 
   // 年度保護上限：資產損失不超過 -30%，額外支出不超過 3 個月收入

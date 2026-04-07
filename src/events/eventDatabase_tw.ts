@@ -127,6 +127,14 @@ export const EVENT_DATABASE_TW: RandomEvent[] = [
       { type: 'savings_change', value: -0.03 },
     ],
     correlatedWith: ['tw_recession', 'tw_mental_health'],
+    occupationModifiers: {
+      1: { probabilityMultiplier: 0.8, name: '高層人事異動', description: '董事會改組或併購後管理層洗牌，你被列入調整名單，可領資遣費' },
+      3: { probabilityMultiplier: 1.3, name: '行政職裁撤', description: '公司導入自動化後精簡行政人力，你的職位被裁撤，可申請失業給付' },
+      4: { probabilityMultiplier: 1.2, name: '業績不達標遭汰換', description: '連續季度業績墊底，公司啟動末位淘汰，可領資遣費' },
+      6: { probabilityMultiplier: 0.3, impactMultiplier: 0.8, name: '農場經營困難', description: '經營成本攀升被迫縮減人力，農委會有部分紓困方案' },
+      9: { probabilityMultiplier: 1.5, name: '科技業裁員潮', description: '公司大規模裁員，你所在的部門被整組砍掉，可領資遣費加失業給付' },
+      10: { probabilityMultiplier: 0.1, impactMultiplier: 0.5, name: '提前退伍', description: '軍方精簡人力提前退伍，可領退伍金' },
+    },
   },
   {
     id: 'tw_unpaid_leave',
@@ -139,6 +147,13 @@ export const EVENT_DATABASE_TW: RandomEvent[] = [
       { type: 'income_change', value: -0.25 },
     ],
     correlatedWith: ['tw_recession'],
+    occupationModifiers: {
+      1: { probabilityMultiplier: 0.5, name: '管理層減薪', description: '公司高層帶頭減薪共體時艱，實質減少20-30%' },
+      7: { probabilityMultiplier: 1.5, name: '產線停工放假', description: '訂單銳減工廠產線停工，被迫放無薪假' },
+      8: { probabilityMultiplier: 1.5, name: '工地停工', description: '景氣差工地無案可接，被迫放無薪假' },
+      9: { probabilityMultiplier: 1.3, name: '科技業無薪假', description: '景氣循環期科技公司實施無薪假，等待訂單回溫' },
+      10: { probabilityMultiplier: 0.05 },
+    },
   },
   {
     id: 'tw_career_break',
@@ -150,6 +165,12 @@ export const EVENT_DATABASE_TW: RandomEvent[] = [
     impacts: [
       { type: 'income_change', value: -0.15 },
     ],
+    occupationModifiers: {
+      2: { probabilityMultiplier: 1.3, name: '轉職進修空窗', description: '為了取得更高階證照或轉換跑道，主動離職進修數月' },
+      8: { probabilityMultiplier: 0.5, impactMultiplier: 0.7, name: '等待派工空窗', description: '前一份工作結束，等待下一份臨時工或派遣工作' },
+      9: { probabilityMultiplier: 1.5, name: '工程師充電期', description: '辭職去進修或做 side project，科技業慣例的充電期' },
+      10: { probabilityMultiplier: 0.2, impactMultiplier: 0.5 },
+    },
   },
   {
     id: 'tw_promotion',
@@ -163,6 +184,12 @@ export const EVENT_DATABASE_TW: RandomEvent[] = [
       { type: 'savings_boost', value: 0.03 },
     ],
     isPositive: true,
+    occupationModifiers: {
+      1: { probabilityMultiplier: 0.7, impactMultiplier: 1.5, name: '晉升高階主管', description: '進入公司最高管理層，薪資與分紅大幅提升' },
+      3: { impactMultiplier: 0.7, name: '升任組長/主辦', description: '升為小主管，薪資微幅調升但責任增加' },
+      8: { probabilityMultiplier: 0.8, impactMultiplier: 0.6, name: '升任帶班/小組長', description: '升為現場小組長，加薪有限但工作穩定度提高' },
+      9: { probabilityMultiplier: 1.2, impactMultiplier: 1.2, name: '升任技術主管', description: '技術職晉升 Tech Lead，薪資加上股票大幅成長' },
+    },
   },
   {
     id: 'tw_job_hop',
@@ -197,6 +224,11 @@ export const EVENT_DATABASE_TW: RandomEvent[] = [
       { type: 'extra_expense', value: 0.3 },
     ],
     correlatedWith: ['tw_mental_health'],
+    occupationModifiers: {
+      2: { probabilityMultiplier: 1.3, name: '專業耗竭', description: '長期高壓高責任累積，身心俱疲需要強制休養' },
+      6: { probabilityMultiplier: 0.5, impactMultiplier: 0.8, name: '體能透支', description: '長期體力勞動累積疲勞，身體發出警訊' },
+      9: { probabilityMultiplier: 1.5, impactMultiplier: 1.2, name: '工程師 burnout', description: '連續 on-call 和趕 deadline，螢幕前的過勞，需要徹底抽離' },
+    },
   },
   {
     id: 'tw_company_bankrupt',
@@ -233,6 +265,14 @@ export const EVENT_DATABASE_TW: RandomEvent[] = [
       { type: 'income_change', value: -0.05 },
       { type: 'extra_expense', value: 0.5 },  // 健保後自費1-5萬
     ],
+    occupationModifiers: {
+      3: { probabilityMultiplier: 0.7, impactMultiplier: 0.8 },
+      5: { probabilityMultiplier: 1.5, impactMultiplier: 1.2, name: '設備操作傷害', description: '操作機台或設備時受傷，勞保傷病給付可補貼部分損失' },
+      6: { probabilityMultiplier: 1.3, name: '農務勞動傷害', description: '農務操作受傷，農保有部分傷病給付' },
+      7: { probabilityMultiplier: 1.8, impactMultiplier: 1.3, name: '機台操作事故', description: '機台捲夾或重物砸傷，可申請勞保職災給付' },
+      8: { probabilityMultiplier: 1.8, impactMultiplier: 1.3, name: '工地事故', description: '高處墜落或被物體砸傷等工地事故，可申請勞保職災給付' },
+      9: { probabilityMultiplier: 0.6, impactMultiplier: 0.7, name: '久坐職業病', description: '長期久坐導致椎間盤突出或腕隧道症候群，健保可給付' },
+    },
   },
   {
     id: 'tw_critical_illness',
@@ -273,6 +313,12 @@ export const EVENT_DATABASE_TW: RandomEvent[] = [
       { type: 'extra_expense', value: 2 },  // 看護費
     ],
     correlatedWith: ['tw_critical_illness'],
+    occupationModifiers: {
+      3: { probabilityMultiplier: 0.6, impactMultiplier: 0.8 },
+      7: { probabilityMultiplier: 2.0, impactMultiplier: 1.5, name: '重大職災致殘', description: '嚴重機械事故導致長期失去工作能力，可領勞保失能年金' },
+      8: { probabilityMultiplier: 1.8, impactMultiplier: 1.5, name: '工地重大傷害', description: '營建工地重大事故，脊椎或四肢嚴重受損，可領勞保失能年金' },
+      9: { probabilityMultiplier: 0.5, impactMultiplier: 0.7 },
+    },
   },
   {
     id: 'tw_er_visit',
@@ -291,6 +337,11 @@ export const EVENT_DATABASE_TW: RandomEvent[] = [
     impacts: [
       { type: 'extra_expense', value: 0.1 },  // 健保後僅500-5000
     ],
+    occupationModifiers: {
+      3: { probabilityMultiplier: 0.8 },
+      7: { probabilityMultiplier: 1.5, impactMultiplier: 1.2, name: '工作現場急救送醫', description: '作業中受傷緊急送醫，健保給付大部分費用' },
+      8: { probabilityMultiplier: 1.3, impactMultiplier: 1.2, name: '勞動現場急診', description: '體力勞動中受傷或中暑，急診處理後回家休養' },
+    },
   },
   {
     id: 'tw_mental_health',
@@ -311,6 +362,13 @@ export const EVENT_DATABASE_TW: RandomEvent[] = [
       { type: 'extra_expense', value: 0.5 },
     ],
     correlatedWith: ['tw_burnout', 'tw_layoff'],
+    occupationModifiers: {
+      2: { probabilityMultiplier: 1.2, name: '專業人員高壓焦慮', description: '醫療/法律/研究領域的高壓環境導致焦慮或憂鬱' },
+      4: { probabilityMultiplier: 1.1, name: '業績壓力焦慮', description: '持續的業績目標壓力造成焦慮和睡眠障礙' },
+      7: { probabilityMultiplier: 0.7, impactMultiplier: 0.8 },
+      8: { probabilityMultiplier: 0.7, impactMultiplier: 0.8 },
+      9: { probabilityMultiplier: 1.4, impactMultiplier: 1.2, name: '工程師心理健康危機', description: '長期遠端高壓工作、冒名頂替症候群、隨時待命的焦慮' },
+    },
   },
 
   // ================================================================
@@ -461,6 +519,9 @@ export const EVENT_DATABASE_TW: RandomEvent[] = [
     ownerExtraImpacts: [
       { type: 'extra_expense', value: 1.5 },
     ],
+    occupationModifiers: {
+      6: { impactMultiplier: 2.0, name: '颱風農損加倍', description: '颱風不只損壞住宅，農田/漁場/畜牧場同步受創，損失加倍' },
+    },
   },
   {
     id: 'tw_earthquake',
@@ -477,6 +538,9 @@ export const EVENT_DATABASE_TW: RandomEvent[] = [
     ownerExtraImpacts: [
       { type: 'extra_expense', value: 3 },
     ],
+    occupationModifiers: {
+      6: { impactMultiplier: 2.0, name: '地震農損加倍', description: '地震不只損壞住宅，農業設施也嚴重受損，損失加倍' },
+    },
   },
   {
     id: 'tw_car_accident',
@@ -507,6 +571,10 @@ export const EVENT_DATABASE_TW: RandomEvent[] = [
     impacts: [
       { type: 'savings_change', value: -0.03 },
     ],
+    occupationModifiers: {
+      1: { impactMultiplier: 1.3, name: '高額投資詐騙', description: '被精心設計的私募基金或商業詐騙騙走大筆資金' },
+      9: { probabilityMultiplier: 0.7, impactMultiplier: 0.8 },
+    },
   },
   {
     id: 'tw_home_repair',

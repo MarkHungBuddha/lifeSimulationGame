@@ -370,7 +370,7 @@ export function StoryPanel() {
                           {CATEGORY_EMOJI[evt.event.category]}
                         </Typography>
                         <Typography variant="body2" fontWeight={700}>
-                          {evt.event.name}
+                          {evt.displayName ?? evt.event.name}
                         </Typography>
                         <Chip size="small" variant="outlined"
                           label={categoryLabels[evt.event.category]}
@@ -381,7 +381,7 @@ export function StoryPanel() {
                           }} />
                       </Stack>
                       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
-                        {evt.event.description}
+                        {evt.displayDescription ?? evt.event.description}
                       </Typography>
                       <Stack direction="row" spacing={1} flexWrap="wrap">
                         {evt.actualImpacts.map((impact, k) => (
