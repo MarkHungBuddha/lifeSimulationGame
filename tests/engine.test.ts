@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { createSeededRNG } from '../src/engine/rng'
 import { blockBootstrap, type HistoricalData } from '../src/engine/bootstrap'
 import { simulatePath, type SimulationParams } from '../src/engine/simulator'
+import { rollEventsForYear } from '../src/events/eventEngine'
 import { getAnnualRaise, getOccupationDefaults } from '../src/engine/occupationEngine'
 import { OCCUPATIONS, OCCUPATION_MAP } from '../src/engine/occupationData'
 import data from '../data/assets_returns.json'
@@ -322,9 +323,9 @@ describe('Bankruptcy structural fixes', () => {
     expect(lateAvg).toBeGreaterThan(earlyAvg)
   })
 
-  it('退休後 paid_off 住房成本基於 purchasePrice', () => {
-    // 設定購屋計畫：30歲買房，短房貸讓退休前繳清
-    const result = simulatePath(historicalData, {
+  it('退休後 paid_off 住房成本基於 purchasePrice（withdrawal 穩定）', () => {
+    // 有房 vs 無房，退休後 withdrawal 差異應穩定（不隨房屋增值膨脹）
+    const housingParams = {
       ...baseParams,
       housingPlan: {
         enabled: true,
@@ -333,24 +334,27 @@ describe('Bankruptcy structural fixes', () => {
         downPaymentRatio: 0.3,
         mortgageYears: 20,
       },
-    }, 42)
+    }
+    const withHousing = simulatePath(historicalData, housingParams, 42)
+    const withoutHousing = simulatePath(historicalData, baseParams, 42)
 
-    // 找退休後且房貸已清的快照
-    const retiredPaidOff = result.snapshots.filter(
-      s => s.age >= 65 && s.housing?.mortgageBalance === 0 && s.housing?.ownsHouse,
+    // 找退休後且房貸已清的年份
+    const retiredPaidOff = withHousing.snapshots.filter(
+      s => s.age >= 65 && s.housing?.mortgageBalance === 0 && s.housing?.ownsHouse && !s.bankrupt,
     )
+    expect(retiredPaidOff.length).toBeGreaterThan(2)
 
-    if (retiredPaidOff.length > 1) {
-      // 退休後住房成本應該穩定（基於購入價），不應隨房屋增值而膨脹
-      const costs = retiredPaidOff.map(s => s.housing!.annualHousingCost)
-      const firstCost = costs[0]
-      const lastCost = costs[costs.length - 1]
-      // 成本波動不應超過購入價的持有成本比（因為是固定的）
-      // 但 housing engine 回傳的 annualHousingCost 可能仍基於市值，
-      // 我們的修正是在 simulator 層覆寫 annualHousingExpense，
-      // 所以需要檢查 withdrawal 中的住房支出部分
-      // 退休後 withdrawal 包含住房支出，比較有無住房的差異即可
-      expect(retiredPaidOff.length).toBeGreaterThan(0)
+    // 計算每年住房造成的 withdrawal 增量
+    const housingCostDeltas = retiredPaidOff.map(s => {
+      const noHousingSnap = withoutHousing.snapshots.find(ns => ns.age === s.age)!
+      return s.withdrawal - noHousingSnap.withdrawal
+    })
+
+    // 若基於購入價，前後增量應穩定，比值不應超過 1.5 倍
+    const firstDelta = housingCostDeltas[0]
+    const lastDelta = housingCostDeltas[housingCostDeltas.length - 1]
+    if (firstDelta > 0) {
+      expect(lastDelta / firstDelta).toBeLessThan(1.5)
     }
   })
 
@@ -363,5 +367,40 @@ describe('Bankruptcy structural fixes', () => {
     }, seed)
     expect(result1.finalPortfolio).toBe(result2.finalPortfolio)
     expect(result1.bankrupt).toBe(result2.bankrupt)
+  })
+})
+
+// ============================================================
+// 事件引擎篩選測試
+// ============================================================
+describe('Event engine occupation filter', () => {
+  it('occupationId=0 時不觸發職業專屬事件', () => {
+    // 跑多個 seed，確保職業專屬事件都被過濾
+    for (let seed = 1; seed <= 50; seed++) {
+      const result = rollEventsForYear({
+        seed, age: 35, year: 5, portfolio: 500000, annualIncome: 100000,
+        isRetired: false, region: 'us', ownsHome: false,
+        housingModuleEnabled: false, occupationId: 0,
+      })
+      for (const evt of result.events) {
+        expect(evt.event.occupationIds ?? []).toHaveLength(0)
+      }
+    }
+  })
+
+  it('occupationId=9 時只觸發通用事件或 id=9 的職業事件', () => {
+    for (let seed = 1; seed <= 50; seed++) {
+      const result = rollEventsForYear({
+        seed, age: 35, year: 5, portfolio: 500000, annualIncome: 100000,
+        isRetired: false, region: 'us', ownsHome: false,
+        housingModuleEnabled: false, occupationId: 9,
+      })
+      for (const evt of result.events) {
+        const occIds = evt.event.occupationIds
+        if (occIds && occIds.length > 0) {
+          expect(occIds).toContain(9)
+        }
+      }
+    }
   })
 })

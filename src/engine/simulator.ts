@@ -203,7 +203,7 @@ export function simulatePath(
       for (const evt of immigrationEvents) {
         for (const impact of evt.actualImpacts) {
           if (impact.type === 'income_boost') {
-            effectiveIncome += impact.amount
+            effectiveIncome = Math.max(0, effectiveIncome + impact.amount)
           }
         }
       }
@@ -237,7 +237,7 @@ export function simulatePath(
       for (const evt of events) {
         for (const impact of evt.actualImpacts) {
           if (impact.type === 'income_boost') {
-            effectiveIncome += impact.amount
+            effectiveIncome = Math.max(0, effectiveIncome + impact.amount)
           }
         }
       }
@@ -300,7 +300,7 @@ export function simulatePath(
       contribution = effectiveIncome * baseSavingsRate * cumulativeInflation * immIncomeMultiplier
       // 移民後支出增加 → 可存入額減少
       if (immExpenseMultiplier > 1) {
-        const extraExpense = params.annualContribution * cumulativeInflation * (immExpenseMultiplier - 1) * 0.5
+        const extraExpense = contribution * (immExpenseMultiplier - 1) * 0.5
         contribution = Math.max(0, contribution - extraExpense)
       }
       // 購屋後房貸+持有成本 → 可存入額減少
