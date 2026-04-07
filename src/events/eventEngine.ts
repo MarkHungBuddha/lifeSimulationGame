@@ -100,32 +100,34 @@ function getEventData(region: Region) {
   return { database: EVENT_DATABASE, map: EVENT_MAP }
 }
 
+/** rollEventsForYear 參數 */
+export interface EventRollParams {
+  seed: number
+  age: number
+  year: number
+  portfolio: number
+  annualIncome: number
+  isRetired?: boolean
+  region?: Region
+  ownsHome?: boolean
+  housingModuleEnabled?: boolean
+  occupationId?: number
+}
+
 /**
  * 擲骰子決定當年觸發的所有事件
  *
- * @param seed       該年的隨機種子
- * @param age        當前年齡
- * @param year       模擬第幾年
- * @param portfolio  當前資產
- * @param annualIncome 年收入
- * @param isRetired  是否已退休
- * @param region     地區
- * @param ownsHome   是否擁有自住房
- * @param housingModuleEnabled 是否啟用購屋模組（啟用時跳過購屋隨機事件）
+ * @param params     事件擲骰參數
  * @returns 觸發的事件列表 + 總財務影響
  */
 export function rollEventsForYear(
-  seed: number,
-  age: number,
-  year: number,
-  portfolio: number,
-  annualIncome: number,
-  isRetired: boolean = false,
-  region: Region = 'us',
-  ownsHome: boolean = false,
-  housingModuleEnabled: boolean = false,
-  occupationId: number = 0,
+  params: EventRollParams,
 ): { events: TriggeredEvent[]; totalPortfolioImpact: number; totalIncomeImpact: number; totalExpense: number } {
+  const {
+    seed, age, year, portfolio, annualIncome,
+    isRetired = false, region = 'us', ownsHome = false,
+    housingModuleEnabled = false, occupationId = 0,
+  } = params
   const { database, map } = getEventData(region)
   const rng = createSeededRNG(seed)
   const triggered: TriggeredEvent[] = []
@@ -157,11 +159,11 @@ export function rollEventsForYear(
       continue
     }
     // 職業篩選
-    if (event.occupationIds && event.occupationIds.length > 0
-        && occupationId > 0
-        && !event.occupationIds.includes(occupationId)) {
-      rng() // 消耗 RNG 保持序列一致
-      continue
+    if (event.occupationIds && event.occupationIds.length > 0) {
+      if (occupationId === 0 || !event.occupationIds.includes(occupationId)) {
+        rng() // 消耗 RNG 保持序列一致
+        continue
+      }
     }
 
     let prob = getAdjustedProbability(event, age)

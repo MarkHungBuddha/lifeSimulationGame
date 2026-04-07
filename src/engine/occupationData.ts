@@ -22,7 +22,6 @@ export const OCCUPATIONS: OccupationDef[] = [
     baseSalary: { us: 122_090, tw: 1_252_000, jp: 9_170_000 },
     raiseRange: { us: [0.035, 0.050], tw: [0.030, 0.050], jp: [0.030, 0.045] },
     ageRaiseFactor: { youngBoost: 1.2, midFactor: 1.0, seniorFactor: 0.7 },
-    eventIds: [],
   },
   {
     id: 2,
@@ -36,7 +35,6 @@ export const OCCUPATIONS: OccupationDef[] = [
     baseSalary: { us: 97_960, tw: 1_028_000, jp: 6_830_000 },
     raiseRange: { us: [0.030, 0.050], tw: [0.025, 0.045], jp: [0.025, 0.040] },
     ageRaiseFactor: { youngBoost: 1.3, midFactor: 1.0, seniorFactor: 0.6 },
-    eventIds: [],
   },
   {
     id: 3,
@@ -50,7 +48,6 @@ export const OCCUPATIONS: OccupationDef[] = [
     baseSalary: { us: 45_760, tw: 636_000, jp: 4_720_000 },
     raiseRange: { us: [0.020, 0.035], tw: [0.015, 0.030], jp: [0.015, 0.030] },
     ageRaiseFactor: { youngBoost: 1.1, midFactor: 1.0, seniorFactor: 0.8 },
-    eventIds: [],
   },
   {
     id: 4,
@@ -64,7 +61,6 @@ export const OCCUPATIONS: OccupationDef[] = [
     baseSalary: { us: 36_470, tw: 552_000, jp: 3_840_000 },
     raiseRange: { us: [0.015, 0.035], tw: [0.010, 0.030], jp: [0.010, 0.025] },
     ageRaiseFactor: { youngBoost: 1.1, midFactor: 1.0, seniorFactor: 0.8 },
-    eventIds: [],
   },
   {
     id: 5,
@@ -78,7 +74,6 @@ export const OCCUPATIONS: OccupationDef[] = [
     baseSalary: { us: 60_920, tw: 756_000, jp: 5_280_000 },
     raiseRange: { us: [0.020, 0.040], tw: [0.020, 0.035], jp: [0.020, 0.035] },
     ageRaiseFactor: { youngBoost: 1.2, midFactor: 1.0, seniorFactor: 0.7 },
-    eventIds: [],
   },
   {
     id: 6,
@@ -92,7 +87,6 @@ export const OCCUPATIONS: OccupationDef[] = [
     baseSalary: { us: 33_460, tw: 468_000, jp: 5_540_000 },
     raiseRange: { us: [0.010, 0.025], tw: [0.005, 0.020], jp: [0.020, 0.035] },
     ageRaiseFactor: { youngBoost: 1.0, midFactor: 1.0, seniorFactor: 0.9 },
-    eventIds: [],
   },
   {
     id: 7,
@@ -106,7 +100,6 @@ export const OCCUPATIONS: OccupationDef[] = [
     baseSalary: { us: 53_100, tw: 636_000, jp: 4_620_000 },
     raiseRange: { us: [0.020, 0.035], tw: [0.015, 0.030], jp: [0.015, 0.030] },
     ageRaiseFactor: { youngBoost: 1.1, midFactor: 1.0, seniorFactor: 0.7 },
-    eventIds: [],
   },
   {
     id: 8,
@@ -120,7 +113,6 @@ export const OCCUPATIONS: OccupationDef[] = [
     baseSalary: { us: 40_040, tw: 480_000, jp: 4_480_000 },
     raiseRange: { us: [0.015, 0.030], tw: [0.010, 0.025], jp: [0.015, 0.030] },
     ageRaiseFactor: { youngBoost: 1.0, midFactor: 1.0, seniorFactor: 0.7 },
-    eventIds: [],
   },
   {
     id: 9,
@@ -134,7 +126,6 @@ export const OCCUPATIONS: OccupationDef[] = [
     baseSalary: { us: 112_620, tw: 960_000, jp: 6_340_000 },
     raiseRange: { us: [0.035, 0.060], tw: [0.030, 0.055], jp: [0.030, 0.050] },
     ageRaiseFactor: { youngBoost: 1.3, midFactor: 1.0, seniorFactor: 0.5 },
-    eventIds: [],
   },
   {
     id: 10,
@@ -148,7 +139,6 @@ export const OCCUPATIONS: OccupationDef[] = [
     baseSalary: { us: 48_060, tw: 720_000, jp: 3_600_000 },
     raiseRange: { us: [0.015, 0.030], tw: [0.020, 0.035], jp: [0.010, 0.020] },
     ageRaiseFactor: { youngBoost: 1.0, midFactor: 1.0, seniorFactor: 0.8 },
-    eventIds: [],
   },
 ]
 

@@ -17,8 +17,6 @@ export interface OccupationDef {
   raiseRange: Record<Region, [number, number]>  // [min%, max%]
   /** 加薪隨年齡遞減的係數 */
   ageRaiseFactor: { youngBoost: number; midFactor: number; seniorFactor: number }
-  /** 職業專屬事件 ID（用於 eventEngine 篩選） */
-  eventIds: string[]
 }
 
 /** 職業計畫（傳入 simulator） */

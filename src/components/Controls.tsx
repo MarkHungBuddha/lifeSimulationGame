@@ -23,8 +23,7 @@ import { EVENT_DATABASE } from '../events/eventDatabase'
 import { EVENT_DATABASE_TW } from '../events/eventDatabase_tw'
 import { EVENT_DATABASE_JP } from '../events/eventDatabase_jp'
 import { HOUSING_PARAMS } from '../engine/housingData'
-import { OCCUPATIONS } from '../engine/occupationData'
-import { OCCUPATION_MAP } from '../engine/occupationData'
+import { OCCUPATIONS, OCCUPATION_MAP } from '../engine/occupationData'
 
 const ASSET_KEYS: (keyof Allocation)[] = ['sp500', 'intlStock', 'bond', 'gold', 'cash', 'reits']
 const ASSET_COLORS: Record<keyof Allocation, string> = {

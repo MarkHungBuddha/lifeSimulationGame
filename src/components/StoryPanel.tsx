@@ -228,7 +228,8 @@ export function StoryPanel() {
         if (!occ) return null
         const workYears = Math.max(0, retirementAge - currentAge)
         const lastWorkSnap = snapshots.find(s => s.age === retirementAge - 1)
-        const peakSalary = Math.max(...snapshots.filter(s => s.currentSalary).map(s => s.currentSalary!))
+        const salarySnaps = snapshots.filter(s => s.currentSalary != null).map(s => s.currentSalary!)
+        const peakSalary = salarySnaps.length > 0 ? Math.max(...salarySnaps) : 0
         return (
           <Paper elevation={2} sx={{
             p: 2.5, mb: 3, textAlign: 'center',

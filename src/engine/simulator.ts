@@ -167,6 +167,8 @@ export function simulatePath(
       cumulativeInflation *= 1 + yearReturns.cpi
     }
 
+    const isRetired = age >= params.retirementAge
+
     // === 移民處理 ===
     let activeRegion = params.region ?? 'us'
     let immIncomeMultiplier = 1
@@ -212,10 +214,13 @@ export function simulatePath(
 
     if (params.enableEvents && !bankrupt) {
       const eventSeed = seed * 1000 + y * 37
-      const isRetired = age >= params.retirementAge
       const ownsHome = housingState.phase === 'purchased' || housingState.phase === 'paid_off'
       const housingModuleEnabled = !!params.housingPlan?.enabled
-      const result = rollEventsForYear(eventSeed, age, y, portfolio, effectiveIncome, isRetired, activeRegion, ownsHome, housingModuleEnabled, params.occupationPlan?.enabled ? params.occupationPlan.occupationId : 0)
+      const result = rollEventsForYear({
+        seed: eventSeed, age, year: y, portfolio, annualIncome: effectiveIncome,
+        isRetired, region: activeRegion, ownsHome, housingModuleEnabled,
+        occupationId: params.occupationPlan?.enabled ? params.occupationPlan.occupationId : 0,
+      })
       events = result.events
       eventPortfolioImpact = result.totalPortfolioImpact
       eventIncomeImpact = result.totalIncomeImpact
@@ -236,9 +241,8 @@ export function simulatePath(
     }
 
     // === 職業薪資成長 ===
-    const isRetiredForOcc = age >= params.retirementAge
     let currentRaiseRate = 0
-    if (!isRetiredForOcc && !bankrupt && params.occupationPlan?.enabled) {
+    if (!isRetired && !bankrupt && params.occupationPlan?.enabled) {
       currentRaiseRate = getAnnualRaise(
         params.occupationPlan.occupationId,
         age,
@@ -280,7 +284,6 @@ export function simulatePath(
     }
 
     // === 正常模擬流程（套用移民收入/支出倍率）===
-    const isRetired = age >= params.retirementAge
     let contribution = 0
     let withdrawal = 0
 
