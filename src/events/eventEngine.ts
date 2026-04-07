@@ -124,6 +124,7 @@ export function rollEventsForYear(
   region: Region = 'us',
   ownsHome: boolean = false,
   housingModuleEnabled: boolean = false,
+  occupationId: number = 0,
 ): { events: TriggeredEvent[]; totalPortfolioImpact: number; totalIncomeImpact: number; totalExpense: number } {
   const { database, map } = getEventData(region)
   const rng = createSeededRNG(seed)
@@ -152,6 +153,13 @@ export function rollEventsForYear(
       continue
     }
     if (event.housingCondition === 'renter_only' && ownsHome) {
+      rng() // 消耗 RNG 保持序列一致
+      continue
+    }
+    // 職業篩選
+    if (event.occupationIds && event.occupationIds.length > 0
+        && occupationId > 0
+        && !event.occupationIds.includes(occupationId)) {
       rng() // 消耗 RNG 保持序列一致
       continue
     }

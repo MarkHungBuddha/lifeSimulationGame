@@ -8,3 +8,6 @@ export {
   type YearSnapshot,
   type PathResult,
 } from './simulator'
+export * from './occupationTypes'
+export * from './occupationData'
+export * from './occupationEngine'

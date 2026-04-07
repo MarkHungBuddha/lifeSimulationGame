@@ -620,6 +620,432 @@ export const EVENT_DATABASE_TW: RandomEvent[] = [
       { type: 'income_change', value: -0.02, permanent: true },
     ],
   },
+
+  // ================================================================
+  // 職業專屬事件（台灣版）
+  // ================================================================
+
+  // --- 主管及經理人員 (id: 1) ---
+  {
+    id: 'tw_occ1_board_bonus',
+    name: '董事會績效獎金',
+    category: 'career',
+    description: '公司業績亮眼，董事會核發高額績效獎金。',
+    baseProbability: 0.04,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'savings_boost', value: 0.08 },
+    ],
+    isPositive: true,
+    occupationIds: [1],
+  },
+  {
+    id: 'tw_occ1_restructure',
+    name: '組織重整降職',
+    category: 'career',
+    description: '公司進行組織重整，你的職位被調整，薪資連帶受影響。',
+    baseProbability: 0.03,
+    durationMonths: [3, 12],
+    impacts: [
+      { type: 'income_change', value: -0.15 },
+    ],
+    occupationIds: [1],
+  },
+  {
+    id: 'tw_occ1_ipo',
+    name: '公司 IPO 上市',
+    category: 'career',
+    description: '你任職的公司成功 IPO，手中持股大幅增值。',
+    baseProbability: 0.02,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'savings_boost', value: 0.15 },
+    ],
+    isPositive: true,
+    occupationIds: [1],
+  },
+
+  // --- 專業人員 (id: 2) ---
+  {
+    id: 'tw_occ2_patent',
+    name: '取得專利/重大發表',
+    category: 'career',
+    description: '你的研究成果獲得專利，公司給予獎金肯定。',
+    baseProbability: 0.03,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'savings_boost', value: 0.05 },
+      { type: 'income_boost', value: 0.05 },
+    ],
+    isPositive: true,
+    occupationIds: [2],
+  },
+  {
+    id: 'tw_occ2_malpractice',
+    name: '專業責任糾紛',
+    category: 'legal',
+    description: '客戶/病患投訴，你面臨專業責任調查和律師費支出。',
+    baseProbability: 0.02,
+    ageProbabilities: [
+      { minAge: 35, maxAge: 60, probability: 0.03 },
+    ],
+    durationMonths: [6, 18],
+    impacts: [
+      { type: 'extra_expense', value: 6 },
+      { type: 'income_change', value: -0.10 },
+    ],
+    occupationIds: [2],
+  },
+  {
+    id: 'tw_occ2_certification',
+    name: '取得高階證照',
+    category: 'career',
+    description: '通過高階專業證照考試，市場價值大增。',
+    baseProbability: 0.03,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'income_boost', value: 0.08 },
+    ],
+    isPositive: true,
+    occupationIds: [2],
+  },
+
+  // --- 事務工作人員 (id: 3) ---
+  {
+    id: 'tw_occ3_automation',
+    name: '業務自動化威脅',
+    category: 'career',
+    description: '公司導入 AI/RPA 自動化，你的職務內容被部分取代。',
+    baseProbability: 0.04,
+    durationMonths: [3, 12],
+    impacts: [
+      { type: 'income_change', value: -0.08 },
+    ],
+    occupationIds: [3],
+  },
+  {
+    id: 'tw_occ3_efficiency_bonus',
+    name: '流程改善獎勵',
+    category: 'career',
+    description: '你提出的流程改善方案被採納，獲得特別獎金。',
+    baseProbability: 0.04,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'savings_boost', value: 0.03 },
+    ],
+    isPositive: true,
+    occupationIds: [3],
+  },
+  {
+    id: 'tw_occ3_outsource',
+    name: '業務外包裁撤',
+    category: 'career',
+    description: '公司將行政業務外包，你面臨裁撤風險。',
+    baseProbability: 0.03,
+    durationMonths: [1, 6],
+    impacts: [
+      { type: 'income_change', value: -0.20 },
+    ],
+    occupationIds: [3],
+  },
+
+  // --- 服務及銷售人員 (id: 4) ---
+  {
+    id: 'tw_occ4_top_sales',
+    name: '業績 MVP 獎',
+    category: 'career',
+    description: '年度業績衝上冠軍，獲得豐厚提成獎金。',
+    baseProbability: 0.05,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'savings_boost', value: 0.06 },
+    ],
+    isPositive: true,
+    occupationIds: [4],
+  },
+  {
+    id: 'tw_occ4_ecommerce_hit',
+    name: '電商衝擊實體店',
+    category: 'career',
+    description: '線上購物搶走客源，門市業績大幅下滑。',
+    baseProbability: 0.05,
+    durationMonths: [6, 18],
+    impacts: [
+      { type: 'income_change', value: -0.12 },
+    ],
+    occupationIds: [4],
+  },
+  {
+    id: 'tw_occ4_customer_complaint',
+    name: '客訴糾紛',
+    category: 'legal',
+    description: '重大客訴導致你被記過，影響考績。',
+    baseProbability: 0.04,
+    durationMonths: [1, 3],
+    impacts: [
+      { type: 'income_change', value: -0.05 },
+    ],
+    occupationIds: [4],
+  },
+
+  // --- 技術員及助理專業人員 (id: 5) ---
+  {
+    id: 'tw_occ5_skill_upgrade',
+    name: '技術升級加薪',
+    category: 'career',
+    description: '學會新技術/設備操作，公司調薪獎勵。',
+    baseProbability: 0.04,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'income_boost', value: 0.05 },
+    ],
+    isPositive: true,
+    occupationIds: [5],
+  },
+  {
+    id: 'tw_occ5_equipment_accident',
+    name: '設備操作意外',
+    category: 'health',
+    description: '操作設備時發生意外，需要休養一段時間。',
+    baseProbability: 0.03,
+    durationMonths: [1, 6],
+    impacts: [
+      { type: 'extra_expense', value: 2 },
+      { type: 'income_change', value: -0.10 },
+    ],
+    occupationIds: [5, 7, 8],
+  },
+  {
+    id: 'tw_occ5_outsource_overseas',
+    name: '產線外移東南亞',
+    category: 'career',
+    description: '公司將生產線外移，技術人員面臨轉職壓力。',
+    baseProbability: 0.03,
+    durationMonths: [3, 12],
+    impacts: [
+      { type: 'income_change', value: -0.15 },
+    ],
+    occupationIds: [5, 7],
+  },
+
+  // --- 農林漁牧業 (id: 6) ---
+  {
+    id: 'tw_occ6_harvest_boom',
+    name: '豐收好年',
+    category: 'career',
+    description: '今年氣候條件絕佳，農作豐收價格也好。',
+    baseProbability: 0.06,
+    durationMonths: [3, 6],
+    impacts: [
+      { type: 'savings_boost', value: 0.06 },
+    ],
+    isPositive: true,
+    occupationIds: [6],
+  },
+  {
+    id: 'tw_occ6_typhoon_damage',
+    name: '颱風農損',
+    category: 'property',
+    description: '颱風重創農田/漁場，損失慘重。',
+    baseProbability: 0.08,
+    durationMonths: [2, 6],
+    impacts: [
+      { type: 'extra_expense', value: 4 },
+      { type: 'income_change', value: -0.25 },
+    ],
+    occupationIds: [6],
+  },
+  {
+    id: 'tw_occ6_subsidy',
+    name: '政府農業補助',
+    category: 'career',
+    description: '申請到農委會的農業補助款。',
+    baseProbability: 0.05,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'savings_boost', value: 0.03 },
+    ],
+    isPositive: true,
+    occupationIds: [6],
+  },
+
+  // --- 機械設備操作及組裝 (id: 7) ---
+  {
+    id: 'tw_occ7_overtime_bonus',
+    name: '旺季加班獎金',
+    category: 'career',
+    description: '訂單爆量，加班費和獎金讓收入大增。',
+    baseProbability: 0.06,
+    durationMonths: [2, 4],
+    impacts: [
+      { type: 'savings_boost', value: 0.04 },
+    ],
+    isPositive: true,
+    occupationIds: [7, 8],
+  },
+  {
+    id: 'tw_occ7_factory_close',
+    name: '工廠關廠',
+    category: 'career',
+    description: '工廠因訂單銳減或經營不善而關廠，你被資遣。',
+    baseProbability: 0.03,
+    durationMonths: [3, 12],
+    impacts: [
+      { type: 'income_change', value: -0.30 },
+    ],
+    occupationIds: [7, 8],
+  },
+  {
+    id: 'tw_occ7_injury',
+    name: '職業傷害',
+    category: 'health',
+    description: '工作中受傷，需要長時間復健。',
+    baseProbability: 0.03,
+    durationMonths: [3, 12],
+    impacts: [
+      { type: 'extra_expense', value: 3 },
+      { type: 'income_change', value: -0.20 },
+    ],
+    occupationIds: [7, 8],
+  },
+
+  // --- 基層技術工及勞力工 (id: 8) ---
+  {
+    id: 'tw_occ8_minimum_wage_raise',
+    name: '基本工資調漲',
+    category: 'career',
+    description: '政府宣布調高基本工資，你的薪水跟著微調。',
+    baseProbability: 0.06,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'income_boost', value: 0.03 },
+    ],
+    isPositive: true,
+    occupationIds: [8],
+  },
+  {
+    id: 'tw_occ8_construction_boom',
+    name: '營建景氣大好',
+    category: 'career',
+    description: '公共工程標案大增，工地需求旺盛。',
+    baseProbability: 0.05,
+    durationMonths: [6, 12],
+    impacts: [
+      { type: 'income_change', value: 0.10 },
+    ],
+    isPositive: true,
+    occupationIds: [8],
+  },
+  {
+    id: 'tw_occ8_heat_illness',
+    name: '高溫中暑住院',
+    category: 'health',
+    description: '戶外高溫作業導致嚴重中暑，需要住院治療。',
+    baseProbability: 0.03,
+    durationMonths: [1, 3],
+    impacts: [
+      { type: 'extra_expense', value: 1 },
+      { type: 'income_change', value: -0.08 },
+    ],
+    occupationIds: [8],
+  },
+
+  // --- 資訊科技人員 (id: 9) ---
+  {
+    id: 'tw_occ9_stock_options',
+    name: '科技公司股票分紅',
+    category: 'career',
+    description: '公司股價大漲，你的限制型股票大幅增值。',
+    baseProbability: 0.05,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'savings_boost', value: 0.10 },
+    ],
+    isPositive: true,
+    occupationIds: [9],
+  },
+  {
+    id: 'tw_occ9_ai_disruption',
+    name: 'AI 取代部分工作',
+    category: 'career',
+    description: 'AI 工具快速進步，部分程式碼撰寫工作被自動化。',
+    baseProbability: 0.04,
+    durationMonths: [6, 18],
+    impacts: [
+      { type: 'income_change', value: -0.08 },
+    ],
+    occupationIds: [9],
+  },
+  {
+    id: 'tw_occ9_startup_bonus',
+    name: '新創公司挖角',
+    category: 'career',
+    description: '新創公司高薪挖角，跳槽後薪水大幅成長。',
+    baseProbability: 0.04,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'income_boost', value: 0.12 },
+    ],
+    isPositive: true,
+    occupationIds: [9],
+  },
+  {
+    id: 'tw_occ9_open_source_fame',
+    name: '開源專案爆紅',
+    category: 'career',
+    description: '你維護的開源專案被大公司採用，業界知名度暴增。',
+    baseProbability: 0.02,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'income_boost', value: 0.06 },
+    ],
+    isPositive: true,
+    occupationIds: [9],
+  },
+
+  // --- 軍人 (id: 10) ---
+  {
+    id: 'tw_occ10_combat_pay',
+    name: '戰備加給',
+    category: 'career',
+    description: '因應台海情勢升溫，國防部發放戰備加給。',
+    baseProbability: 0.04,
+    durationMonths: [3, 12],
+    impacts: [
+      { type: 'income_change', value: 0.08 },
+    ],
+    isPositive: true,
+    occupationIds: [10],
+  },
+  {
+    id: 'tw_occ10_training_injury',
+    name: '演訓受傷',
+    category: 'health',
+    description: '軍事演訓中受傷，需要住院休養。',
+    baseProbability: 0.04,
+    durationMonths: [1, 6],
+    impacts: [
+      { type: 'extra_expense', value: 1 },
+      { type: 'income_change', value: -0.05 },
+    ],
+    occupationIds: [10],
+  },
+  {
+    id: 'tw_occ10_early_pension',
+    name: '軍職退撫金',
+    category: 'career',
+    description: '服役滿20年可領終身俸，退休生活有保障。',
+    baseProbability: 0.03,
+    ageProbabilities: [
+      { minAge: 40, maxAge: 50, probability: 0.08 },
+    ],
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'savings_boost', value: 0.10 },
+    ],
+    isPositive: true,
+    occupationIds: [10],
+  },
 ]
 
 export const EVENT_MAP_TW = new Map(EVENT_DATABASE_TW.map(e => [e.id, e]))

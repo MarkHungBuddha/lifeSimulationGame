@@ -10,6 +10,8 @@ import type { Region } from '../config/regions'
 import type { ImmigrationPlan } from '../engine/immigrationTypes'
 import type { HousingPlan } from '../engine/housingTypes'
 import { HOUSING_PARAMS } from '../engine/housingData'
+import type { OccupationPlan } from '../engine/occupationTypes'
+import { getOccupationDefaults } from '../engine/occupationEngine'
 import historicalData from '../../data/assets_returns.json'
 import type { HistoricalData } from '../engine/bootstrap'
 
@@ -58,6 +60,10 @@ interface GameState {
   immigrationAge: number
   immigrationAllocation: Allocation
 
+  // 職業
+  occupationEnabled: boolean
+  occupationId: number
+
   // 購屋
   housingEnabled: boolean
   housingPurchaseAge: number
@@ -95,6 +101,8 @@ interface GameState {
   setImmigrationTarget: (r: Region | null) => void
   setImmigrationAge: (v: number) => void
   setImmigrationAllocation: (a: Allocation) => void
+  setOccupationEnabled: (v: boolean) => void
+  setOccupationId: (id: number) => void
   setHousingEnabled: (v: boolean) => void
   setHousingPurchaseAge: (v: number) => void
   setHousingPriceToIncomeRatio: (v: number) => void
@@ -131,6 +139,9 @@ export const useGameStore = create<GameState>()(persist((set, get) => ({
   immigrationAge: 30,
   immigrationAllocation: { ...LIFESTYLE_PRESETS_JP.moderate.allocation },
 
+  occupationEnabled: false,
+  occupationId: 2,  // 預設：專業人員
+
   housingEnabled: false,
   housingPurchaseAge: 35,
   housingPriceToIncomeRatio: defaultHousingParams.defaultPriceToIncomeRatio,
@@ -150,14 +161,16 @@ export const useGameStore = create<GameState>()(persist((set, get) => ({
     const presets = getLifestylePresets(r)
     const preset = presets.moderate
     const hp = HOUSING_PARAMS[r]
+    const occEnabled = get().occupationEnabled
+    const occDefaults = occEnabled ? getOccupationDefaults(get().occupationId, r) : null
     set({
       region: r,
-      lifestyleId: 'moderate',
-      annualIncome: preset.annualIncome,
+      lifestyleId: occEnabled ? 'custom' : 'moderate',
+      annualIncome: occDefaults ? occDefaults.annualIncome : preset.annualIncome,
       annualExpense: preset.annualExpense,
       retirementAge: preset.retirementAge,
       initialPortfolio: preset.initialPortfolio,
-      annualContribution: preset.annualContribution,
+      annualContribution: occDefaults ? occDefaults.annualContribution : preset.annualContribution,
       allocation: { ...preset.allocation },
       withdrawal: preset.withdrawal,
       result: null,
@@ -203,6 +216,28 @@ export const useGameStore = create<GameState>()(persist((set, get) => ({
   },
   setImmigrationAge: (v) => set({ immigrationAge: v }),
   setImmigrationAllocation: (a) => set({ immigrationAllocation: a }),
+  setOccupationEnabled: (v) => {
+    if (v) {
+      const defaults = getOccupationDefaults(get().occupationId, get().region)
+      set({
+        occupationEnabled: true,
+        annualIncome: defaults.annualIncome,
+        annualContribution: defaults.annualContribution,
+        lifestyleId: 'custom',
+      })
+    } else {
+      set({ occupationEnabled: false })
+    }
+  },
+  setOccupationId: (id) => {
+    const defaults = getOccupationDefaults(id, get().region)
+    set({
+      occupationId: id,
+      annualIncome: defaults.annualIncome,
+      annualContribution: defaults.annualContribution,
+      lifestyleId: 'custom',
+    })
+  },
   setHousingEnabled: (v) => set({ housingEnabled: v }),
   setHousingPurchaseAge: (v) => set({ housingPurchaseAge: v }),
   setHousingPriceToIncomeRatio: (v) => set({ housingPriceToIncomeRatio: v }),
@@ -261,6 +296,11 @@ export const useGameStore = create<GameState>()(persist((set, get) => ({
           }
         : undefined
 
+    const occupationPlan: OccupationPlan | undefined =
+      state.occupationEnabled
+        ? { enabled: true, occupationId: state.occupationId }
+        : undefined
+
     const request: WorkerRequest = {
       type: 'run',
       data: historicalData as HistoricalData,
@@ -277,6 +317,7 @@ export const useGameStore = create<GameState>()(persist((set, get) => ({
         region: state.region,
         immigrationPlan,
         housingPlan,
+        occupationPlan,
       },
       numPaths: state.numPaths,
       masterSeed: Date.now(),
@@ -312,6 +353,11 @@ export const useGameStore = create<GameState>()(persist((set, get) => ({
           }
         : undefined
 
+    const occupationPlan: OccupationPlan | undefined =
+      state.occupationEnabled
+        ? { enabled: true, occupationId: state.occupationId }
+        : undefined
+
     // 在主執行緒跑單一路徑（有事件紀錄）
     setTimeout(() => {
       const result = simulatePath(
@@ -329,6 +375,7 @@ export const useGameStore = create<GameState>()(persist((set, get) => ({
           region: state.region,
           immigrationPlan,
           housingPlan,
+          occupationPlan,
         },
         Date.now(),
       )
@@ -355,6 +402,8 @@ export const useGameStore = create<GameState>()(persist((set, get) => ({
     immigrationTarget: state.immigrationTarget,
     immigrationAge: state.immigrationAge,
     immigrationAllocation: state.immigrationAllocation,
+    occupationEnabled: state.occupationEnabled,
+    occupationId: state.occupationId,
     housingEnabled: state.housingEnabled,
     housingPurchaseAge: state.housingPurchaseAge,
     housingPriceToIncomeRatio: state.housingPriceToIncomeRatio,

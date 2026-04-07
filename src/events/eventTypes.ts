@@ -49,6 +49,8 @@ export interface RandomEvent {
   ownerProbabilityMultiplier?: number
   /** 有房時的額外影響（附加在原始 impacts 之上） */
   ownerExtraImpacts?: EventImpact[]
+  /** 僅特定職業觸發（空/undefined = 所有職業皆可觸發） */
+  occupationIds?: number[]
 }
 
 /** 模擬中觸發的事件紀錄 */

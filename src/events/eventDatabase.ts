@@ -526,6 +526,431 @@ export const EVENT_DATABASE: RandomEvent[] = [
       { type: 'savings_boost', value: -0.02, permanent: true },
     ],
   },
+
+  // ================================================================
+  // 職業專屬事件（美國版）
+  // ================================================================
+
+  // --- Management (id: 1) ---
+  {
+    id: 'us_occ1_exec_bonus',
+    name: 'Executive Bonus',
+    category: 'career',
+    description: 'Your company exceeded targets, and the board approved a generous executive bonus.',
+    baseProbability: 0.04,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'savings_boost', value: 0.10 },
+    ],
+    isPositive: true,
+    occupationIds: [1],
+  },
+  {
+    id: 'us_occ1_golden_parachute',
+    name: 'Forced Resignation',
+    category: 'career',
+    description: 'Board shake-up forces your resignation. Severance cushions the blow.',
+    baseProbability: 0.03,
+    durationMonths: [3, 12],
+    impacts: [
+      { type: 'income_change', value: -0.20 },
+      { type: 'savings_boost', value: 0.05 },
+    ],
+    occupationIds: [1],
+  },
+  {
+    id: 'us_occ1_ipo',
+    name: 'Company IPO',
+    category: 'career',
+    description: 'Your company goes public. Your equity stakes are now worth real money.',
+    baseProbability: 0.02,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'savings_boost', value: 0.20 },
+    ],
+    isPositive: true,
+    occupationIds: [1],
+  },
+
+  // --- Professional (id: 2) ---
+  {
+    id: 'us_occ2_malpractice',
+    name: 'Malpractice Lawsuit',
+    category: 'legal',
+    description: 'A malpractice suit forces you to hire expensive legal counsel.',
+    baseProbability: 0.02,
+    ageProbabilities: [
+      { minAge: 35, maxAge: 60, probability: 0.03 },
+    ],
+    durationMonths: [6, 24],
+    impacts: [
+      { type: 'extra_expense', value: 8 },
+    ],
+    occupationIds: [2],
+  },
+  {
+    id: 'us_occ2_board_cert',
+    name: 'Board Certification',
+    category: 'career',
+    description: 'You pass a prestigious board certification, boosting your market value.',
+    baseProbability: 0.03,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'income_boost', value: 0.08 },
+    ],
+    isPositive: true,
+    occupationIds: [2],
+  },
+  {
+    id: 'us_occ2_research_grant',
+    name: 'Research Grant',
+    category: 'career',
+    description: 'You secure a major research grant, bringing recognition and funding.',
+    baseProbability: 0.03,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'savings_boost', value: 0.04 },
+      { type: 'income_boost', value: 0.03 },
+    ],
+    isPositive: true,
+    occupationIds: [2],
+  },
+
+  // --- Clerical/Admin (id: 3) ---
+  {
+    id: 'us_occ3_automation',
+    name: 'Office Automation',
+    category: 'career',
+    description: 'AI and automation tools replace parts of your job duties.',
+    baseProbability: 0.05,
+    durationMonths: [3, 12],
+    impacts: [
+      { type: 'income_change', value: -0.10 },
+    ],
+    occupationIds: [3],
+  },
+  {
+    id: 'us_occ3_promotion_admin',
+    name: 'Office Manager Promotion',
+    category: 'career',
+    description: 'You\'re promoted to office manager with a nice raise.',
+    baseProbability: 0.04,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'income_boost', value: 0.06 },
+    ],
+    isPositive: true,
+    occupationIds: [3],
+  },
+  {
+    id: 'us_occ3_temp_layoff',
+    name: 'Position Eliminated',
+    category: 'career',
+    description: 'Your position is eliminated in a cost-cutting measure.',
+    baseProbability: 0.04,
+    durationMonths: [2, 8],
+    impacts: [
+      { type: 'income_change', value: -0.25 },
+    ],
+    occupationIds: [3],
+  },
+
+  // --- Sales/Services (id: 4) ---
+  {
+    id: 'us_occ4_commission_boom',
+    name: 'Record Commission Quarter',
+    category: 'career',
+    description: 'You land several big deals and earn record commissions.',
+    baseProbability: 0.05,
+    durationMonths: [1, 3],
+    impacts: [
+      { type: 'savings_boost', value: 0.06 },
+    ],
+    isPositive: true,
+    occupationIds: [4],
+  },
+  {
+    id: 'us_occ4_retail_decline',
+    name: 'Retail Downturn',
+    category: 'career',
+    description: 'Consumer spending drops, and your sales-based income takes a hit.',
+    baseProbability: 0.05,
+    durationMonths: [6, 18],
+    impacts: [
+      { type: 'income_change', value: -0.15 },
+    ],
+    occupationIds: [4],
+  },
+  {
+    id: 'us_occ4_tips_boom',
+    name: 'Tips Economy Boom',
+    category: 'career',
+    description: 'Tourism and dining boom bring in generous tips.',
+    baseProbability: 0.04,
+    durationMonths: [3, 6],
+    impacts: [
+      { type: 'income_change', value: 0.08 },
+    ],
+    isPositive: true,
+    occupationIds: [4],
+  },
+
+  // --- Skilled Trades (id: 5) ---
+  {
+    id: 'us_occ5_union_raise',
+    name: 'Union Contract Raise',
+    category: 'career',
+    description: 'Your union negotiates a strong new contract with better pay.',
+    baseProbability: 0.04,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'income_boost', value: 0.05 },
+    ],
+    isPositive: true,
+    occupationIds: [5],
+  },
+  {
+    id: 'us_occ5_workplace_injury',
+    name: 'Workplace Injury',
+    category: 'health',
+    description: 'An on-the-job injury sidelines you for months.',
+    baseProbability: 0.04,
+    durationMonths: [2, 8],
+    impacts: [
+      { type: 'extra_expense', value: 4 },
+      { type: 'income_change', value: -0.15 },
+    ],
+    occupationIds: [5, 7, 8],
+  },
+  {
+    id: 'us_occ5_apprentice_complete',
+    name: 'Apprenticeship Complete',
+    category: 'career',
+    description: 'You complete your apprenticeship and become a journeyman with higher pay.',
+    baseProbability: 0.03,
+    ageProbabilities: [
+      { minAge: 25, maxAge: 35, probability: 0.06 },
+    ],
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'income_boost', value: 0.10 },
+    ],
+    isPositive: true,
+    occupationIds: [5],
+  },
+
+  // --- Agriculture (id: 6) ---
+  {
+    id: 'us_occ6_bumper_crop',
+    name: 'Bumper Crop Year',
+    category: 'career',
+    description: 'Perfect weather and high commodity prices make this your best year.',
+    baseProbability: 0.06,
+    durationMonths: [3, 6],
+    impacts: [
+      { type: 'savings_boost', value: 0.08 },
+    ],
+    isPositive: true,
+    occupationIds: [6],
+  },
+  {
+    id: 'us_occ6_drought',
+    name: 'Severe Drought',
+    category: 'property',
+    description: 'Severe drought devastates your crops. Federal aid helps but doesn\'t cover all losses.',
+    baseProbability: 0.06,
+    durationMonths: [3, 12],
+    impacts: [
+      { type: 'extra_expense', value: 4 },
+      { type: 'income_change', value: -0.25 },
+    ],
+    occupationIds: [6],
+  },
+  {
+    id: 'us_occ6_farm_subsidy',
+    name: 'USDA Farm Subsidy',
+    category: 'career',
+    description: 'You qualify for a federal agricultural subsidy program.',
+    baseProbability: 0.05,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'savings_boost', value: 0.04 },
+    ],
+    isPositive: true,
+    occupationIds: [6],
+  },
+
+  // --- Construction (id: 7) ---
+  {
+    id: 'us_occ7_infrastructure_boom',
+    name: 'Infrastructure Bill Boom',
+    category: 'career',
+    description: 'Federal infrastructure spending creates abundant high-paying construction jobs.',
+    baseProbability: 0.04,
+    durationMonths: [6, 18],
+    impacts: [
+      { type: 'income_change', value: 0.12 },
+    ],
+    isPositive: true,
+    occupationIds: [7],
+  },
+  {
+    id: 'us_occ7_osha_fine',
+    name: 'OSHA Safety Violation',
+    category: 'legal',
+    description: 'Your worksite gets cited for safety violations. Fines and slowdowns follow.',
+    baseProbability: 0.03,
+    durationMonths: [1, 6],
+    impacts: [
+      { type: 'income_change', value: -0.08 },
+    ],
+    occupationIds: [7, 8],
+  },
+  {
+    id: 'us_occ7_winter_layoff',
+    name: 'Seasonal Layoff',
+    category: 'career',
+    description: 'Winter weather halts construction. You\'re laid off until spring.',
+    baseProbability: 0.06,
+    durationMonths: [2, 4],
+    impacts: [
+      { type: 'income_change', value: -0.15 },
+    ],
+    occupationIds: [7],
+  },
+
+  // --- Production/Manufacturing (id: 8) ---
+  {
+    id: 'us_occ8_plant_closure',
+    name: 'Plant Closure',
+    category: 'career',
+    description: 'Your manufacturing plant shuts down due to offshoring.',
+    baseProbability: 0.03,
+    durationMonths: [6, 18],
+    impacts: [
+      { type: 'income_change', value: -0.30 },
+    ],
+    occupationIds: [8],
+  },
+  {
+    id: 'us_occ8_overtime_surge',
+    name: 'Overtime Surge',
+    category: 'career',
+    description: 'A rush of orders means mandatory overtime with premium pay.',
+    baseProbability: 0.06,
+    durationMonths: [2, 6],
+    impacts: [
+      { type: 'savings_boost', value: 0.04 },
+    ],
+    isPositive: true,
+    occupationIds: [8],
+  },
+  {
+    id: 'us_occ8_tariff_boost',
+    name: 'Tariff Protection',
+    category: 'career',
+    description: 'New tariffs on imports boost domestic manufacturing demand.',
+    baseProbability: 0.03,
+    durationMonths: [6, 12],
+    impacts: [
+      { type: 'income_change', value: 0.06 },
+    ],
+    isPositive: true,
+    occupationIds: [8],
+  },
+
+  // --- IT/Digital (id: 9) ---
+  {
+    id: 'us_occ9_stock_vest',
+    name: 'RSU Vesting Windfall',
+    category: 'career',
+    description: 'Your RSUs vest during a stock price surge. Major payday.',
+    baseProbability: 0.05,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'savings_boost', value: 0.12 },
+    ],
+    isPositive: true,
+    occupationIds: [9],
+  },
+  {
+    id: 'us_occ9_tech_layoff',
+    name: 'Tech Industry Layoffs',
+    category: 'career',
+    description: 'Mass layoffs sweep the tech industry. Your position is eliminated.',
+    baseProbability: 0.04,
+    durationMonths: [3, 9],
+    impacts: [
+      { type: 'income_change', value: -0.20 },
+    ],
+    occupationIds: [9],
+  },
+  {
+    id: 'us_occ9_faang_offer',
+    name: 'FAANG Offer',
+    category: 'career',
+    description: 'You receive a competing offer from a major tech company with a significant raise.',
+    baseProbability: 0.04,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'income_boost', value: 0.15 },
+    ],
+    isPositive: true,
+    occupationIds: [9],
+  },
+  {
+    id: 'us_occ9_open_source',
+    name: 'Open Source Recognition',
+    category: 'career',
+    description: 'Your open-source project gains thousands of stars and industry attention.',
+    baseProbability: 0.02,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'income_boost', value: 0.05 },
+    ],
+    isPositive: true,
+    occupationIds: [9],
+  },
+
+  // --- Transportation/Logistics (id: 10) ---
+  {
+    id: 'us_occ10_cdl_premium',
+    name: 'CDL Driver Shortage Premium',
+    category: 'career',
+    description: 'A nationwide truck driver shortage pushes your pay up significantly.',
+    baseProbability: 0.05,
+    durationMonths: [6, 12],
+    impacts: [
+      { type: 'income_change', value: 0.10 },
+    ],
+    isPositive: true,
+    occupationIds: [10],
+  },
+  {
+    id: 'us_occ10_accident',
+    name: 'Vehicle Accident',
+    category: 'health',
+    description: 'A road accident puts you out of work for recovery.',
+    baseProbability: 0.04,
+    durationMonths: [2, 8],
+    impacts: [
+      { type: 'extra_expense', value: 3 },
+      { type: 'income_change', value: -0.15 },
+    ],
+    occupationIds: [10],
+  },
+  {
+    id: 'us_occ10_ev_transition',
+    name: 'EV Transition Disruption',
+    category: 'career',
+    description: 'The shift to electric vehicles disrupts traditional logistics roles.',
+    baseProbability: 0.03,
+    durationMonths: [6, 18],
+    impacts: [
+      { type: 'income_change', value: -0.08 },
+    ],
+    occupationIds: [10],
+  },
 ]
 
 export const EVENT_MAP = new Map(EVENT_DATABASE.map(e => [e.id, e]))

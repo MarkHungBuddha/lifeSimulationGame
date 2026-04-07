@@ -23,6 +23,8 @@ import { EVENT_DATABASE } from '../events/eventDatabase'
 import { EVENT_DATABASE_TW } from '../events/eventDatabase_tw'
 import { EVENT_DATABASE_JP } from '../events/eventDatabase_jp'
 import { HOUSING_PARAMS } from '../engine/housingData'
+import { OCCUPATIONS } from '../engine/occupationData'
+import { OCCUPATION_MAP } from '../engine/occupationData'
 
 const ASSET_KEYS: (keyof Allocation)[] = ['sp500', 'intlStock', 'bond', 'gold', 'cash', 'reits']
 const ASSET_COLORS: Record<keyof Allocation, string> = {
@@ -285,6 +287,64 @@ export function Controls() {
           </Stack>
         }
       />
+
+      <Divider sx={{ my: 1 }} />
+
+      {/* 職業模擬 */}
+      <Typography variant="overline" color="text.secondary" fontWeight={700}>
+        🎯 職業模擬
+      </Typography>
+      <FormControlLabel
+        control={
+          <Switch checked={store.occupationEnabled}
+            onChange={(_, v) => store.setOccupationEnabled(v)} color="info" />
+        }
+        label={
+          <Stack>
+            <Typography variant="body2" fontWeight={600}>
+              {store.occupationEnabled ? '已啟用' : '未啟用'}
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              依職業分類設定起薪，每年自動加薪成長
+            </Typography>
+          </Stack>
+        }
+      />
+      {store.occupationEnabled && (() => {
+        const selectedOcc = OCCUPATION_MAP.get(store.occupationId)!
+        return (
+          <Paper variant="outlined" sx={{ p: 2, mt: 1, mb: 2 }}>
+            <FormControl fullWidth size="small" sx={{ mb: 2 }}>
+              <InputLabel>職業分類</InputLabel>
+              <Select
+                value={store.occupationId}
+                label="職業分類"
+                onChange={(e) => store.setOccupationId(Number(e.target.value))}
+              >
+                {OCCUPATIONS.map(occ => (
+                  <MenuItem key={occ.id} value={occ.id}>
+                    {occ.emoji} {occ.name[region]}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <Typography variant="body2" color="text.secondary">
+              {selectedOcc.description[region]}
+            </Typography>
+            <Typography variant="body2" sx={{ mt: 1 }}>
+              起薪：{formatCurrency(selectedOcc.baseSalary[region], region)}/年
+            </Typography>
+            <Typography variant="body2">
+              年加薪：{(selectedOcc.raiseRange[region][0] * 100).toFixed(1)}% ~ {(selectedOcc.raiseRange[region][1] * 100).toFixed(1)}%
+            </Typography>
+
+            <Alert severity="info" sx={{ mt: 1 }}>
+              啟用後，年收入每年按加薪率自動成長（受年齡和事件影響）
+            </Alert>
+          </Paper>
+        )
+      })()}
 
       <Divider sx={{ my: 1 }} />
 
@@ -553,6 +613,8 @@ export function Controls() {
                   immigrationTarget: store.immigrationTarget,
                   immigrationAge: store.immigrationAge,
                   immigrationAllocation: { ...store.immigrationAllocation },
+                  occupationEnabled: store.occupationEnabled,
+                  occupationId: store.occupationId,
                   housingEnabled: store.housingEnabled,
                   housingPurchaseAge: store.housingPurchaseAge,
                   housingPriceToIncomeRatio: store.housingPriceToIncomeRatio,
@@ -596,6 +658,8 @@ export function Controls() {
                   immigrationTarget: store.immigrationTarget,
                   immigrationAge: store.immigrationAge,
                   immigrationAllocation: { ...store.immigrationAllocation },
+                  occupationEnabled: store.occupationEnabled,
+                  occupationId: store.occupationId,
                   housingEnabled: store.housingEnabled,
                   housingPurchaseAge: store.housingPurchaseAge,
                   housingPriceToIncomeRatio: store.housingPriceToIncomeRatio,

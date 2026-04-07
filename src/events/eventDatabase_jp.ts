@@ -689,6 +689,430 @@ export const EVENT_DATABASE_JP: RandomEvent[] = [
       { type: 'income_change', value: -0.02, permanent: true },
     ],
   },
+
+  // ================================================================
+  // 職業専属イベント（日本版）
+  // ================================================================
+
+  // --- 管理的職業従事者 (id: 1) ---
+  {
+    id: 'jp_occ1_yakuin_bonus',
+    name: '役員賞与',
+    category: 'career',
+    description: '業績好調により、取締役賞与が支給された。',
+    baseProbability: 0.04,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'savings_boost', value: 0.08 },
+    ],
+    isPositive: true,
+    occupationIds: [1],
+  },
+  {
+    id: 'jp_occ1_restructure',
+    name: '組織再編・降格',
+    category: 'career',
+    description: '会社の組織再編により、ポストが削減された。',
+    baseProbability: 0.03,
+    durationMonths: [3, 12],
+    impacts: [
+      { type: 'income_change', value: -0.15 },
+    ],
+    occupationIds: [1],
+  },
+  {
+    id: 'jp_occ1_mna',
+    name: 'M&Aによる報奨',
+    category: 'career',
+    description: '担当したM&A案件が成功し、特別報奨金を受け取った。',
+    baseProbability: 0.02,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'savings_boost', value: 0.12 },
+    ],
+    isPositive: true,
+    occupationIds: [1],
+  },
+
+  // --- 専門的・技術的職業従事者 (id: 2) ---
+  {
+    id: 'jp_occ2_patent',
+    name: '特許取得・論文発表',
+    category: 'career',
+    description: '研究成果が特許として認められ、会社から報奨金が支給された。',
+    baseProbability: 0.03,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'savings_boost', value: 0.04 },
+      { type: 'income_boost', value: 0.04 },
+    ],
+    isPositive: true,
+    occupationIds: [2],
+  },
+  {
+    id: 'jp_occ2_iryou_jiko',
+    name: '医療事故・専門家責任',
+    category: 'legal',
+    description: '医療事故や専門家責任を問われ、訴訟費用が発生。',
+    baseProbability: 0.02,
+    ageProbabilities: [
+      { minAge: 35, maxAge: 60, probability: 0.03 },
+    ],
+    durationMonths: [6, 24],
+    impacts: [
+      { type: 'extra_expense', value: 6 },
+    ],
+    occupationIds: [2],
+  },
+  {
+    id: 'jp_occ2_shikaku',
+    name: '国家資格取得',
+    category: 'career',
+    description: '難関国家資格に合格し、市場価値が大幅にアップ。',
+    baseProbability: 0.03,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'income_boost', value: 0.07 },
+    ],
+    isPositive: true,
+    occupationIds: [2],
+  },
+
+  // --- 事務従事者 (id: 3) ---
+  {
+    id: 'jp_occ3_rpa',
+    name: 'RPA導入による業務縮小',
+    category: 'career',
+    description: '会社がRPA・AIを導入し、事務職のポストが減少。',
+    baseProbability: 0.05,
+    durationMonths: [3, 12],
+    impacts: [
+      { type: 'income_change', value: -0.08 },
+    ],
+    occupationIds: [3],
+  },
+  {
+    id: 'jp_occ3_kaizen',
+    name: '業務改善提案採用',
+    category: 'career',
+    description: '提案した業務改善が採用され、表彰と金一封を受けた。',
+    baseProbability: 0.04,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'savings_boost', value: 0.02 },
+    ],
+    isPositive: true,
+    occupationIds: [3],
+  },
+  {
+    id: 'jp_occ3_haken',
+    name: '派遣切り',
+    category: 'career',
+    description: '景気悪化で派遣契約を打ち切られた。',
+    baseProbability: 0.04,
+    durationMonths: [2, 8],
+    impacts: [
+      { type: 'income_change', value: -0.25 },
+    ],
+    occupationIds: [3],
+  },
+
+  // --- サービス職業従事者 (id: 4) ---
+  {
+    id: 'jp_occ4_inbound_boom',
+    name: 'インバウンド特需',
+    category: 'career',
+    description: '訪日外国人観光客の急増で、サービス業の売上が好調。',
+    baseProbability: 0.05,
+    durationMonths: [3, 12],
+    impacts: [
+      { type: 'income_change', value: 0.08 },
+    ],
+    isPositive: true,
+    occupationIds: [4],
+  },
+  {
+    id: 'jp_occ4_jinzai_busoku',
+    name: '人手不足による待遇改善',
+    category: 'career',
+    description: '深刻な人手不足で時給・待遇が改善された。',
+    baseProbability: 0.05,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'income_boost', value: 0.04 },
+    ],
+    isPositive: true,
+    occupationIds: [4],
+  },
+  {
+    id: 'jp_occ4_kustomer_claim',
+    name: 'カスハラ被害',
+    category: 'health',
+    description: '悪質なカスタマーハラスメントで精神的ダメージを受けた。',
+    baseProbability: 0.04,
+    durationMonths: [1, 6],
+    impacts: [
+      { type: 'extra_expense', value: 1 },
+      { type: 'income_change', value: -0.05 },
+    ],
+    occupationIds: [4],
+  },
+
+  // --- 生産工程・技能職 (id: 5) ---
+  {
+    id: 'jp_occ5_ginou_kentei',
+    name: '技能検定合格',
+    category: 'career',
+    description: '国家技能検定に合格し、技能手当が付いた。',
+    baseProbability: 0.04,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'income_boost', value: 0.05 },
+    ],
+    isPositive: true,
+    occupationIds: [5],
+  },
+  {
+    id: 'jp_occ5_rousai',
+    name: '労災事故',
+    category: 'health',
+    description: '工場で労災事故に遭い、休業が必要になった。',
+    baseProbability: 0.03,
+    durationMonths: [2, 8],
+    impacts: [
+      { type: 'extra_expense', value: 2 },
+      { type: 'income_change', value: -0.12 },
+    ],
+    occupationIds: [5, 7, 8],
+  },
+  {
+    id: 'jp_occ5_kaigai_iten',
+    name: '工場の海外移転',
+    category: 'career',
+    description: '生産拠点が東南アジアに移転し、リストラ対象に。',
+    baseProbability: 0.03,
+    durationMonths: [3, 12],
+    impacts: [
+      { type: 'income_change', value: -0.20 },
+    ],
+    occupationIds: [5, 7],
+  },
+
+  // --- 保安職業従事者 (id: 6) ---
+  {
+    id: 'jp_occ6_kiken_teate',
+    name: '危険手当支給',
+    category: 'career',
+    description: '災害派遣や危険任務への従事により、特別手当が支給された。',
+    baseProbability: 0.05,
+    durationMonths: [1, 6],
+    impacts: [
+      { type: 'income_change', value: 0.08 },
+    ],
+    isPositive: true,
+    occupationIds: [6],
+  },
+  {
+    id: 'jp_occ6_saigai_haken',
+    name: '災害派遣疲労',
+    category: 'health',
+    description: '大規模災害派遣で過度な疲労が蓄積し、体調を崩した。',
+    baseProbability: 0.04,
+    durationMonths: [1, 3],
+    impacts: [
+      { type: 'extra_expense', value: 1 },
+      { type: 'income_change', value: -0.05 },
+    ],
+    occupationIds: [6],
+  },
+  {
+    id: 'jp_occ6_shoushin',
+    name: '階級昇進',
+    category: 'career',
+    description: '試験に合格し階級が上がった。給与もアップ。',
+    baseProbability: 0.04,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'income_boost', value: 0.06 },
+    ],
+    isPositive: true,
+    occupationIds: [6],
+  },
+
+  // --- 輸送・機械運転従事者 (id: 7) ---
+  {
+    id: 'jp_occ7_2024_mondai',
+    name: '2024年問題・人手不足',
+    category: 'career',
+    description: '物流の2024年問題で人手不足が深刻化し、待遇が改善された。',
+    baseProbability: 0.05,
+    durationMonths: [6, 12],
+    impacts: [
+      { type: 'income_change', value: 0.08 },
+    ],
+    isPositive: true,
+    occupationIds: [7],
+  },
+  {
+    id: 'jp_occ7_jiko',
+    name: '運転中の事故',
+    category: 'health',
+    description: '業務中の交通事故で負傷。休業が必要に。',
+    baseProbability: 0.04,
+    durationMonths: [2, 8],
+    impacts: [
+      { type: 'extra_expense', value: 2 },
+      { type: 'income_change', value: -0.15 },
+    ],
+    occupationIds: [7],
+  },
+  {
+    id: 'jp_occ7_jidou_unten',
+    name: '自動運転技術の脅威',
+    category: 'career',
+    description: '自動運転技術の進展で、将来の雇用不安が増大。',
+    baseProbability: 0.03,
+    durationMonths: [6, 18],
+    impacts: [
+      { type: 'income_change', value: -0.06 },
+    ],
+    occupationIds: [7],
+  },
+
+  // --- 建設・採掘従事者 (id: 8) ---
+  {
+    id: 'jp_occ8_olympics_demand',
+    name: '大型公共工事',
+    category: 'career',
+    description: '万博やインフラ整備で建設需要が急増。',
+    baseProbability: 0.04,
+    durationMonths: [6, 18],
+    impacts: [
+      { type: 'income_change', value: 0.10 },
+    ],
+    isPositive: true,
+    occupationIds: [8],
+  },
+  {
+    id: 'jp_occ8_netchushou',
+    name: '熱中症で入院',
+    category: 'health',
+    description: '屋外作業中に熱中症で倒れ、入院治療が必要に。',
+    baseProbability: 0.04,
+    durationMonths: [1, 3],
+    impacts: [
+      { type: 'extra_expense', value: 1 },
+      { type: 'income_change', value: -0.08 },
+    ],
+    occupationIds: [8],
+  },
+  {
+    id: 'jp_occ8_saitech_bonus',
+    name: '技能士手当',
+    category: 'career',
+    description: '建設業技能者として資格を取得し、手当がついた。',
+    baseProbability: 0.04,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'income_boost', value: 0.04 },
+    ],
+    isPositive: true,
+    occupationIds: [8],
+  },
+
+  // --- 情報通信技術者 (id: 9) ---
+  {
+    id: 'jp_occ9_stock_options',
+    name: 'ストックオプション行使',
+    category: 'career',
+    description: '所属企業の株価上昇でストックオプションが大幅に増値。',
+    baseProbability: 0.04,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'savings_boost', value: 0.08 },
+    ],
+    isPositive: true,
+    occupationIds: [9],
+  },
+  {
+    id: 'jp_occ9_gafa_offer',
+    name: '外資IT企業からオファー',
+    category: 'career',
+    description: 'GAFAMからヘッドハンティングを受け、大幅年収アップ。',
+    baseProbability: 0.03,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'income_boost', value: 0.15 },
+    ],
+    isPositive: true,
+    occupationIds: [9],
+  },
+  {
+    id: 'jp_occ9_deathmarch',
+    name: 'デスマーチプロジェクト',
+    category: 'health',
+    description: '炎上プロジェクトで長時間労働が続き、心身を壊した。',
+    baseProbability: 0.04,
+    durationMonths: [3, 12],
+    impacts: [
+      { type: 'extra_expense', value: 2 },
+      { type: 'income_change', value: -0.10 },
+    ],
+    occupationIds: [9],
+  },
+  {
+    id: 'jp_occ9_freelance',
+    name: 'フリーランス転身',
+    category: 'career',
+    description: 'フリーランスに転身し、高単価案件を獲得。',
+    baseProbability: 0.03,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'income_boost', value: 0.10 },
+    ],
+    isPositive: true,
+    occupationIds: [9],
+  },
+
+  // --- 運搬・清掃・包装等従事者 (id: 10) ---
+  {
+    id: 'jp_occ10_saitei_chingin',
+    name: '最低賃金引上げ',
+    category: 'career',
+    description: '最低賃金の引上げにより、時給が改善された。',
+    baseProbability: 0.06,
+    durationMonths: [1, 1],
+    impacts: [
+      { type: 'income_boost', value: 0.03 },
+    ],
+    isPositive: true,
+    occupationIds: [10],
+  },
+  {
+    id: 'jp_occ10_taijin_jiko',
+    name: '作業中の怪我',
+    category: 'health',
+    description: '重量物の運搬中に腰を痛め、休業が必要に。',
+    baseProbability: 0.05,
+    durationMonths: [1, 6],
+    impacts: [
+      { type: 'extra_expense', value: 1 },
+      { type: 'income_change', value: -0.10 },
+    ],
+    occupationIds: [10],
+  },
+  {
+    id: 'jp_occ10_robot_threat',
+    name: 'ロボット化の脅威',
+    category: 'career',
+    description: '倉庫や清掃のロボット化が進み、雇用不安が増大。',
+    baseProbability: 0.04,
+    durationMonths: [6, 18],
+    impacts: [
+      { type: 'income_change', value: -0.06 },
+    ],
+    occupationIds: [10],
+  },
 ]
 
 export const EVENT_MAP_JP = new Map(EVENT_DATABASE_JP.map(e => [e.id, e]))

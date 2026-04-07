@@ -397,6 +397,42 @@ type Region = 'us' | 'tw' | 'jp'
 
 ---
 
+## 模組八：職業系統
+
+### 設計原則
+- 職業管收入面（起薪 + 年度加薪），生活風格管支出面
+- 10 職業 × 6 風格 = 60 種組合，不破壞現有 lifestyle 系統
+- 加薪是確定性事件（在 simulator 迴圈內），不走事件系統擲骰
+- MVP 不做職業轉換（選定後固定到退休）
+
+### 職業分類（10 類 × 3 國）
+1. 管理職 👔  2. 專業人員 ⚕️  3. 事務工作 📋  4. 服務/銷售 🛒  5. 技術員 🔧
+6. 農林漁牧(TW/US)/保安(JP) 🌾  7. 機械設備(TW)/建設(US)/輸送(JP) 🏗️
+8. 基層勞力(TW)/生產(US)/建設(JP) 🏭  9. IT/資訊 💻  10. 軍人(TW)/運輸(US)/清掃(JP) 🚛
+
+### 加薪邏輯
+```
+annualRaise = uniform(raiseRange[min], raiseRange[max]) × ageFactor
+ageFactor = age < 35 ? youngBoost : age < 50 ? midFactor : seniorFactor
+effectiveIncome *= (1 + annualRaise)
+```
+
+### 關鍵檔案
+- `occupationTypes.ts` — 型別定義（OccupationDef, OccupationPlan）
+- `occupationData.ts` — 10 職業靜態資料（三國薪資）
+- `occupationEngine.ts` — 加薪計算（getAnnualRaise, getOccupationDefaults）
+- `simulator.ts` — 年度迴圈中的薪資成長邏輯
+- `eventEngine.ts` — 職業篩選（occupationIds 欄位）
+- `eventDatabase_*.ts` — 各國 30+ 個職業專屬事件
+
+### 職業 RNG Seed
+- `seed * 8761 + 29`（獨立於移民 `7919+13` 和購屋 `6271+37`）
+
+### 與移民的交互
+- 加薪率隨 `activeRegion` 切換（移民後使用目標國家的 raiseRange）
+
+---
+
 ## 技術決策紀錄
 
 | 決策 | 選擇 | 理由 |

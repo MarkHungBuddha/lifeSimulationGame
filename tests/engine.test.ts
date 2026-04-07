@@ -2,6 +2,8 @@ import { describe, it, expect } from 'vitest'
 import { createSeededRNG } from '../src/engine/rng'
 import { blockBootstrap, type HistoricalData } from '../src/engine/bootstrap'
 import { simulatePath, type SimulationParams } from '../src/engine/simulator'
+import { getAnnualRaise, getOccupationDefaults } from '../src/engine/occupationEngine'
+import { OCCUPATIONS, OCCUPATION_MAP } from '../src/engine/occupationData'
 import data from '../data/assets_returns.json'
 
 // ============================================================
@@ -187,5 +189,97 @@ describe('simulatePath', () => {
       expected *= 1 + result.snapshots[i].returns.cpi
       expect(result.snapshots[i].cumulativeInflation).toBeCloseTo(expected, 10)
     }
+  })
+})
+
+// ============================================================
+// 職業系統測試
+// ============================================================
+describe('Occupation System', () => {
+  const historicalData = data as HistoricalData
+  const baseParams: SimulationParams = {
+    currentAge: 30,
+    retirementAge: 65,
+    endAge: 95,
+    initialPortfolio: 100000,
+    annualContribution: 20000,
+    annualIncome: 80000,
+    allocation: { sp500: 0.6, intlStock: 0, bond: 0.3, gold: 0.05, cash: 0.05, reits: 0 },
+    withdrawal: { type: 'fixed_rate', rate: 0.04 },
+    enableEvents: false,
+  }
+
+  it('getAnnualRaise 同 seed 回傳相同結果', () => {
+    const rng1 = createSeededRNG(42)
+    const rng2 = createSeededRNG(42)
+    const raise1 = getAnnualRaise(2, 30, 'us', rng1)
+    const raise2 = getAnnualRaise(2, 30, 'us', rng2)
+    expect(raise1).toBe(raise2)
+  })
+
+  it('年輕人加薪率 > 中年 > 高齡', () => {
+    // 用固定 rng 值來排除隨機性
+    const makeFixedRng = (v: number) => () => v
+    const youngRaise = getAnnualRaise(2, 28, 'us', makeFixedRng(0.5))
+    const midRaise = getAnnualRaise(2, 40, 'us', makeFixedRng(0.5))
+    const seniorRaise = getAnnualRaise(2, 55, 'us', makeFixedRng(0.5))
+    expect(youngRaise).toBeGreaterThan(midRaise)
+    expect(midRaise).toBeGreaterThan(seniorRaise)
+  })
+
+  it('不同國家的加薪範圍符合預期', () => {
+    const occ = OCCUPATION_MAP.get(9)! // IT
+    expect(occ.raiseRange.us[1]).toBeGreaterThan(occ.raiseRange.tw[1])
+    expect(occ.raiseRange.tw[1]).toBeGreaterThanOrEqual(occ.raiseRange.jp[1])
+  })
+
+  it('getOccupationDefaults 回傳合理值', () => {
+    const defaults = getOccupationDefaults(1, 'us') // Management US
+    expect(defaults.annualIncome).toBe(122_090)
+    expect(defaults.annualContribution).toBeGreaterThan(0)
+    expect(defaults.annualContribution).toBeLessThan(defaults.annualIncome)
+  })
+
+  it('occupationPlan 未啟用時模擬結果與無 occupationPlan 完全一致', () => {
+    const seed = 12345
+    const result1 = simulatePath(historicalData, baseParams, seed)
+    const result2 = simulatePath(historicalData, {
+      ...baseParams,
+      occupationPlan: undefined,
+    }, seed)
+    expect(result1.finalPortfolio).toBe(result2.finalPortfolio)
+    expect(result1.bankrupt).toBe(result2.bankrupt)
+    for (let i = 0; i < result1.snapshots.length; i++) {
+      expect(result1.snapshots[i].portfolioEnd).toBe(result2.snapshots[i].portfolioEnd)
+    }
+  })
+
+  it('occupationPlan 啟用時收入隨時間成長', () => {
+    const result = simulatePath(historicalData, {
+      ...baseParams,
+      enableEvents: false,
+      occupationPlan: { enabled: true, occupationId: 2 },
+    }, 42)
+    const workSnapshots = result.snapshots.filter(s => s.currentSalary != null)
+    expect(workSnapshots.length).toBeGreaterThan(0)
+    const firstSalary = workSnapshots[0].currentSalary!
+    const lastSalary = workSnapshots[workSnapshots.length - 1].currentSalary!
+    expect(lastSalary).toBeGreaterThan(firstSalary)
+  })
+
+  it('10 個職業資料完整', () => {
+    expect(OCCUPATIONS.length).toBe(10)
+    for (const occ of OCCUPATIONS) {
+      expect(occ.baseSalary.us).toBeGreaterThan(0)
+      expect(occ.baseSalary.tw).toBeGreaterThan(0)
+      expect(occ.baseSalary.jp).toBeGreaterThan(0)
+      expect(occ.raiseRange.us[0]).toBeLessThan(occ.raiseRange.us[1])
+    }
+  })
+
+  it('不存在的 occupationId 回傳 0 加薪率', () => {
+    const rng = createSeededRNG(42)
+    const raise = getAnnualRaise(999, 30, 'us', rng)
+    expect(raise).toBe(0)
   })
 })

@@ -1,6 +1,6 @@
 # 蒙地卡羅人生模擬遊戲 — 開發計畫
 
-## 專案狀態：Phase 1–5 完成（引擎 + UI + 視覺化）
+## 專案狀態：v0.9 — 職業系統整合完成
 
 ---
 
@@ -26,7 +26,7 @@
   - 每年：抽歷史年份 → 加權報酬 → 通膨調整提領 → 破產檢查
   - 三種提領策略：4% 法則 / 固定金額 / 動態提領
   - 驗證：相同 seed 產出相同結果 ✅
-- 16 個測試全數通過（`tests/engine.test.ts`）
+- 24 個測試全數通過（`tests/engine.test.ts`，含職業系統 8 個）
 
 ### ✅ Phase 3：批次模擬 + Web Worker
 - Monte Carlo Runner（`src/engine/runner.ts`）
@@ -59,6 +59,17 @@
   - P10–P90 淺色帶、P25–P75 深色帶、P50 實線
   - 退休年齡虛線標記
   - 網格線 + Y 軸金額標籤
+
+### ✅ v0.9：職業系統
+- 10 大職業分類 × 3 國薪資資料（`occupationData.ts`）
+- 年度加薪引擎（`occupationEngine.ts`）— 年齡遞減修正
+- simulator.ts 整合 — 獨立 RNG seed，事件後加薪
+- 職業專屬事件 — 台灣 33 個、美國 34 個、日本 34 個
+- 事件引擎職業篩選（`occupationIds` 欄位）
+- Zustand Store 擴充 — 職業開關、自動填入收入
+- Controls.tsx UI — Switch + 下拉選單 + 職業資訊卡
+- StoryPanel 整合 — 職業摘要 + 年度薪資顯示
+- 24 個測試全數通過（原 16 + 新增 8）
 
 ---
 
@@ -144,9 +155,12 @@ lifeSimulationGame/
 │   │   ├── index.ts                  ✅ 統一匯出
 │   │   ├── rng.ts                    ✅ xoshiro128** PRNG
 │   │   ├── bootstrap.ts             ✅ Block Bootstrap
-│   │   ├── simulator.ts             ✅ 單條路徑模擬
+│   │   ├── simulator.ts             ✅ 單條路徑模擬（含職業加薪）
 │   │   ├── runner.ts                ✅ 批次 Monte Carlo
-│   │   └── worker.ts                ✅ Web Worker
+│   │   ├── worker.ts                ✅ Web Worker
+│   │   ├── occupationTypes.ts       ✅ 職業型別定義
+│   │   ├── occupationData.ts        ✅ 10 職業 × 3 國靜態資料
+│   │   └── occupationEngine.ts      ✅ 職業引擎（加薪計算）
 │   ├── components/
 │   │   ├── Controls.tsx             ✅ MUI 控制面板
 │   │   └── ResultPanel.tsx          ✅ MUI 結果 + Canvas 圖表
