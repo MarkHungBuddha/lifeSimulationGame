@@ -18,7 +18,7 @@ export const EVENT_DATABASE: RandomEvent[] = [
     baseProbability: 0.08,
     durationMonths: [9, 18],
     impacts: [
-      { type: 'portfolio_change', value: -0.10 },
+      { type: 'portfolio_change', value: -0.05 },
     ],
     correlatedWith: ['recession'],
   },
@@ -27,10 +27,10 @@ export const EVENT_DATABASE: RandomEvent[] = [
     name: '股市修正',
     category: 'market',
     description: '10-20% 回調（Bootstrap 已含市場波動，此為恐慌性贖回損失）',
-    baseProbability: 0.15,
+    baseProbability: 0.12,
     durationMonths: [3, 6],
     impacts: [
-      { type: 'portfolio_change', value: -0.03 },
+      { type: 'portfolio_change', value: -0.015 },
     ],
   },
   {
@@ -42,7 +42,7 @@ export const EVENT_DATABASE: RandomEvent[] = [
     durationMonths: [12, 24],
     impacts: [
       { type: 'income_change', value: -0.05 },
-      { type: 'portfolio_change', value: -0.08 },
+      { type: 'portfolio_change', value: -0.04 },
     ],
     correlatedWith: ['market_crash', 'layoff', 'pay_cut'],
   },

@@ -26,7 +26,7 @@ export const EVENT_DATABASE_JP: RandomEvent[] = [
     baseProbability: 0.10,
     durationMonths: [6, 36],
     impacts: [
-      { type: 'portfolio_change', value: -0.15 },
+      { type: 'portfolio_change', value: -0.075 },
     ],
     correlatedWith: ['jp_recession', 'jp_yen_spike'],
   },
@@ -35,10 +35,10 @@ export const EVENT_DATABASE_JP: RandomEvent[] = [
     name: '日経調整',
     category: 'market',
     description: '10-20%の調整。年に1-2回の10%調整は日常的',
-    baseProbability: 0.20,
+    baseProbability: 0.14,
     durationMonths: [2, 12],
     impacts: [
-      { type: 'portfolio_change', value: -0.05 },
+      { type: 'portfolio_change', value: -0.025 },
     ],
   },
   {
@@ -50,7 +50,7 @@ export const EVENT_DATABASE_JP: RandomEvent[] = [
     durationMonths: [12, 24],
     impacts: [
       { type: 'income_change', value: -0.05 },
-      { type: 'portfolio_change', value: -0.10 },
+      { type: 'portfolio_change', value: -0.05 },
     ],
     correlatedWith: ['jp_market_crash', 'jp_layoff', 'jp_bonus_cut'],
   },
@@ -98,7 +98,7 @@ export const EVENT_DATABASE_JP: RandomEvent[] = [
     baseProbability: 0.03,
     durationMonths: [1, 12],
     impacts: [
-      { type: 'portfolio_change', value: -0.10 },
+      { type: 'portfolio_change', value: -0.05 },
     ],
     correlatedWith: ['jp_yen_spike', 'jp_market_crash'],
   },
@@ -195,7 +195,7 @@ export const EVENT_DATABASE_JP: RandomEvent[] = [
     name: '過労・バーンアウト',
     category: 'career',
     description: '長時間労働による心身の限界。傷病手当金で標準報酬の2/3',
-    baseProbability: 0.05,
+    baseProbability: 0.04,
     durationMonths: [1, 12],
     impacts: [
       { type: 'income_change', value: -0.20 },

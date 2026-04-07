@@ -18,6 +18,7 @@ import { processImmigrationYear } from './immigrationEngine'
 import type { ImmigrationPlan, ImmigrationState, ImmigrationPhase } from './immigrationTypes'
 import { INITIAL_IMMIGRATION_STATE } from './immigrationTypes'
 import { processHousingYear } from './housingEngine'
+import { HOUSING_PARAMS } from './housingData'
 import type { HousingPlan, HousingState, YearHousingSnapshot } from './housingTypes'
 import { INITIAL_HOUSING_STATE } from './housingTypes'
 import { getAnnualRaise } from './occupationEngine'
@@ -157,6 +158,8 @@ export function simulatePath(
   const occRng = createSeededRNG(seed * 8761 + 29)  // 職業用獨立 RNG
   const snapshots: YearSnapshot[] = []
   const allEvents: TriggeredEvent[] = []
+  const baseSavingsRate = params.annualIncome > 0
+    ? params.annualContribution / params.annualIncome : 0
 
   for (let y = 0; y < totalYears; y++) {
     const age = params.currentAge + y
@@ -281,6 +284,12 @@ export function simulatePath(
       // 扣除購屋頭期款+交易成本
       portfolio -= housingUpfrontCost
       if (portfolio < 0) portfolio = 0
+
+      // 退休後已繳清房貸：持有成本改以購入價計算（不隨通膨房價膨脹）
+      if (isRetired && housingState.phase === 'paid_off' && annualHousingExpense > 0) {
+        const hParams = HOUSING_PARAMS[activeRegion]
+        annualHousingExpense = housingState.purchasePrice * hParams.annualHoldingCostRatio
+      }
     }
 
     // === 正常模擬流程（套用移民收入/支出倍率）===
@@ -288,7 +297,7 @@ export function simulatePath(
     let withdrawal = 0
 
     if (!isRetired && !bankrupt) {
-      contribution = params.annualContribution * cumulativeInflation * immIncomeMultiplier
+      contribution = effectiveIncome * baseSavingsRate * cumulativeInflation * immIncomeMultiplier
       // 移民後支出增加 → 可存入額減少
       if (immExpenseMultiplier > 1) {
         const extraExpense = params.annualContribution * cumulativeInflation * (immExpenseMultiplier - 1) * 0.5

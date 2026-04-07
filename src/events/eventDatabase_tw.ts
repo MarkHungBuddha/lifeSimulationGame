@@ -25,7 +25,7 @@ export const EVENT_DATABASE_TW: RandomEvent[] = [
     baseProbability: 0.10,
     durationMonths: [6, 24],
     impacts: [
-      { type: 'portfolio_change', value: -0.12 },
+      { type: 'portfolio_change', value: -0.06 },
     ],
     correlatedWith: ['tw_recession'],
   },
@@ -34,10 +34,10 @@ export const EVENT_DATABASE_TW: RandomEvent[] = [
     name: '台股修正',
     category: 'market',
     description: '10-20% 回調，台股波動度高於美股',
-    baseProbability: 0.18,
+    baseProbability: 0.13,
     durationMonths: [2, 6],
     impacts: [
-      { type: 'portfolio_change', value: -0.04 },
+      { type: 'portfolio_change', value: -0.02 },
     ],
   },
   {
@@ -49,7 +49,7 @@ export const EVENT_DATABASE_TW: RandomEvent[] = [
     durationMonths: [12, 18],
     impacts: [
       { type: 'income_change', value: -0.05 },
-      { type: 'portfolio_change', value: -0.08 },
+      { type: 'portfolio_change', value: -0.04 },
     ],
     correlatedWith: ['tw_market_crash', 'tw_layoff', 'tw_unpaid_leave'],
   },
@@ -145,7 +145,7 @@ export const EVENT_DATABASE_TW: RandomEvent[] = [
     name: '自願離職空窗',
     category: 'career',
     description: '台灣科技業平均2-3年換工作，空窗期1-3個月',
-    baseProbability: 0.08,
+    baseProbability: 0.05,
     durationMonths: [1, 3],
     impacts: [
       { type: 'income_change', value: -0.15 },
@@ -190,7 +190,7 @@ export const EVENT_DATABASE_TW: RandomEvent[] = [
     name: '職業倦怠',
     category: 'career',
     description: '身心耗竭，需要強制休息',
-    baseProbability: 0.06,
+    baseProbability: 0.04,
     durationMonths: [1, 6],
     impacts: [
       { type: 'income_change', value: -0.15 },
