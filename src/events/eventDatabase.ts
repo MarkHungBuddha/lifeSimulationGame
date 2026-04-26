@@ -1,6 +1,6 @@
 /**
  * 隨機事件資料庫
- * 資料來源：monte_carlo_random_events.md
+ * 資料來源：doc/monte_carlo_random_events.md
  * BLS JOLTS, SSA, Hartford Funds, CDC/KFF, Morningstar, NSC, Pew Research
  */
 
