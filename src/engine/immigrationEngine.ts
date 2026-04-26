@@ -15,7 +15,8 @@ import type { Allocation } from './simulator'
 import { LIFESTYLE_PRESETS } from './lifestyle'
 import { LIFESTYLE_PRESETS_JP } from './lifestyle_jp'
 import type { Region } from '../config/regions'
-import type { TriggeredEvent, RandomEvent } from '../events/eventTypes'
+import type { TriggeredEvent } from '../events/eventTypes'
+import { calcImpactAmount } from '../events/eventEffects'
 
 /** 取得目標國的預設投資配置 */
 function getTargetAllocation(target: Region): Allocation {
@@ -238,7 +239,15 @@ export function processImmigrationYear(
       }
 
       // 移民專屬隨機事件
-      rollImmigrationEvents(route.target, age, year, portfolio, annualIncome, rng, events)
+      rollImmigrationEvents(
+        route.target,
+        age,
+        year,
+        Math.max(0, portfolio - cost),
+        annualIncome,
+        rng,
+        events,
+      )
       break
     }
 
@@ -248,7 +257,15 @@ export function processImmigrationYear(
       incMult = route.incomeMultiplier
       expMult = route.expenseMultiplier
       // 永住後仍有移民事件（匯率、文化等）但無簽證風險
-      rollImmigrationEvents(route.target, age, year, portfolio, annualIncome, rng, events)
+      rollImmigrationEvents(
+        route.target,
+        age,
+        year,
+        Math.max(0, portfolio - cost),
+        annualIncome,
+        rng,
+        events,
+      )
       break
     }
 
@@ -319,35 +336,20 @@ function rollImmigrationEvents(
     }
     if (rng() < prob) {
       const actualImpacts: TriggeredEvent['actualImpacts'] = []
-      const monthlyIncome = annualIncome / 12
 
       for (const impact of evt.impacts) {
-        let amount = 0
-        let description = ''
-        switch (impact.type) {
-          case 'income_change':
-            amount = annualIncome * impact.value
-            description = `收入 ${impact.value > 0 ? '+' : ''}${(impact.value * 100).toFixed(0)}%`
-            break
-          case 'savings_change':
-          case 'portfolio_change':
-            amount = portfolio * impact.value
-            description = `投資組合 ${impact.value > 0 ? '+' : ''}${(impact.value * 100).toFixed(0)}%`
-            break
-          case 'extra_expense':
-            amount = -(monthlyIncome * impact.value)
-            description = `額外支出 ${impact.value.toFixed(1)}x 月收入`
-            break
-          case 'income_boost':
-            amount = annualIncome * impact.value
-            description = `收入永久 ${impact.value > 0 ? '+' : ''}${(impact.value * 100).toFixed(0)}%`
-            break
-          case 'savings_boost':
-            amount = portfolio * impact.value
-            description = `儲蓄 ${impact.value > 0 ? '+' : ''}${(impact.value * 100).toFixed(0)}%`
-            break
-        }
-        actualImpacts.push({ type: impact.type, description, amount })
+        const { amount, description } = calcImpactAmount(
+          impact.type,
+          impact.value,
+          portfolio,
+          annualIncome,
+        )
+        actualImpacts.push({
+          type: impact.type,
+          description,
+          amount,
+          permanent: impact.permanent,
+        })
       }
 
       events.push({ event: evt, age, year, actualImpacts })

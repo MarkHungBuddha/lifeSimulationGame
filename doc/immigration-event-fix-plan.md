@@ -1,21 +1,18 @@
-# 移民事件 Bug 修復計畫
+# 移民 / 一般事件財務套用修復計畫
 
-## 背景
+## 目的
 
-目前移民模組與一般事件系統在資料層已定義多種財務影響類型，但 `simulatePath` 真正套用到年度現金流與資產的只有部分效果，導致人生故事能看到事件，模擬結果卻沒有完整反映事件成本與收入變動。
+修復目前事件系統「故事有顯示，但財務結果未完整反映」的問題，並統一一般事件與移民事件進入 `simulatePath` 的規則。
 
-現況有兩套不一致的行為：
+這份文件是實作規格，不是討論稿。目標是讓後續修改可直接依文件落地，避免再靠臨場解讀。
 
-- 一般事件會先在 `eventEngine.ts` 彙總成 `totalPortfolioImpact` / `totalIncomeImpact` / `totalExpense`
-- 移民事件只產生 `actualImpacts` 供故事顯示，實際上只有 `income_boost` 會寫回 `effectiveIncome`
+## 目前已確認的問題
 
-因此這次修復不只是補幾個漏掉的 effect，而是要先把「事件影響如何進入年度模擬」定義清楚，再統一實作。
+### 1. 移民事件大多只寫進故事，沒有進入財務模擬
 
-## 已確認問題
+目前移民事件會在 `src/engine/immigrationEngine.ts` 產生 `actualImpacts`，但 `src/engine/simulator.ts` 真正套用到模擬的，只有 `income_boost`。
 
-### 1. 移民專屬事件多數只被記錄，沒有落到財務結果
-
-下列 effect 目前在移民事件中只會出現在 `actualImpacts`，不會真正影響當年資產或現金流：
+目前未落地到財務結果的移民事件 effect 包含：
 
 - `income_change`
 - `portfolio_change`
@@ -23,50 +20,74 @@
 - `extra_expense`
 - `savings_boost`
 
-目前在移民路徑中，實際只有 `income_boost` 會改動 `effectiveIncome`。
+### 2. 一般事件的 `income_change` 只被統計，沒有改變當年收入基礎
 
-### 2. 一般事件的 `income_change` 只有統計值，沒有反映到年度收入基礎
+目前 `src/events/eventEngine.ts` 會彙總 `totalIncomeImpact`，`src/engine/simulator.ts` 也會把它記進 snapshot，但不會影響：
 
-- `eventEngine.ts` 會計算 `totalIncomeImpact`
-- `simulatePath` 會把它存進 `eventIncomeImpact`
-- 但不會把 `income_change` 真正反映到當年 contribution、withdrawal 基礎，或後續收入
+- 當年 contribution
+- 當年 retirement withdrawal base
+- 當年 housing affordability 使用的收入基礎
+- 後續年度收入狀態
 
-### 3. `permanent` 標記沒有被一致使用
+### 3. `permanent` 存在於資料層，但模擬層沒有一致實作
 
-- 事件資料中已有 `permanent: true`
-- 但目前模擬邏輯主要靠 `impact.type === 'income_boost'` 判斷是否持久生效
-- 導致 `income_change` / `savings_boost` 等帶 `permanent` 的設計語意沒有真正實作
+事件型別 `EventImpact` 已有 `permanent?: boolean`，資料庫中也已使用，但模擬邏輯目前主要只靠 `impact.type === 'income_boost'` 判斷永久效果，造成：
 
-### 4. 年度事件時序未被明確定義
+- `income_change + permanent: true` 沒有真正跨年
+- `savings_boost + permanent: true` 沒有明確語意
 
-目前 `simulatePath` 內部的實際順序是：
+### 4. 年度事件套用順序沒有正式定義
 
-1. 移民成本
-2. 一般事件資產衝擊
-3. 永久收入變更
-4. 職業加薪
-5. 購屋模組
-6. contribution / withdrawal
-7. 投資報酬
-8. 一般事件額外支出
+目前實作存在隱含順序，但未文件化。這會導致：
 
-這個順序不是錯，但文件從未明講。若直接修 effect，而不先定義它們落在哪個時點，之後很容易出現：
+- 同一個 effect 被不同人理解成不同時點生效
+- 後續新增國家 / 新事件時繼續複製相同 bug
 
-- 同一個 `income_change` 被人理解成只影響當年
-- 或被另一個實作者理解成永久改寫薪資
-- 或 `extra_expense` 有人想在報酬前扣，有人想在報酬後扣
+## 這次修復的明確範圍
 
-## 修復目標
+### 本次一定要解決
 
-1. 讓移民專屬事件和一般事件都透過同一套財務套用規則進入模擬結果
-2. 明確區分一次性影響與持續性影響
-3. 明確定義事件發生在年度中的哪個時點
-4. 保持既有故事模式輸出不退化
-5. 補上測試，避免之後再出現「事件有顯示、結果沒反映」的回歸
+- 一般事件與移民事件都走同一套 effect normalization / application 流程
+- 所有已存在的 effect type 都必須真正影響模擬結果
+- `temporary` 與 `permanent` 行為要有固定規則
+- 年度套用時序要固定
+- 既有故事輸出不能退化
+- 補測試鎖住行為
 
-## 明確規格
+### 本次明確不做
 
-### A. effect 語意定義
+- 不改 Monte Carlo 主流程與抽樣方法
+- 不重做事件機率模型
+- 不重設既有 cap 數值
+- 不引入月度模擬
+- 不讓 `durationMonths` 進入本次財務模型
+
+## 關於 `durationMonths` 的決定
+
+### 本次決策
+
+`durationMonths` 本次仍只作敘事資料使用，不進入財務計算。
+
+### 實作含義
+
+- 所有事件 effect 仍以「年度粒度」處理
+- 只要事件在該年觸發，該 effect 就視為對該模擬年度生效
+- 不依 `durationMonths` 對 `income_change`、`extra_expense`、`savings_change` 做按月折算
+- 不新增「跨多年度自動續效」機制
+
+### 原因
+
+- 目前整個模擬器是年度粒度，若只把 `durationMonths` 局部接進事件模組，會讓 effect 模型與其餘模組粒度不一致
+- 這次修復的核心問題是「effect 沒進模型」，不是「事件時長建模不足」
+- 先讓 effect 套用語意一致，再考慮之後是否升級為更細粒度模型
+
+### 文件要求
+
+若後續有人要讓 `durationMonths` 進入模型，必須另開 ticket，不得在本修復中順手加入半套月度邏輯。
+
+## effect 語意定義
+
+### 一次性 effect
 
 - `portfolio_change`
   - 一次性資產變動
@@ -74,9 +95,8 @@
   - 不延續到下一年
 
 - `savings_change`
-  - 一次性資產變動
-  - 這個型別沿用現有資料語意，視為「一次性存量損失/增加」
-  - 不解讀為儲蓄率改變
+  - 這次明確定義為一次性資產變動
+  - 視為 portfolio 存量增減，不代表儲蓄率改變
   - 不延續到下一年
 
 - `extra_expense`
@@ -85,110 +105,184 @@
   - 不延續到下一年
 
 - `income_change`
-  - 預設為當年收入調整
-  - `permanent !== true` 時，只影響當年收入基礎，不改寫未來年度 `effectiveIncome`
-  - `permanent === true` 時，轉為持續性收入調整，從當年起寫回後續年度收入基礎
-
-- `income_boost`
-  - 保持既有「永久收入調整」語意
-  - 視為 `permanent` 的特化型別
-  - 後續可考慮資料清理後併入 `income_change + permanent: true`，但本次不強制做資料遷移
+  - 預設只影響當年收入基礎
+  - `permanent !== true` 時，不得改寫跨年收入狀態
 
 - `savings_boost`
-  - `permanent !== true` 時，維持現況，視為一次性資產變動
-  - `permanent === true` 時，不再模糊解讀為 portfolio 增減
-  - 本次先明確重新定義為「持續性可支配儲蓄調整」
-  - 實作上可落成永久 `contributionAdjustment` 或永久 `expenseAdjustment`
-  - 若現有資料無法一致對應，允許在型別上拆成更清楚的 effect type
+  - `permanent !== true` 時，視為一次性資產變動
+  - 套用到當年 `portfolio`
+  - 不延續到下一年
 
-### B. 永久與一次性的判準
+### 持續性 effect
 
-- 只有下列情況可改寫跨年狀態：
-  - `income_boost`
-  - `income_change` 且 `permanent: true`
-  - `savings_boost` 且 `permanent: true`
+- `income_boost`
+  - 視為永久收入調整
+  - 從當年開始生效
+  - 會影響當年 income base，也會寫回跨年收入狀態
 
-- 下列 effect 一律只影響當年，不得延續：
-  - `portfolio_change`
-  - `savings_change`
-  - `extra_expense`
-  - `income_change` 且 `permanent !== true`
-  - `savings_boost` 且 `permanent !== true`
+- `income_change + permanent: true`
+  - 視為永久收入調整
+  - 行為與 `income_boost` 同級
 
-### C. 與現有一般事件 aggregation 的相容規則
+- `savings_boost + permanent: true`
+  - 本次不再模糊解讀為 portfolio 增減
+  - 明確定義為「永久支出/可支配儲蓄調整」
+  - 實作上不繼續沿用模糊語意，改為顯式 normalization 欄位
 
-一般事件目前有兩個既有規則，本次修復必須明確保留，除非另外開 ticket 討論平衡調整：
+## `savings_boost + permanent` 的執行規格
 
-1. `portfolio_change` 與 `savings_change` 在同一事件內共用同一池
-   - 只取最大損失與最大收益
-   - 不做逐筆無上限累加
+這是本次最容易再次出錯的點，因此不保留彈性。
 
-2. 年度保護上限維持不變
-   - 年度事件造成的資產損失上限為當年 `portfolio` 的 `-30%`
-   - 年度事件造成的 `extra_expense` 上限為 `3` 個月收入
+### 本次固定規則
 
-移民事件是否也要套用同樣 cap，這次先採用以下原則：
+- 若 `savings_boost` 且 `permanent: true`，在 normalization 階段轉成 `expenseDeltaPermanent`
+- 正值代表永久降低支出 / 提高可儲蓄額
+- 負值代表永久提高支出 / 降低可儲蓄額
 
-- 若移民事件在實作上走共用 normalization + application pipeline，則應共用同一套 cap
-- 若發現移民事件資料設計上故意需要超過 cap，必須在文件與測試中明列例外，不可默默繞過
+### 實作原因
 
-### D. 年度時序定義
+目前事件資料中的 `savings_boost + permanent: true` 主要語意其實是：
 
-本次修復後，事件 effect 應依下列時序進入年度模擬：
+- 育兒支出永久增加
+- 房貸月付永久增加
+- 稅務 / 制度變化讓可支配儲蓄永久下降
 
-1. 先處理移民狀態機本身的固定成本與 phase 轉換
-2. 產生一般事件與移民事件，先做 effect normalization
-3. 套用當年一次性資產衝擊
+這些語意更接近永久支出調整，不是永久 portfolio 變動。
+
+### 本次不做的事
+
+- 不新增新的公開 event type 到資料庫
+- 不強制立刻把所有資料庫 type 名稱改掉
+
+### 但在程式內部必須做到
+
+- 不再把 `savings_boost + permanent: true` 直接計入 `totalPortfolioImpact`
+- 必須在 normalization 後落成一個明確的永久調整欄位
+
+## 年度套用時序
+
+本次修復後，年度流程固定如下：
+
+1. 處理移民狀態機本身的 phase 轉換與固定成本
+2. 產生一般事件與移民事件
+3. 先將兩者輸出整理成共用 normalized event effects
+4. 套用一次性資產衝擊
    - `portfolio_change`
    - `savings_change`
-   - 非永久 `savings_boost`
-4. 套用當年一次性額外支出
+   - `savings_boost` 且 `permanent !== true`
+5. 套用一次性額外支出
    - `extra_expense`
-5. 計算當年收入基礎調整
-   - 非永久 `income_change` 只影響本年度 income base
-   - 永久收入 effect 也從當年開始生效
-6. 再套用職業加薪
-   - 讓事件先改變收入基礎，再吃加薪率
-7. 依新的 income / expense 基礎計算 housing affordability、contribution、withdrawal
-8. 最後才寫回跨年狀態
+6. 計算當年收入基礎
+   - 套入 temporary income effect
+   - 套入 permanent income effect 的當年效果
+7. 套用職業加薪
+8. 用新的收入 / 支出基礎計算 housing affordability、contribution、withdrawal
+9. 套用投資報酬
+10. 年末寫回跨年狀態
    - 永久收入調整
-   - 永久儲蓄/支出調整
+   - 永久支出調整
 
-這裡的核心原則是：
+### 核心原則
 
-- temporary effect 先影響「當年」
-- permanent effect 既影響「當年」，也影響「之後」
-- 不允許只影響故事顯示、卻不進模型
+- temporary 只影響當年
+- permanent 同時影響當年與未來
+- 任何 effect 不能只進故事，不進模型
 
-## 建議修復方向
+## 保留的既有相容規則
 
-### Phase 1: 抽出共用事件 effect normalization
+### 1. 一般事件 aggregation 規則保留
 
-- 新增事件效果彙總層，輸出明確欄位，例如：
-  - `portfolioDeltaImmediate`
-  - `expenseDeltaImmediate`
-  - `incomeDeltaCurrentYear`
-  - `incomeDeltaPermanent`
-  - `contributionDeltaPermanent` 或 `expenseDeltaPermanent`
-- 讓一般事件與移民事件共用同一套 normalization 流程
-- 保留既有 aggregation 與 cap 規則
+同一事件內：
 
-### Phase 2: 調整 `simulatePath` 年度流程
+- `portfolio_change`
+- `savings_change`
 
-- 在年度事件結算後，先套用當年 effect，再計算 contribution / withdrawal
-- 將「當年收入基礎」與「跨年有效收入」分成兩個概念，避免把 temporary income 誤寫成永久薪資
-- 將「持續性儲蓄/支出調整」明確掛到 state，而不是偷算進單年 portfolio
+共用同一池，只取最大損失與最大收益，不做逐筆無上限累加。
 
-### Phase 3: 明確定義並清理 `permanent`
+### 2. 年度保護 cap 保留
 
-- 對 `income_change + permanent: true`
-  - 明確落成永久收入調整
-- 對 `income_boost`
-  - 保持相容，但在程式內與文件中視為永久收入 effect
-- 對 `savings_boost + permanent: true`
-  - 視情況拆型別，避免事件資料同名不同義
+- 年度事件造成的資產損失上限：當年 `portfolio` 的 `-30%`
+- 年度事件造成的 `extra_expense` 上限：`3` 個月收入
+
+### 3. 移民事件也納入同一套 cap
+
+若移民事件進入共用 normalization / application pipeline，就必須共用相同 cap。
+
+本次不保留移民事件的隱性例外。若後續認為某個移民事件必須超過 cap，應以資料設計與測試明確標記，不得默默繞過。
+
+## 可執行實作方案
+
+### Phase 1: 抽出共用 normalization 層
+
+新增共用事件效果彙總層，輸出至少包含以下欄位：
+
+- `portfolioDeltaImmediate`
+- `expenseDeltaImmediate`
+- `incomeDeltaCurrentYear`
+- `incomeDeltaPermanent`
+- `expenseDeltaPermanent`
+
+執行要求：
+
+- 一般事件與移民事件都要轉成同一結構
+- aggregation 與 cap 在這一層處理
+- `actualImpacts` 仍保留給故事顯示
+- normalization 的輸出要能獨立測試
+
+### Phase 2: 重構 `simulatePath`
+
+把目前直接在 `simulatePath` 中零散套 effect 的做法改成：
+
+- 先取得 normalized event effects
+- 用 normalized 結果更新當年 portfolio / income base / expense base
+- 將 `currentYearIncomeBase` 與 `effectiveIncome` 拆開
+  - `currentYearIncomeBase`：本年實際計算用
+  - `effectiveIncome`：跨年狀態
+
+執行要求：
+
+- temporary income 不得寫回 `effectiveIncome`
+- permanent income 必須當年立即生效，並在年末寫回 `effectiveIncome`
+- permanent expense 必須影響 contribution / withdrawal，而不是假裝成單年 portfolio 扣減
+
+### Phase 3: 整理 `eventEngine` 與 `immigrationEngine` 輸出責任
+
+責任劃分如下：
+
+- `eventEngine.ts`
+  - 負責觸發一般事件
+  - 負責產生事件與原始 impact 明細
+  - 不再只輸出粗粒度 `totalIncomeImpact` 讓上層自行猜語意
+
+- `immigrationEngine.ts`
+  - 負責觸發移民 phase 與移民事件
+  - 回傳事件本身與移民固定成本 / 倍率資訊
+  - 不再由 `simulatePath` 只挑 `income_boost` 特判
+
+- 共用 normalization 層
+  - 接收一般事件與移民事件
+  - 做 effect 分類、temporary/permanent 判定、cap 與 aggregation
+
+### Phase 4: 補測試並鎖定行為
+
+至少新增以下測試：
+
+- 移民事件 `income_change` 會影響當年 contribution
+- 移民事件 `income_change` 在 `permanent !== true` 時不影響下一年基礎收入
+- 一般事件 `income_change` 會影響當年 income base
+- `income_change + permanent: true` 會從當年開始跨年延續
+- `income_boost` 會從當年開始跨年延續
+- `extra_expense` 會降低當年 portfolio
+- `savings_boost + permanent: true` 會改變後續 contribution / withdrawal 基礎，而不是只改單年 portfolio
+- 一次性 effect 不會錯誤延續
+- 一般事件 aggregation 規則仍成立
+- 共同 cap 規則仍成立
+- 同 seed 可重現
+- 未啟用事件時既有結果不變
 
 ## 需要修改的檔案
+
+本次最小必要變更檔案：
 
 - `src/engine/simulator.ts`
 - `src/engine/immigrationEngine.ts`
@@ -196,43 +290,53 @@
 - `src/events/eventTypes.ts`
 - `tests/engine.test.ts`
 
-若決定拆分 `savings_boost` 語意，還需要修改：
+大概率會新增一個共用 normalization 模組，建議位置：
+
+- `src/events/eventEffects.ts`
+
+### 本次預設不改資料庫
+
+以下檔案先不作資料型別重命名，只在程式內部重新解讀：
 
 - `src/events/eventDatabase.ts`
 - `src/events/eventDatabase_tw.ts`
 - `src/events/eventDatabase_jp.ts`
 - `src/engine/immigrationData.ts`
 
-## 測試計畫
+只有在實作時發現資料無法被一致解讀，才補第二階段資料清理。
 
-### 單元測試
+## 驗收標準
 
-- 移民事件 `income_change` 會降低當年 contribution，但不會在 `permanent !== true` 時改寫下一年基礎薪資
-- 移民事件 `extra_expense` 會降低當年 portfolio
-- 一般事件 `income_change` 會影響當年 income base
-- `income_change + permanent: true` 會跨年延續
-- `income_boost` 會跨年延續且當年立即生效
-- 一次性事件不會錯誤延續到下一年
-- 一般事件既有 aggregation 規則仍成立
-- 事件 cap 仍成立
+以下條件全部成立，才算這次修復完成：
 
-### 回歸測試
+1. 移民事件與一般事件都不再存在「有顯示、沒入模擬」的 effect
+2. `temporary` / `permanent` 在程式與測試中的行為一致
+3. `savings_boost + permanent: true` 不再被當作一次性 portfolio effect
+4. 事件時序在文件與程式實作一致
+5. 未啟用事件時，不造成既有結果回歸
+6. 同 seed 結果可重現
+7. 所有新增測試通過
 
-- 未啟用移民模組時，既有模擬結果維持一致
-- 未啟用事件時，既有模擬結果維持一致
-- 同 seed 下結果可重現
-- 事件仍會正確出現在故事模式與快照中
+## 風險與預期影響
 
-## 風險
+- 修復後成功率、失敗率、破產率改變是預期行為，不視為回歸
+- 因為 `income_change` 與移民事件真正開始進模型，部分場景結果可能明顯變差
+- 若資料層存在語意不一致事件，會在 normalization 實作時被暴露出來，這是好事，不應用特判掩蓋
 
-- 修復後成功率與破產率會顯著改變，屬於預期的行為修正
-- 現有部分事件資料的 `permanent` 語意不夠一致，可能需要補資料清理
-- 若 `savings_boost` 不拆語意，後續維護成本仍會偏高
-- 若不先統一 effect model，後續再加新國家時會持續複製 bug
+## 實作順序
 
-## 建議實作順序
+1. 先新增 normalization 資料結構與單元測試
+2. 再改 `simulatePath` 套用順序與跨年狀態
+3. 接著調整 `eventEngine` / `immigrationEngine` 輸出責任
+4. 最後補齊回歸測試並確認 story output 未退化
 
-1. 先抽出共用事件 effect normalization 與明確型別
-2. 再改 `simulatePath` 的年度事件套用順序
-3. 補測試鎖住 temporary / permanent / cap / aggregation 行為
-4. 最後再清理事件資料中的 `permanent` 與 `savings_boost` 語意
+## 非目標提醒
+
+這次修復不回答以下問題：
+
+- 事件機率是否過高或過低
+- `durationMonths` 是否應折算
+- 是否應改成月度模擬
+- 各國資料是否需要重新平衡
+
+這些都應在本修復完成後另外處理，不應混進這次變更。
