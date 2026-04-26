@@ -9,6 +9,7 @@
 - `monte_carlo_japan.md`：日本模組參數與設計資料
 - `monte_carlo_random_events.md`：隨機事件模組參數與設計資料
 - `monte_carlo_taiwan.md`：台灣模組參數與設計資料
+- `ph-cebu-manila-module-research.md`：菲律賓 Cebu / Manila 模組調查
 
 ## 約定
 
