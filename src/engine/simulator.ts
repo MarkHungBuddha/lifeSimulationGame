@@ -13,6 +13,7 @@
 
 import { blockBootstrap, type HistoricalData, type YearReturns } from './bootstrap'
 import { rollEventsForYear } from '../events/eventEngine'
+import { normalizeTriggeredEvents } from '../events/eventEffects'
 import { createSeededRNG } from './rng'
 import { processImmigrationYear } from './immigrationEngine'
 import type { ImmigrationPlan, ImmigrationState, ImmigrationPhase } from './immigrationTypes'
@@ -151,6 +152,7 @@ export function simulatePath(
   let bankrupt = false
   let bankruptAge: number | null = null
   let effectiveIncome = params.annualIncome
+  let permanentExpenseAdjustment = 0
   let immState: ImmigrationState = { ...INITIAL_IMMIGRATION_STATE }
   let housingState: HousingState = { ...INITIAL_HOUSING_STATE }
   const immRng = createSeededRNG(seed * 7919 + 13)  // 移民用獨立 RNG
@@ -195,25 +197,13 @@ export function simulatePath(
         effectiveAllocation = immResult.switchedAllocation
       }
 
-      // 扣除移民成本
+      // 移民固定成本先於事件套用
       portfolio -= immCost
       if (portfolio < 0) portfolio = 0
-
-      // 移民事件中的永久收入變化
-      for (const evt of immigrationEvents) {
-        for (const impact of evt.actualImpacts) {
-          if (impact.type === 'income_boost') {
-            effectiveIncome = Math.max(0, effectiveIncome + impact.amount)
-          }
-        }
-      }
     }
 
     // === 隨機事件（使用 activeRegion）===
-    let events: TriggeredEvent[] = []
-    let eventPortfolioImpact = 0
-    let eventIncomeImpact = 0
-    let eventExpense = 0
+    let generalEvents: TriggeredEvent[] = []
 
     if (params.enableEvents && !bankrupt) {
       const eventSeed = seed * 1000 + y * 37
@@ -224,27 +214,31 @@ export function simulatePath(
         isRetired, region: activeRegion, ownsHome, housingModuleEnabled,
         occupationId: params.occupationPlan?.enabled ? params.occupationPlan.occupationId : 0,
       })
-      events = result.events
-      eventPortfolioImpact = result.totalPortfolioImpact
-      eventIncomeImpact = result.totalIncomeImpact
-      eventExpense = result.totalExpense
-
-      // 套用事件影響
-      portfolio += eventPortfolioImpact
-      if (portfolio < 0) portfolio = 0
-
-      // 永久性收入變化
-      for (const evt of events) {
-        for (const impact of evt.actualImpacts) {
-          if (impact.type === 'income_boost') {
-            effectiveIncome = Math.max(0, effectiveIncome + impact.amount)
-          }
-        }
-      }
+      generalEvents = result.events
     }
+
+    // 一般事件與移民事件共用同一套 normalization / cap 規則
+    let events = [...generalEvents, ...immigrationEvents]
+    const normalizedEffects = normalizeTriggeredEvents(events, portfolio, effectiveIncome)
+    const eventPortfolioImpact = normalizedEffects.portfolioDeltaImmediate
+    const eventIncomeImpact = normalizedEffects.totalIncomeImpact
+    const eventExpense = normalizedEffects.expenseDeltaImmediate
+
+    portfolio += eventPortfolioImpact
+    if (portfolio < 0) portfolio = 0
+
+    portfolio -= eventExpense
+    if (portfolio < 0) portfolio = 0
+
+    const currentYearIncomeBeforeRaise = Math.max(
+      0,
+      effectiveIncome + normalizedEffects.incomeDeltaCurrentYear + normalizedEffects.incomeDeltaPermanent,
+    )
 
     // === 職業薪資成長 ===
     let currentRaiseRate = 0
+    let currentIncomeBase = currentYearIncomeBeforeRaise
+    let nextEffectiveIncome = Math.max(0, effectiveIncome + normalizedEffects.incomeDeltaPermanent)
     if (!isRetired && !bankrupt && params.occupationPlan?.enabled) {
       currentRaiseRate = getAnnualRaise(
         params.occupationPlan.occupationId,
@@ -252,11 +246,9 @@ export function simulatePath(
         activeRegion,
         occRng,
       )
-      effectiveIncome *= (1 + currentRaiseRate)
+      currentIncomeBase *= 1 + currentRaiseRate
+      nextEffectiveIncome *= 1 + currentRaiseRate
     }
-
-    // 合併移民事件到事件列表
-    events = [...events, ...immigrationEvents]
     allEvents.push(...events)
 
     // === 購屋處理 ===
@@ -265,7 +257,7 @@ export function simulatePath(
     let annualHousingExpense = 0
 
     if (params.housingPlan?.enabled && !bankrupt) {
-      const adjustedIncome = effectiveIncome * immIncomeMultiplier * cumulativeInflation
+      const adjustedIncome = currentIncomeBase * immIncomeMultiplier * cumulativeInflation
       const normalRandom = boxMuller(housingRng)
       const housingResult = processHousingYear(
         housingState,
@@ -297,7 +289,9 @@ export function simulatePath(
     let withdrawal = 0
 
     if (!isRetired && !bankrupt) {
-      contribution = effectiveIncome * baseSavingsRate * cumulativeInflation * immIncomeMultiplier
+      contribution = currentIncomeBase * baseSavingsRate * cumulativeInflation * immIncomeMultiplier
+      contribution += (permanentExpenseAdjustment + normalizedEffects.expenseDeltaPermanent) * cumulativeInflation
+      contribution = Math.max(0, contribution)
       // 移民後支出增加 → 可存入額減少
       if (immExpenseMultiplier > 1) {
         const extraExpense = contribution * (immExpenseMultiplier - 1) * 0.5
@@ -312,8 +306,10 @@ export function simulatePath(
         portfolio,
         cumulativeInflation,
       ) * immExpenseMultiplier
+      withdrawal -= (permanentExpenseAdjustment + normalizedEffects.expenseDeltaPermanent) * cumulativeInflation
       // 退休後房屋支出也從 portfolio 扣除
       withdrawal += annualHousingExpense
+      withdrawal = Math.max(0, withdrawal)
     }
 
     portfolio += contribution
@@ -322,9 +318,6 @@ export function simulatePath(
     portfolio *= 1 + weightedReturn
 
     portfolio -= withdrawal
-
-    // 扣除事件額外支出
-    portfolio -= eventExpense
 
     if (portfolio <= 0 && !bankrupt) {
       portfolio = 0
@@ -350,9 +343,12 @@ export function simulatePath(
       immigrationPhase: params.immigrationPlan?.enabled ? immState.phase : undefined,
       activeRegion: params.immigrationPlan?.enabled ? activeRegion : undefined,
       housing: housingSnapshot,
-      currentSalary: params.occupationPlan?.enabled ? effectiveIncome : undefined,
+      currentSalary: params.occupationPlan?.enabled ? currentIncomeBase : undefined,
       raiseRate: params.occupationPlan?.enabled ? currentRaiseRate : undefined,
     })
+
+    effectiveIncome = nextEffectiveIncome
+    permanentExpenseAdjustment += normalizedEffects.expenseDeltaPermanent
   }
 
   return {

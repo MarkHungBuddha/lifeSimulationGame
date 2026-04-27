@@ -1,11 +1,19 @@
-import { describe, it, expect } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createSeededRNG } from '../src/engine/rng'
 import { blockBootstrap, type HistoricalData } from '../src/engine/bootstrap'
 import { simulatePath, type SimulationParams } from '../src/engine/simulator'
 import { rollEventsForYear } from '../src/events/eventEngine'
+import { normalizeTriggeredEvents } from '../src/events/eventEffects'
 import { getAnnualRaise, getOccupationDefaults } from '../src/engine/occupationEngine'
 import { OCCUPATIONS, OCCUPATION_MAP } from '../src/engine/occupationData'
+import * as eventEngineModule from '../src/events/eventEngine'
+import * as immigrationEngineModule from '../src/engine/immigrationEngine'
+import type { TriggeredEvent } from '../src/events/eventTypes'
 import data from '../data/assets_returns.json'
+
+afterEach(() => {
+  vi.restoreAllMocks()
+})
 
 // ============================================================
 // RNG 測試
@@ -493,5 +501,192 @@ describe('Occupation event modifiers', () => {
         expect(evt.displayDescription).toBeUndefined()
       }
     }
+  })
+})
+
+// ============================================================
+// 事件 effect normalization / simulator 套用測試
+// ============================================================
+describe('Event effect normalization', () => {
+  it('保留既有 aggregation 與 cap，並將 permanent savings 轉為永久支出調整', () => {
+    const events: TriggeredEvent[] = [
+      {
+        event: {
+          id: 'e1',
+          name: 'Aggregation check',
+          category: 'market',
+          description: '',
+          baseProbability: 1,
+          durationMonths: [0, 0],
+          impacts: [],
+        },
+        age: 30,
+        year: 0,
+        actualImpacts: [
+          { type: 'portfolio_change', description: '', amount: -10000 },
+          { type: 'savings_change', description: '', amount: -40000 },
+          { type: 'portfolio_change', description: '', amount: 6000 },
+          { type: 'savings_change', description: '', amount: 8000 },
+        ],
+      },
+      {
+        event: {
+          id: 'e2',
+          name: 'Expense check',
+          category: 'family',
+          description: '',
+          baseProbability: 1,
+          durationMonths: [0, 0],
+          impacts: [],
+        },
+        age: 30,
+        year: 0,
+        actualImpacts: [
+          { type: 'extra_expense', description: '', amount: -50000 },
+          { type: 'savings_boost', description: '', amount: -3000, permanent: true },
+        ],
+      },
+    ]
+
+    const normalized = normalizeTriggeredEvents(events, 100000, 120000)
+
+    expect(normalized.portfolioDeltaImmediate).toBe(-30000)
+    expect(normalized.expenseDeltaImmediate).toBe(30000)
+    expect(normalized.expenseDeltaPermanent).toBe(-3000)
+    expect(normalized.incomeDeltaCurrentYear).toBe(0)
+    expect(normalized.incomeDeltaPermanent).toBe(0)
+  })
+})
+
+describe('Simulator event application', () => {
+  const historicalData = data as HistoricalData
+  const baseParams: SimulationParams = {
+    currentAge: 30,
+    retirementAge: 65,
+    endAge: 32,
+    initialPortfolio: 100000,
+    annualContribution: 20000,
+    annualIncome: 100000,
+    allocation: { sp500: 0.6, intlStock: 0, bond: 0.3, gold: 0.05, cash: 0.05, reits: 0 },
+    withdrawal: { type: 'fixed_rate', rate: 0.04 },
+    enableEvents: true,
+  }
+
+  function noImmigrationYear() {
+    return {
+      newState: {
+        phase: 'none' as const,
+        phaseStartAge: 0,
+        failedAttempts: 0,
+        yearsInTarget: 0,
+        hasPermanentResidency: false,
+        totalImmigrationCost: 0,
+      },
+      activeRegion: 'us' as const,
+      costThisYear: 0,
+      incomeMultiplier: 1,
+      expenseMultiplier: 1,
+      immigrationEvents: [],
+      phaseChanged: false,
+      phaseLabel: null,
+      switchedAllocation: null,
+    }
+  }
+
+  it('temporary income_change 只影響當年 contribution，不改寫下一年收入基礎', () => {
+    vi.spyOn(immigrationEngineModule, 'processImmigrationYear').mockImplementation(noImmigrationYear)
+    vi.spyOn(eventEngineModule, 'rollEventsForYear').mockImplementation(({ year }) => ({
+      events: year === 0
+        ? [{
+            event: {
+              id: 'temp-income',
+              name: 'Temp income shock',
+              category: 'career',
+              description: '',
+              baseProbability: 1,
+              durationMonths: [0, 0],
+              impacts: [],
+            },
+            age: 30,
+            year: 0,
+            actualImpacts: [
+              { type: 'income_change', description: '', amount: -50000 },
+            ],
+          }]
+        : [],
+      totalPortfolioImpact: 0,
+      totalIncomeImpact: 0,
+      totalExpense: 0,
+    }))
+
+    const result = simulatePath(historicalData, baseParams, 42)
+
+    expect(result.snapshots[0].contribution).toBeCloseTo(10000, 10)
+    expect(result.snapshots[1].contribution).toBeCloseTo(20000 * result.snapshots[1].cumulativeInflation, 10)
+  })
+
+  it('permanent income_change 會從當年開始延續到下一年', () => {
+    vi.spyOn(immigrationEngineModule, 'processImmigrationYear').mockImplementation(noImmigrationYear)
+    vi.spyOn(eventEngineModule, 'rollEventsForYear').mockImplementation(({ year }) => ({
+      events: year === 0
+        ? [{
+            event: {
+              id: 'perm-income',
+              name: 'Permanent income shock',
+              category: 'career',
+              description: '',
+              baseProbability: 1,
+              durationMonths: [0, 0],
+              impacts: [],
+            },
+            age: 30,
+            year: 0,
+            actualImpacts: [
+              { type: 'income_change', description: '', amount: -50000, permanent: true },
+            ],
+          }]
+        : [],
+      totalPortfolioImpact: 0,
+      totalIncomeImpact: 0,
+      totalExpense: 0,
+    }))
+
+    const result = simulatePath(historicalData, baseParams, 42)
+
+    expect(result.snapshots[0].contribution).toBeCloseTo(10000, 10)
+    expect(result.snapshots[1].contribution).toBeCloseTo(10000 * result.snapshots[1].cumulativeInflation, 10)
+  })
+
+  it('permanent savings_boost 會改變後續 contribution 基礎，而不是只影響單年 portfolio', () => {
+    vi.spyOn(immigrationEngineModule, 'processImmigrationYear').mockImplementation(noImmigrationYear)
+    vi.spyOn(eventEngineModule, 'rollEventsForYear').mockImplementation(({ year }) => ({
+      events: year === 0
+        ? [{
+            event: {
+              id: 'perm-savings',
+              name: 'Permanent savings change',
+              category: 'family',
+              description: '',
+              baseProbability: 1,
+              durationMonths: [0, 0],
+              impacts: [],
+            },
+            age: 30,
+            year: 0,
+            actualImpacts: [
+              { type: 'savings_boost', description: '', amount: -5000, permanent: true },
+            ],
+          }]
+        : [],
+      totalPortfolioImpact: 0,
+      totalIncomeImpact: 0,
+      totalExpense: 0,
+    }))
+
+    const result = simulatePath(historicalData, baseParams, 42)
+
+    expect(result.snapshots[0].contribution).toBeCloseTo(15000, 10)
+    expect(result.snapshots[1].contribution).toBeCloseTo(15000 * result.snapshots[1].cumulativeInflation, 10)
+    expect(result.snapshots[0].eventPortfolioImpact).toBe(0)
   })
 })

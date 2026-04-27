@@ -72,6 +72,7 @@ export interface TriggeredEvent {
     type: ImpactType
     description: string
     amount: number        // 實際美元金額（正=收益，負=損失）
+    permanent?: boolean   // 是否為永久性效果（供模擬層做狀態寫回）
   }[]
   displayName?: string           // 職業覆寫後的事件名稱
   displayDescription?: string    // 職業覆寫後的事件描述

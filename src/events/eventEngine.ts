@@ -13,8 +13,9 @@ import { createSeededRNG } from '../engine/rng'
 import { EVENT_DATABASE, EVENT_MAP } from './eventDatabase'
 import { EVENT_DATABASE_TW, EVENT_MAP_TW } from './eventDatabase_tw'
 import { EVENT_DATABASE_JP, EVENT_MAP_JP } from './eventDatabase_jp'
-import type { RandomEvent, TriggeredEvent, ImpactType } from './eventTypes'
+import type { RandomEvent, TriggeredEvent } from './eventTypes'
 import type { Region } from '../config/regions'
+import { calcImpactAmount, normalizeTriggeredEvents } from './eventEffects'
 
 /** 取得年齡調整後的事件機率 */
 function getAdjustedProbability(event: RandomEvent, age: number): number {
@@ -27,51 +28,6 @@ function getAdjustedProbability(event: RandomEvent, age: number): number {
     }
   }
   return event.baseProbability
-}
-
-/** 計算單一影響的實際金額 */
-function calcImpactAmount(
-  type: ImpactType,
-  value: number,
-  portfolio: number,
-  annualIncome: number,
-): { amount: number; description: string } {
-  const monthlyIncome = annualIncome / 12
-
-  switch (type) {
-    case 'income_change':
-      return {
-        amount: annualIncome * value,
-        description: `收入 ${value > 0 ? '+' : ''}${(value * 100).toFixed(0)}%`,
-      }
-    case 'savings_change':
-      return {
-        amount: portfolio * value,
-        description: `儲蓄 ${value > 0 ? '+' : ''}${(value * 100).toFixed(0)}%`,
-      }
-    case 'portfolio_change':
-      return {
-        amount: portfolio * value,
-        description: `投資組合 ${value > 0 ? '+' : ''}${(value * 100).toFixed(0)}%`,
-      }
-    case 'extra_expense':
-      return {
-        amount: -(monthlyIncome * value),
-        description: `額外支出 ${value.toFixed(1)}x 月收入`,
-      }
-    case 'income_boost':
-      return {
-        amount: annualIncome * value,
-        description: `收入永久 +${(value * 100).toFixed(0)}%`,
-      }
-    case 'savings_boost':
-      return {
-        amount: portfolio * value,
-        description: value >= 0
-          ? `儲蓄 +${(value * 100).toFixed(0)}%`
-          : `儲蓄 ${(value * 100).toFixed(0)}%（永久）`,
-      }
-  }
 }
 
 /** 退休後不觸發的事件類別與 ID */
@@ -132,10 +88,6 @@ export function rollEventsForYear(
   const rng = createSeededRNG(seed)
   const triggered: TriggeredEvent[] = []
   const triggeredIds = new Set<string>()
-
-  let totalPortfolioImpact = 0
-  let totalIncomeImpact = 0
-  let totalExpense = 0
 
   // 第一輪：獨立觸發
   for (const event of database) {
@@ -219,10 +171,6 @@ export function rollEventsForYear(
     const occMod2 = event.occupationModifiers?.[occupationId]
     const impactMult = occMod2?.impactMultiplier ?? 1.0
 
-    // 每個事件內，savings_change 和 portfolio_change 只取較大損失（不疊加）
-    let eventPortfolioHit = 0
-    let eventPortfolioHitPositive = 0
-
     // 合併基礎影響 + 有房者額外影響
     const allImpacts = ownsHome && event.ownerExtraImpacts
       ? [...event.impacts, ...event.ownerExtraImpacts]
@@ -237,25 +185,14 @@ export function rollEventsForYear(
       const { amount, description } = calcImpactAmount(
         impact.type, effectiveValue, portfolio, annualIncome,
       )
-      actualImpacts.push({ type: impact.type, description, amount })
-
-      // savings_change 和 portfolio_change 視為同一池，取最大損失或最大收益
-      if (impact.type === 'portfolio_change' || impact.type === 'savings_change') {
-        if (amount < 0) eventPortfolioHit = Math.min(eventPortfolioHit, amount)
-        else eventPortfolioHitPositive = Math.max(eventPortfolioHitPositive, amount)
-      }
-      if (impact.type === 'savings_boost') {
-        totalPortfolioImpact += amount
-      }
-      if (impact.type === 'income_change' || impact.type === 'income_boost') {
-        totalIncomeImpact += amount
-      }
-      if (impact.type === 'extra_expense') {
-        totalExpense += Math.abs(amount)
-      }
+      actualImpacts.push({
+        type: impact.type,
+        description,
+        amount,
+        permanent: impact.permanent,
+      })
     }
 
-    totalPortfolioImpact += eventPortfolioHit + eventPortfolioHitPositive
     triggered.push({
       event, age, year, actualImpacts,
       displayName: occMod2?.name,
@@ -263,15 +200,12 @@ export function rollEventsForYear(
     })
   }
 
-  // 年度保護上限：資產損失不超過 -30%，額外支出不超過 3 個月收入
-  const maxPortfolioLoss = -portfolio * 0.30
-  if (totalPortfolioImpact < maxPortfolioLoss) {
-    totalPortfolioImpact = maxPortfolioLoss
-  }
-  const maxExpense = (annualIncome / 12) * 3
-  if (totalExpense > maxExpense) {
-    totalExpense = maxExpense
-  }
+  const normalized = normalizeTriggeredEvents(triggered, portfolio, annualIncome)
 
-  return { events: triggered, totalPortfolioImpact, totalIncomeImpact, totalExpense }
+  return {
+    events: triggered,
+    totalPortfolioImpact: normalized.portfolioDeltaImmediate,
+    totalIncomeImpact: normalized.totalIncomeImpact,
+    totalExpense: normalized.expenseDeltaImmediate,
+  }
 }
