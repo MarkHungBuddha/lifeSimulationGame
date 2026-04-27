@@ -1,11 +1,6 @@
-/**
- * 地區設定
- * 定義不同地區的幣值、資產標籤、滑桿範圍等
- */
-
 import type { Allocation } from '../engine/simulator'
 
-export type Region = 'us' | 'tw' | 'jp'
+export type Region = 'us' | 'tw' | 'jp' | 'ph-manila' | 'ph-cebu'
 
 export interface RegionConfig {
   id: Region
@@ -28,16 +23,16 @@ export interface RegionConfig {
 export const REGION_CONFIGS: Record<Region, RegionConfig> = {
   us: {
     id: 'us',
-    name: '美國版',
-    flag: '🇺🇸',
+    name: 'United States',
+    flag: 'US',
     currency: 'USD',
     currencySymbol: '$',
     assetLabels: {
       sp500: 'S&P 500',
-      intlStock: '國際股票',
-      bond: '美國長債',
-      gold: '黃金',
-      cash: '現金',
+      intlStock: 'International Stocks',
+      bond: 'US Bonds',
+      gold: 'Gold',
+      cash: 'Cash',
       reits: 'REITs',
     },
     sliderRanges: {
@@ -52,17 +47,17 @@ export const REGION_CONFIGS: Record<Region, RegionConfig> = {
   },
   tw: {
     id: 'tw',
-    name: '台灣版',
-    flag: '🇹🇼',
+    name: 'Taiwan',
+    flag: 'TW',
     currency: 'TWD',
     currencySymbol: 'NT$',
     assetLabels: {
-      sp500: '台股加權',
-      intlStock: '海外股票',
-      bond: '台灣公債',
-      gold: '黃金',
-      cash: '現金(TWD)',
-      reits: '台灣REITs',
+      sp500: 'US Stocks',
+      intlStock: 'International Stocks',
+      bond: 'Taiwan Bonds',
+      gold: 'Gold',
+      cash: 'Cash (TWD)',
+      reits: 'Taiwan REITs',
     },
     sliderRanges: {
       annualIncome: { min: 400000, max: 6000000, step: 50000 },
@@ -76,16 +71,16 @@ export const REGION_CONFIGS: Record<Region, RegionConfig> = {
   },
   jp: {
     id: 'jp',
-    name: '日本版',
-    flag: '🇯🇵',
+    name: 'Japan',
+    flag: 'JP',
     currency: 'JPY',
-    currencySymbol: '¥',
+    currencySymbol: 'JPY ',
     assetLabels: {
-      sp500: '日本株',
-      intlStock: '海外株式',
-      bond: '日本国債',
-      gold: '金(ゴールド)',
-      cash: '現金(JPY)',
+      sp500: 'US Stocks',
+      intlStock: 'International Stocks',
+      bond: 'Japan Bonds',
+      gold: 'Gold',
+      cash: 'Cash (JPY)',
       reits: 'J-REIT',
     },
     sliderRanges: {
@@ -98,59 +93,132 @@ export const REGION_CONFIGS: Record<Region, RegionConfig> = {
       withdrawalCeiling: { min: 2000000, max: 25000000, step: 500000 },
     },
   },
+  'ph-manila': {
+    id: 'ph-manila',
+    name: 'Manila',
+    flag: 'PH',
+    currency: 'PHP',
+    currencySymbol: 'PHP ',
+    assetLabels: {
+      sp500: 'US Stocks / PSEi Proxy',
+      intlStock: 'International Stocks',
+      bond: 'Bonds',
+      gold: 'Gold',
+      cash: 'Cash (PHP)',
+      reits: 'Philippine REITs',
+    },
+    sliderRanges: {
+      annualIncome: { min: 180000, max: 4000000, step: 20000 },
+      annualExpense: { min: 120000, max: 2500000, step: 20000 },
+      annualContribution: { min: 0, max: 2000000, step: 20000 },
+      initialPortfolio: { min: 0, max: 80000000, step: 500000 },
+      withdrawalAmount: { min: 120000, max: 2500000, step: 20000 },
+      withdrawalFloor: { min: 100000, max: 1800000, step: 20000 },
+      withdrawalCeiling: { min: 180000, max: 3500000, step: 20000 },
+    },
+  },
+  'ph-cebu': {
+    id: 'ph-cebu',
+    name: 'Cebu',
+    flag: 'PH',
+    currency: 'PHP',
+    currencySymbol: 'PHP ',
+    assetLabels: {
+      sp500: 'US Stocks / PSEi Proxy',
+      intlStock: 'International Stocks',
+      bond: 'Bonds',
+      gold: 'Gold',
+      cash: 'Cash (PHP)',
+      reits: 'Philippine REITs',
+    },
+    sliderRanges: {
+      annualIncome: { min: 150000, max: 3000000, step: 20000 },
+      annualExpense: { min: 100000, max: 2000000, step: 20000 },
+      annualContribution: { min: 0, max: 1500000, step: 20000 },
+      initialPortfolio: { min: 0, max: 60000000, step: 500000 },
+      withdrawalAmount: { min: 100000, max: 2000000, step: 20000 },
+      withdrawalFloor: { min: 80000, max: 1400000, step: 20000 },
+      withdrawalCeiling: { min: 150000, max: 2800000, step: 20000 },
+    },
+  },
 }
 
-/** 格式化金額（依地區） */
+export function isPhilippinesRegion(region: Region): boolean {
+  return region === 'ph-manila' || region === 'ph-cebu'
+}
+
 export function formatCurrency(n: number, region: Region): string {
   const cfg = REGION_CONFIGS[region]
+
   if (region === 'tw') {
-    if (Math.abs(n) >= 100_000_000) return `${cfg.currencySymbol}${(n / 100_000_000).toFixed(1)}億`
-    if (Math.abs(n) >= 10_000) return `${cfg.currencySymbol}${(n / 10_000).toFixed(0)}萬`
+    if (Math.abs(n) >= 100_000_000) return `${cfg.currencySymbol}${(n / 100_000_000).toFixed(1)}Yi`
+    if (Math.abs(n) >= 10_000) return `${cfg.currencySymbol}${(n / 10_000).toFixed(0)}Wan`
     return `${cfg.currencySymbol}${n.toFixed(0)}`
   }
+
   if (region === 'jp') {
-    if (Math.abs(n) >= 100_000_000) return `¥${(n / 100_000_000).toFixed(1)}億`
-    if (Math.abs(n) >= 10_000) return `¥${(n / 10_000).toFixed(0)}万`
-    return `¥${n.toFixed(0)}`
+    if (Math.abs(n) >= 100_000_000) return `${cfg.currencySymbol}${(n / 100_000_000).toFixed(1)}Oku`
+    if (Math.abs(n) >= 10_000) return `${cfg.currencySymbol}${(n / 10_000).toFixed(0)}Man`
+    return `${cfg.currencySymbol}${n.toFixed(0)}`
   }
-  // US
+
+  if (isPhilippinesRegion(region)) {
+    if (Math.abs(n) >= 1_000_000) return `${cfg.currencySymbol}${(n / 1_000_000).toFixed(2)}M`
+    if (Math.abs(n) >= 1_000) return `${cfg.currencySymbol}${(n / 1_000).toFixed(0)}K`
+    return `${cfg.currencySymbol}${n.toFixed(0)}`
+  }
+
   if (Math.abs(n) >= 1_000_000) return `$${(n / 1_000_000).toFixed(2)}M`
   if (Math.abs(n) >= 1_000) return `$${(n / 1_000).toFixed(0)}K`
   return `$${n.toFixed(0)}`
 }
 
-/** 格式化帶正負號的金額 */
 export function formatCurrencySigned(n: number, region: Region): string {
   const abs = Math.abs(n)
   const sign = n >= 0 ? '+' : '-'
   const cfg = REGION_CONFIGS[region]
+
   if (region === 'tw') {
-    if (abs >= 100_000_000) return `${sign}${cfg.currencySymbol}${(abs / 100_000_000).toFixed(1)}億`
-    if (abs >= 10_000) return `${sign}${cfg.currencySymbol}${(abs / 10_000).toFixed(0)}萬`
+    if (abs >= 100_000_000) return `${sign}${cfg.currencySymbol}${(abs / 100_000_000).toFixed(1)}Yi`
+    if (abs >= 10_000) return `${sign}${cfg.currencySymbol}${(abs / 10_000).toFixed(0)}Wan`
     return `${sign}${cfg.currencySymbol}${abs.toFixed(0)}`
   }
+
   if (region === 'jp') {
-    if (abs >= 100_000_000) return `${sign}¥${(abs / 100_000_000).toFixed(1)}億`
-    if (abs >= 10_000) return `${sign}¥${(abs / 10_000).toFixed(0)}万`
-    return `${sign}¥${abs.toFixed(0)}`
+    if (abs >= 100_000_000) return `${sign}${cfg.currencySymbol}${(abs / 100_000_000).toFixed(1)}Oku`
+    if (abs >= 10_000) return `${sign}${cfg.currencySymbol}${(abs / 10_000).toFixed(0)}Man`
+    return `${sign}${cfg.currencySymbol}${abs.toFixed(0)}`
   }
+
+  if (isPhilippinesRegion(region)) {
+    if (abs >= 1_000_000) return `${sign}${cfg.currencySymbol}${(abs / 1_000_000).toFixed(1)}M`
+    if (abs >= 1_000) return `${sign}${cfg.currencySymbol}${(abs / 1_000).toFixed(0)}K`
+    return `${sign}${cfg.currencySymbol}${abs.toFixed(0)}`
+  }
+
   if (abs >= 1_000_000) return `${sign}$${(abs / 1_000_000).toFixed(1)}M`
   if (abs >= 1_000) return `${sign}$${(abs / 1_000).toFixed(0)}K`
   return `${sign}$${abs.toFixed(0)}`
 }
 
-/** 格式化滑桿值 */
 export function formatSliderValue(v: number, region: Region): string {
   const cfg = REGION_CONFIGS[region]
+
   if (region === 'tw') {
-    if (v >= 100_000_000) return `${cfg.currencySymbol}${(v / 100_000_000).toFixed(1)}億`
-    if (v >= 10_000) return `${cfg.currencySymbol}${(v / 10_000).toFixed(0)}萬`
+    if (v >= 100_000_000) return `${cfg.currencySymbol}${(v / 100_000_000).toFixed(1)}Yi`
+    if (v >= 10_000) return `${cfg.currencySymbol}${(v / 10_000).toFixed(0)}Wan`
     return `${cfg.currencySymbol}${v.toLocaleString()}`
   }
+
   if (region === 'jp') {
-    if (v >= 100_000_000) return `¥${(v / 100_000_000).toFixed(1)}億`
-    if (v >= 10_000) return `¥${(v / 10_000).toFixed(0)}万`
-    return `¥${v.toLocaleString()}`
+    if (v >= 100_000_000) return `${cfg.currencySymbol}${(v / 100_000_000).toFixed(1)}Oku`
+    if (v >= 10_000) return `${cfg.currencySymbol}${(v / 10_000).toFixed(0)}Man`
+    return `${cfg.currencySymbol}${v.toLocaleString()}`
   }
+
+  if (isPhilippinesRegion(region)) {
+    return `${cfg.currencySymbol}${v.toLocaleString()}`
+  }
+
   return `$${v.toLocaleString()}`
 }
