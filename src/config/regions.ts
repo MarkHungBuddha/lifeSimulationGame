@@ -1,3 +1,4 @@
+import type { UiLanguage } from '../i18n/types'
 import type { Allocation } from '../engine/simulator'
 
 export type Region = 'us' | 'tw' | 'jp' | 'ph-manila' | 'ph-cebu'
@@ -143,82 +144,202 @@ export const REGION_CONFIGS: Record<Region, RegionConfig> = {
   },
 }
 
+const REGION_NAME_MAP: Record<UiLanguage, Record<Region, string>> = {
+  en: {
+    us: 'United States',
+    tw: 'Taiwan',
+    jp: 'Japan',
+    'ph-manila': 'Manila',
+    'ph-cebu': 'Cebu',
+  },
+  zh: {
+    us: '美國',
+    tw: '台灣',
+    jp: '日本',
+    'ph-manila': '馬尼拉',
+    'ph-cebu': '宿霧',
+  },
+  ja: {
+    us: 'アメリカ',
+    tw: '台湾',
+    jp: '日本',
+    'ph-manila': 'マニラ',
+    'ph-cebu': 'セブ',
+  },
+}
+
+const REGION_FLAG_MAP: Record<Region, string> = {
+  us: 'US',
+  tw: 'TW',
+  jp: 'JP',
+  'ph-manila': 'PH',
+  'ph-cebu': 'PH',
+}
+
+const ASSET_LABEL_MAP: Record<UiLanguage, Record<Region, Record<keyof Allocation, string>>> = {
+  en: {
+    us: REGION_CONFIGS.us.assetLabels,
+    tw: REGION_CONFIGS.tw.assetLabels,
+    jp: REGION_CONFIGS.jp.assetLabels,
+    'ph-manila': REGION_CONFIGS['ph-manila'].assetLabels,
+    'ph-cebu': REGION_CONFIGS['ph-cebu'].assetLabels,
+  },
+  zh: {
+    us: {
+      sp500: 'S&P 500',
+      intlStock: '國際股票',
+      bond: '美國債券',
+      gold: '黃金',
+      cash: '現金',
+      reits: 'REITs',
+    },
+    tw: {
+      sp500: '美股',
+      intlStock: '國際股票',
+      bond: '台灣債券',
+      gold: '黃金',
+      cash: '現金（TWD）',
+      reits: '台灣 REITs',
+    },
+    jp: {
+      sp500: '美股',
+      intlStock: '國際股票',
+      bond: '日本債券',
+      gold: '黃金',
+      cash: '現金（JPY）',
+      reits: 'J-REIT',
+    },
+    'ph-manila': {
+      sp500: '美股 / PSEi 代理',
+      intlStock: '國際股票',
+      bond: '債券',
+      gold: '黃金',
+      cash: '現金（PHP）',
+      reits: '菲律賓 REITs',
+    },
+    'ph-cebu': {
+      sp500: '美股 / PSEi 代理',
+      intlStock: '國際股票',
+      bond: '債券',
+      gold: '黃金',
+      cash: '現金（PHP）',
+      reits: '菲律賓 REITs',
+    },
+  },
+  ja: {
+    us: {
+      sp500: 'S&P 500',
+      intlStock: '海外株式',
+      bond: '米国債券',
+      gold: '金',
+      cash: '現金',
+      reits: 'REITs',
+    },
+    tw: {
+      sp500: '米国株',
+      intlStock: '海外株式',
+      bond: '台湾債券',
+      gold: '金',
+      cash: '現金（TWD）',
+      reits: '台湾 REITs',
+    },
+    jp: {
+      sp500: '米国株',
+      intlStock: '海外株式',
+      bond: '日本債券',
+      gold: '金',
+      cash: '現金（JPY）',
+      reits: 'J-REIT',
+    },
+    'ph-manila': {
+      sp500: '米国株 / PSEi 連動',
+      intlStock: '海外株式',
+      bond: '債券',
+      gold: '金',
+      cash: '現金（PHP）',
+      reits: 'フィリピン REITs',
+    },
+    'ph-cebu': {
+      sp500: '米国株 / PSEi 連動',
+      intlStock: '海外株式',
+      bond: '債券',
+      gold: '金',
+      cash: '現金（PHP）',
+      reits: 'フィリピン REITs',
+    },
+  },
+}
+
+const NUMBER_LOCALE_MAP: Record<UiLanguage, string> = {
+  en: 'en-US',
+  zh: 'zh-CN',
+  ja: 'ja-JP',
+}
+
+function getCompactUnit(language: UiLanguage, large: 'tenThousand' | 'hundredMillion'): string {
+  if (language === 'zh') return large === 'hundredMillion' ? '億' : '萬'
+  if (language === 'ja') return large === 'hundredMillion' ? '億' : '万'
+  return large === 'hundredMillion' ? 'B' : 'K'
+}
+
 export function isPhilippinesRegion(region: Region): boolean {
   return region === 'ph-manila' || region === 'ph-cebu'
 }
 
-export function formatCurrency(n: number, region: Region): string {
-  const cfg = REGION_CONFIGS[region]
-
-  if (region === 'tw') {
-    if (Math.abs(n) >= 100_000_000) return `${cfg.currencySymbol}${(n / 100_000_000).toFixed(1)}Yi`
-    if (Math.abs(n) >= 10_000) return `${cfg.currencySymbol}${(n / 10_000).toFixed(0)}Wan`
-    return `${cfg.currencySymbol}${n.toFixed(0)}`
-  }
-
-  if (region === 'jp') {
-    if (Math.abs(n) >= 100_000_000) return `${cfg.currencySymbol}${(n / 100_000_000).toFixed(1)}Oku`
-    if (Math.abs(n) >= 10_000) return `${cfg.currencySymbol}${(n / 10_000).toFixed(0)}Man`
-    return `${cfg.currencySymbol}${n.toFixed(0)}`
-  }
-
-  if (isPhilippinesRegion(region)) {
-    if (Math.abs(n) >= 1_000_000) return `${cfg.currencySymbol}${(n / 1_000_000).toFixed(2)}M`
-    if (Math.abs(n) >= 1_000) return `${cfg.currencySymbol}${(n / 1_000).toFixed(0)}K`
-    return `${cfg.currencySymbol}${n.toFixed(0)}`
-  }
-
-  if (Math.abs(n) >= 1_000_000) return `$${(n / 1_000_000).toFixed(2)}M`
-  if (Math.abs(n) >= 1_000) return `$${(n / 1_000).toFixed(0)}K`
-  return `$${n.toFixed(0)}`
+export function getNumberLocale(language: UiLanguage): string {
+  return NUMBER_LOCALE_MAP[language]
 }
 
-export function formatCurrencySigned(n: number, region: Region): string {
+export function getRegionLabel(region: Region, language: UiLanguage): string {
+  return REGION_NAME_MAP[language][region]
+}
+
+export function getRegionFlag(region: Region): string {
+  return REGION_FLAG_MAP[region]
+}
+
+export function getAssetLabel(region: Region, key: keyof Allocation, language: UiLanguage): string {
+  return ASSET_LABEL_MAP[language][region][key]
+}
+
+export function formatCurrency(n: number, region: Region, language: UiLanguage = 'en'): string {
+  const cfg = REGION_CONFIGS[region]
   const abs = Math.abs(n)
-  const sign = n >= 0 ? '+' : '-'
-  const cfg = REGION_CONFIGS[region]
+  const sign = n < 0 ? '-' : ''
+  const locale = getNumberLocale(language)
 
-  if (region === 'tw') {
-    if (abs >= 100_000_000) return `${sign}${cfg.currencySymbol}${(abs / 100_000_000).toFixed(1)}Yi`
-    if (abs >= 10_000) return `${sign}${cfg.currencySymbol}${(abs / 10_000).toFixed(0)}Wan`
-    return `${sign}${cfg.currencySymbol}${abs.toFixed(0)}`
-  }
-
-  if (region === 'jp') {
-    if (abs >= 100_000_000) return `${sign}${cfg.currencySymbol}${(abs / 100_000_000).toFixed(1)}Oku`
-    if (abs >= 10_000) return `${sign}${cfg.currencySymbol}${(abs / 10_000).toFixed(0)}Man`
-    return `${sign}${cfg.currencySymbol}${abs.toFixed(0)}`
+  if (region === 'tw' || region === 'jp') {
+    if (abs >= 100_000_000) {
+      return `${sign}${cfg.currencySymbol}${(abs / 100_000_000).toLocaleString(locale, { maximumFractionDigits: 1 })}${getCompactUnit(language, 'hundredMillion')}`
+    }
+    if (abs >= 10_000) {
+      return `${sign}${cfg.currencySymbol}${(abs / 10_000).toLocaleString(locale, { maximumFractionDigits: 0 })}${getCompactUnit(language, 'tenThousand')}`
+    }
+    return `${sign}${cfg.currencySymbol}${abs.toLocaleString(locale, { maximumFractionDigits: 0 })}`
   }
 
   if (isPhilippinesRegion(region)) {
-    if (abs >= 1_000_000) return `${sign}${cfg.currencySymbol}${(abs / 1_000_000).toFixed(1)}M`
-    if (abs >= 1_000) return `${sign}${cfg.currencySymbol}${(abs / 1_000).toFixed(0)}K`
-    return `${sign}${cfg.currencySymbol}${abs.toFixed(0)}`
+    if (abs >= 1_000_000) {
+      return `${sign}${cfg.currencySymbol}${(abs / 1_000_000).toLocaleString(locale, { maximumFractionDigits: 2 })}M`
+    }
+    if (abs >= 1_000) {
+      return `${sign}${cfg.currencySymbol}${(abs / 1_000).toLocaleString(locale, { maximumFractionDigits: 0 })}K`
+    }
+    return `${sign}${cfg.currencySymbol}${abs.toLocaleString(locale, { maximumFractionDigits: 0 })}`
   }
 
-  if (abs >= 1_000_000) return `${sign}$${(abs / 1_000_000).toFixed(1)}M`
-  if (abs >= 1_000) return `${sign}$${(abs / 1_000).toFixed(0)}K`
-  return `${sign}$${abs.toFixed(0)}`
+  if (abs >= 1_000_000) return `${sign}$${(abs / 1_000_000).toLocaleString(locale, { maximumFractionDigits: 2 })}M`
+  if (abs >= 1_000) return `${sign}$${(abs / 1_000).toLocaleString(locale, { maximumFractionDigits: 0 })}K`
+  return `${sign}$${abs.toLocaleString(locale, { maximumFractionDigits: 0 })}`
 }
 
-export function formatSliderValue(v: number, region: Region): string {
-  const cfg = REGION_CONFIGS[region]
+export function formatCurrencySigned(n: number, region: Region, language: UiLanguage = 'en'): string {
+  if (n === 0) return formatCurrency(0, region, language)
+  return n > 0
+    ? `+${formatCurrency(n, region, language)}`
+    : `-${formatCurrency(Math.abs(n), region, language)}`
+}
 
-  if (region === 'tw') {
-    if (v >= 100_000_000) return `${cfg.currencySymbol}${(v / 100_000_000).toFixed(1)}Yi`
-    if (v >= 10_000) return `${cfg.currencySymbol}${(v / 10_000).toFixed(0)}Wan`
-    return `${cfg.currencySymbol}${v.toLocaleString()}`
-  }
-
-  if (region === 'jp') {
-    if (v >= 100_000_000) return `${cfg.currencySymbol}${(v / 100_000_000).toFixed(1)}Oku`
-    if (v >= 10_000) return `${cfg.currencySymbol}${(v / 10_000).toFixed(0)}Man`
-    return `${cfg.currencySymbol}${v.toLocaleString()}`
-  }
-
-  if (isPhilippinesRegion(region)) {
-    return `${cfg.currencySymbol}${v.toLocaleString()}`
-  }
-
-  return `$${v.toLocaleString()}`
+export function formatSliderValue(v: number, region: Region, language: UiLanguage = 'en'): string {
+  return formatCurrency(v, region, language)
 }

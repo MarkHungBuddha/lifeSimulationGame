@@ -43,7 +43,7 @@ export function AppThemeProvider({ children }: { children: ReactNode }) {
       ),
     },
     typography: {
-      fontFamily: '"Noto Sans TC", "Roboto", "Helvetica", "Arial", sans-serif',
+      fontFamily: '"Noto Sans SC", "Noto Sans TC", "Noto Sans JP", "Roboto", "Helvetica", "Arial", sans-serif',
     },
     shape: { borderRadius: 12 },
   }), [mode])
