@@ -7,6 +7,32 @@ import type { Region } from '../config/regions'
 import type { CountryHousingParams } from './housingTypes'
 
 export const HOUSING_PARAMS: Record<Region, CountryHousingParams> = {
+  'ph-manila': {
+    mortgageRate: 0.074,
+    closingCostRatio: 0.06,
+    annualHoldingCostRatio: 0.015,
+    appreciationMean: 0.05,
+    appreciationStd: 0.09,
+    rentToValueRatio: 0.055,
+    defaultPriceToIncomeRatio: 9,
+    priceToIncomeRange: { min: 5, max: 15, step: 1 },
+    defaultDownPaymentRatio: 0.2,
+    defaultMortgageYears: 20,
+    mortgageYearsOptions: [10, 15, 20, 25, 30],
+  },
+  'ph-cebu': {
+    mortgageRate: 0.070,
+    closingCostRatio: 0.06,
+    annualHoldingCostRatio: 0.013,
+    appreciationMean: 0.025,
+    appreciationStd: 0.08,
+    rentToValueRatio: 0.05,
+    defaultPriceToIncomeRatio: 7,
+    priceToIncomeRange: { min: 4, max: 12, step: 1 },
+    defaultDownPaymentRatio: 0.2,
+    defaultMortgageYears: 20,
+    mortgageYearsOptions: [10, 15, 20, 25, 30],
+  },
   tw: {
     // 台灣：機動利率 2.2-2.8%，取中間值
     mortgageRate: 0.025,

@@ -17,8 +17,9 @@ import { SavedRecordsDialog } from './SavedRecordsDialog'
 import { LIFESTYLE_LIST, type LifestyleId } from '../engine/lifestyle'
 import { LIFESTYLE_LIST_TW } from '../engine/lifestyle_tw'
 import { LIFESTYLE_LIST_JP } from '../engine/lifestyle_jp'
+import { getPhilippinesLifestyleList } from '../engine/lifestyle_ph'
 import type { Allocation } from '../engine/simulator'
-import { REGION_CONFIGS, formatSliderValue, formatCurrency, type Region } from '../config/regions'
+import { REGION_CONFIGS, formatSliderValue, formatCurrency, isPhilippinesRegion, type Region } from '../config/regions'
 import { EVENT_DATABASE } from '../events/eventDatabase'
 import { EVENT_DATABASE_TW } from '../events/eventDatabase_tw'
 import { EVENT_DATABASE_JP } from '../events/eventDatabase_jp'
@@ -45,8 +46,15 @@ export function Controls() {
   const [showSaveInput, setShowSaveInput] = useState(false)
   const region = store.region
   const cfg = REGION_CONFIGS[region]
-  const lifestyleList = region === 'jp' ? LIFESTYLE_LIST_JP : region === 'tw' ? LIFESTYLE_LIST_TW : LIFESTYLE_LIST
+  const lifestyleList = isPhilippinesRegion(region)
+    ? getPhilippinesLifestyleList(region)
+    : region === 'jp'
+      ? LIFESTYLE_LIST_JP
+      : region === 'tw'
+        ? LIFESTYLE_LIST_TW
+        : LIFESTYLE_LIST
   const eventCount = region === 'jp' ? EVENT_DATABASE_JP.length : region === 'tw' ? EVENT_DATABASE_TW.length : EVENT_DATABASE.length
+  const occupationSupported = !isPhilippinesRegion(region)
   const r = cfg.sliderRanges
 
   const handleAllocationChange = (key: keyof Allocation, value: number) => {
@@ -90,6 +98,12 @@ export function Controls() {
         </ToggleButton>
         <ToggleButton value="jp">
           🇯🇵 JPY
+        </ToggleButton>
+        <ToggleButton value="ph-manila">
+          Manila PHP
+        </ToggleButton>
+        <ToggleButton value="ph-cebu">
+          Cebu PHP
         </ToggleButton>
       </ToggleButtonGroup>
 
@@ -295,7 +309,8 @@ export function Controls() {
       </Typography>
       <FormControlLabel
         control={
-          <Switch checked={store.occupationEnabled}
+          <Switch checked={occupationSupported && store.occupationEnabled}
+            disabled={!occupationSupported}
             onChange={(_, v) => store.setOccupationEnabled(v)} color="info" />
         }
         label={
@@ -309,7 +324,7 @@ export function Controls() {
           </Stack>
         }
       />
-      {store.occupationEnabled && (() => {
+      {occupationSupported && store.occupationEnabled && (() => {
         const selectedOcc = OCCUPATION_MAP.get(store.occupationId)!
         return (
           <Paper variant="outlined" sx={{ p: 2, mt: 1, mb: 2 }}>

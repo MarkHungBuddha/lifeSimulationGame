@@ -6,7 +6,8 @@ import type { WorkerDoneMsg, WorkerRequest } from '../engine/worker'
 import { LIFESTYLE_PRESETS, type LifestyleId } from '../engine/lifestyle'
 import { LIFESTYLE_PRESETS_TW } from '../engine/lifestyle_tw'
 import { LIFESTYLE_PRESETS_JP } from '../engine/lifestyle_jp'
-import type { Region } from '../config/regions'
+import { getPhilippinesLifestylePresets } from '../engine/lifestyle_ph'
+import { isPhilippinesRegion, type Region } from '../config/regions'
 import type { ImmigrationPlan } from '../engine/immigrationTypes'
 import type { HousingPlan } from '../engine/housingTypes'
 import { HOUSING_PARAMS } from '../engine/housingData'
@@ -18,6 +19,7 @@ import type { HistoricalData } from '../engine/bootstrap'
 function getLifestylePresets(region: Region) {
   if (region === 'tw') return LIFESTYLE_PRESETS_TW
   if (region === 'jp') return LIFESTYLE_PRESETS_JP
+  if (isPhilippinesRegion(region)) return getPhilippinesLifestylePresets(region)
   return LIFESTYLE_PRESETS
 }
 
@@ -161,7 +163,7 @@ export const useGameStore = create<GameState>()(persist((set, get) => ({
     const presets = getLifestylePresets(r)
     const preset = presets.moderate
     const hp = HOUSING_PARAMS[r]
-    const occEnabled = get().occupationEnabled
+    const occEnabled = !isPhilippinesRegion(r) && get().occupationEnabled
     const occDefaults = occEnabled ? getOccupationDefaults(get().occupationId, r) : null
     set({
       region: r,
@@ -177,6 +179,7 @@ export const useGameStore = create<GameState>()(persist((set, get) => ({
       storyResult: null,
       immigrationEnabled: r === 'tw' ? get().immigrationEnabled : false,
       immigrationTarget: r === 'tw' ? get().immigrationTarget : null,
+      occupationEnabled: occEnabled,
       housingPriceToIncomeRatio: hp.defaultPriceToIncomeRatio,
       housingDownPaymentRatio: hp.defaultDownPaymentRatio,
       housingMortgageYears: hp.defaultMortgageYears,
@@ -217,6 +220,10 @@ export const useGameStore = create<GameState>()(persist((set, get) => ({
   setImmigrationAge: (v) => set({ immigrationAge: v }),
   setImmigrationAllocation: (a) => set({ immigrationAllocation: a }),
   setOccupationEnabled: (v) => {
+    if (isPhilippinesRegion(get().region)) {
+      set({ occupationEnabled: false })
+      return
+    }
     if (v) {
       const defaults = getOccupationDefaults(get().occupationId, get().region)
       set({
@@ -230,6 +237,10 @@ export const useGameStore = create<GameState>()(persist((set, get) => ({
     }
   },
   setOccupationId: (id) => {
+    if (isPhilippinesRegion(get().region)) {
+      set({ occupationId: id })
+      return
+    }
     const defaults = getOccupationDefaults(id, get().region)
     set({
       occupationId: id,

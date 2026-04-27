@@ -11,7 +11,9 @@ import SavingsIcon from '@mui/icons-material/Savings'
 import { useGameStore } from '../store/gameStore'
 import { LIFESTYLE_PRESETS } from '../engine/lifestyle'
 import { LIFESTYLE_PRESETS_TW } from '../engine/lifestyle_tw'
-import { formatCurrency, formatSliderValue, type Region } from '../config/regions'
+import { LIFESTYLE_PRESETS_JP } from '../engine/lifestyle_jp'
+import { getPhilippinesLifestylePresets } from '../engine/lifestyle_ph'
+import { formatCurrency, formatSliderValue, isPhilippinesRegion, type Region } from '../config/regions'
 
 export function ResultPanel() {
   const result = useGameStore(s => s.result)
@@ -22,7 +24,13 @@ export function ResultPanel() {
   const annualExpense = useGameStore(s => s.annualExpense)
   const annualContribution = useGameStore(s => s.annualContribution)
   const region = useGameStore(s => s.region)
-  const presets = region === 'tw' ? LIFESTYLE_PRESETS_TW : LIFESTYLE_PRESETS
+  const presets = isPhilippinesRegion(region)
+    ? getPhilippinesLifestylePresets(region)
+    : region === 'jp'
+      ? LIFESTYLE_PRESETS_JP
+    : region === 'tw'
+      ? LIFESTYLE_PRESETS_TW
+      : LIFESTYLE_PRESETS
   const fmt = (v: number) => formatCurrency(v, region)
   const fmtSlider = (v: number) => formatSliderValue(v, region)
 
