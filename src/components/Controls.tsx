@@ -33,6 +33,7 @@ import BarChartIcon from '@mui/icons-material/BarChart'
 import SaveIcon from '@mui/icons-material/Save'
 import FolderOpenIcon from '@mui/icons-material/FolderOpen'
 import { useI18n } from '../i18n'
+import { getLifestyleDisplay } from '../i18n/lifestyles'
 import type { UiLanguage } from '../i18n/types'
 import { EVENT_DATABASE } from '../events/eventDatabase'
 import { EVENT_DATABASE_JP } from '../events/eventDatabase_jp'
@@ -420,17 +421,22 @@ export function Controls() {
                 border: store.lifestyleId === preset.id ? '2px solid' : '1px solid',
                 borderColor: store.lifestyleId === preset.id ? 'primary.main' : 'divider',
                 transition: 'all 0.15s',
-              }}
+                }}
             >
               <CardActionArea onClick={() => store.applyLifestyle(preset.id as Exclude<LifestyleId, 'custom'>)}>
+                {(() => {
+                  const display = getLifestyleDisplay(region, preset.id as Exclude<LifestyleId, 'custom'>, language)
+                  return (
                 <CardContent sx={{ p: 1.2, '&:last-child': { pb: 1.2 } }}>
                   <Typography variant="body2" fontWeight={700} noWrap>
-                    {preset.emoji} {preset.name}
+                    {display.emoji} {display.name}
                   </Typography>
                   <Typography variant="caption" color="text.secondary" noWrap>
-                    {preset.tagline}
+                    {display.tagline}
                   </Typography>
                 </CardContent>
+                  )
+                })()}
               </CardActionArea>
             </Card>
           </Grid>
@@ -438,7 +444,7 @@ export function Controls() {
       </Grid>
       {store.lifestyleId !== 'custom' && (
         <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, lineHeight: 1.4 }}>
-          {lifestyleList.find((p) => p.id === store.lifestyleId)?.description}
+          {getLifestyleDisplay(region, store.lifestyleId as Exclude<LifestyleId, 'custom'>, language).description}
         </Typography>
       )}
       {store.lifestyleId === 'custom' && (

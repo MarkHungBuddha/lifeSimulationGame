@@ -9,6 +9,7 @@ import WarningIcon from '@mui/icons-material/Warning'
 import InsightsIcon from '@mui/icons-material/Insights'
 import SavingsIcon from '@mui/icons-material/Savings'
 import { useI18n } from '../i18n'
+import { getLifestyleDisplay } from '../i18n/lifestyles'
 import type { UiLanguage } from '../i18n/types'
 import { useGameStore } from '../store/gameStore'
 import { LIFESTYLE_PRESETS } from '../engine/lifestyle'
@@ -62,6 +63,9 @@ export function ResultPanel() {
   const lifestylePreset = lifestyleId !== 'custom'
     ? presets[lifestyleId as keyof typeof presets]
     : null
+  const lifestyleDisplay = lifestyleId !== 'custom'
+    ? getLifestyleDisplay(region, lifestyleId as Exclude<typeof lifestyleId, 'custom'>, language)
+    : null
 
   return (
     <Box sx={{ p: { xs: 2, sm: 3 } }}>
@@ -70,7 +74,7 @@ export function ResultPanel() {
           <SavingsIcon color="primary" />
           <Typography variant="subtitle1" fontWeight={700}>
             {t('result.summary_title')}
-            {lifestylePreset ? ` — ${lifestylePreset.emoji} ${lifestylePreset.name}` : ''}
+            {lifestyleDisplay ? ` — ${lifestyleDisplay.emoji} ${lifestyleDisplay.name}` : ''}
           </Typography>
         </Stack>
         <Grid container spacing={2}>
@@ -103,7 +107,7 @@ export function ResultPanel() {
             retirementAge,
             workYears: retirementAge - currentAge,
           })}
-          {lifestylePreset ? ` ・ ${lifestylePreset.description}` : ''}
+          {lifestyleDisplay ? ` ・ ${lifestyleDisplay.description}` : ''}
         </Typography>
       </Paper>
 
