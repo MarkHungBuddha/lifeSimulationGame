@@ -23,89 +23,10 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow'
 import EditIcon from '@mui/icons-material/Edit'
 import CheckIcon from '@mui/icons-material/Check'
 import CloseIcon from '@mui/icons-material/Close'
-import { useSavedRecords, type SavedRecord } from '../store/savedRecords'
-import { useGameStore } from '../store/gameStore'
 import { formatCurrency, getRegionFlag } from '../config/regions'
 import { useI18n } from '../i18n'
-import type { UiLanguage } from '../i18n/types'
-
-const COPY: Record<UiLanguage, {
-  title: string
-  emptyTitle: string
-  emptyBody: string
-  ageRange: (currentAge: number, retirementAge: number) => string
-  initialPortfolio: (value: string) => string
-  annualContribution: (value: string) => string
-  events: string
-  housing: string
-  immigration: string
-  successRate: (value: string) => string
-  medianFinal: (value: string) => string
-  apply: string
-  confirmDelete: string
-  delete: string
-  close: string
-  cancel: string
-  count: (count: number) => string
-}> = {
-  en: {
-    title: 'Saved records',
-    emptyTitle: 'No saved records yet',
-    emptyBody: 'Save a scenario from the control panel to reuse it later.',
-    ageRange: (currentAge, retirementAge) => `Age ${currentAge} -> ${retirementAge}`,
-    initialPortfolio: (value) => `Start ${value}`,
-    annualContribution: (value) => `Annual invest ${value}`,
-    events: 'Events',
-    housing: 'Housing',
-    immigration: 'Immigration',
-    successRate: (value) => `Success ${value}`,
-    medianFinal: (value) => `Median ${value}`,
-    apply: 'Load record',
-    confirmDelete: 'Delete this record',
-    delete: 'Delete',
-    close: 'Close',
-    cancel: 'Cancel',
-    count: (count) => `${count} total`,
-  },
-  zh: {
-    title: '已儲存紀錄',
-    emptyTitle: '目前沒有儲存紀錄',
-    emptyBody: '可先在控制面板儲存一組情境，之後再快速載入。',
-    ageRange: (currentAge, retirementAge) => `年齡 ${currentAge} -> ${retirementAge}`,
-    initialPortfolio: (value) => `起始 ${value}`,
-    annualContribution: (value) => `年投資 ${value}`,
-    events: '事件',
-    housing: '住房',
-    immigration: '移民',
-    successRate: (value) => `成功率 ${value}`,
-    medianFinal: (value) => `中位數 ${value}`,
-    apply: '載入紀錄',
-    confirmDelete: '刪除此紀錄',
-    delete: '刪除',
-    close: '關閉',
-    cancel: '取消',
-    count: (count) => `共 ${count} 筆`,
-  },
-  ja: {
-    title: '保存済みレコード',
-    emptyTitle: '保存済みレコードはまだありません',
-    emptyBody: 'コントロールパネルからシナリオを保存すると、あとで再利用できます。',
-    ageRange: (currentAge, retirementAge) => `年齢 ${currentAge} -> ${retirementAge}`,
-    initialPortfolio: (value) => `初期 ${value}`,
-    annualContribution: (value) => `年投資 ${value}`,
-    events: 'イベント',
-    housing: '住宅',
-    immigration: '移住',
-    successRate: (value) => `成功率 ${value}`,
-    medianFinal: (value) => `中央値 ${value}`,
-    apply: 'レコードを読み込む',
-    confirmDelete: 'このレコードを削除',
-    delete: '削除',
-    close: '閉じる',
-    cancel: 'キャンセル',
-    count: (count) => `${count} 件`,
-  },
-}
+import { useGameStore } from '../store/gameStore'
+import { useSavedRecords, type SavedRecord } from '../store/savedRecords'
 
 function formatDate(ts: number, locale: string): string {
   return new Intl.DateTimeFormat(locale, {
@@ -125,8 +46,7 @@ interface Props {
 export function SavedRecordsDialog({ open, onClose }: Props) {
   const { records, deleteRecord, renameRecord } = useSavedRecords()
   const store = useGameStore()
-  const { language, locale } = useI18n()
-  const copy = COPY[language]
+  const { language, locale, t } = useI18n()
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editName, setEditName] = useState('')
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
@@ -179,18 +99,18 @@ export function SavedRecordsDialog({ open, onClose }: Props) {
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth PaperProps={{ sx: { maxHeight: '80vh' } }}>
       <DialogTitle sx={{ pb: 1 }}>
         <Stack direction="row" justifyContent="space-between" alignItems="center">
-          <Typography variant="h6" fontWeight={700}>{copy.title}</Typography>
+          <Typography variant="h6" fontWeight={700}>{t('saved_records.title')}</Typography>
           <Typography variant="caption" color="text.secondary">
-            {copy.count(records.length)}
+            {t('saved_records.count', { count: records.length })}
           </Typography>
         </Stack>
       </DialogTitle>
       <DialogContent sx={{ px: 0, py: 0 }}>
         {records.length === 0 ? (
           <Box sx={{ py: 6, textAlign: 'center' }}>
-            <Typography color="text.secondary">{copy.emptyTitle}</Typography>
+            <Typography color="text.secondary">{t('saved_records.empty_title')}</Typography>
             <Typography variant="caption" color="text.secondary">
-              {copy.emptyBody}
+              {t('saved_records.empty_body')}
             </Typography>
           </Box>
         ) : (
@@ -237,24 +157,24 @@ export function SavedRecordsDialog({ open, onClose }: Props) {
                         </Typography>
                         <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
                           <Chip size="small" label={`${getRegionFlag(record.region)} ${record.region.toUpperCase()}`} variant="outlined" />
-                          <Chip size="small" label={copy.ageRange(record.currentAge, record.retirementAge)} variant="outlined" />
-                          <Chip size="small" label={copy.initialPortfolio(formatCurrency(record.initialPortfolio, record.region, language))} variant="outlined" />
-                          <Chip size="small" label={copy.annualContribution(formatCurrency(record.annualContribution, record.region, language))} variant="outlined" />
-                          {record.enableEvents && <Chip size="small" label={copy.events} color="warning" variant="outlined" />}
-                          {record.housingEnabled && <Chip size="small" label={copy.housing} color="success" variant="outlined" />}
-                          {record.immigrationEnabled && <Chip size="small" label={copy.immigration} color="info" variant="outlined" />}
+                          <Chip size="small" label={t('saved_records.age_range', { currentAge: record.currentAge, retirementAge: record.retirementAge })} variant="outlined" />
+                          <Chip size="small" label={t('saved_records.initial_portfolio', { value: formatCurrency(record.initialPortfolio, record.region, language) })} variant="outlined" />
+                          <Chip size="small" label={t('saved_records.annual_contribution', { value: formatCurrency(record.annualContribution, record.region, language) })} variant="outlined" />
+                          {record.enableEvents && <Chip size="small" label={t('saved_records.events')} color="warning" variant="outlined" />}
+                          {record.housingEnabled && <Chip size="small" label={t('saved_records.housing')} color="success" variant="outlined" />}
+                          {record.immigrationEnabled && <Chip size="small" label={t('saved_records.immigration')} color="info" variant="outlined" />}
                         </Stack>
                         {record.resultSummary && (
                           <Stack direction="row" spacing={0.5}>
                             <Chip
                               size="small"
-                              label={copy.successRate(`${(record.resultSummary.successRate * 100).toFixed(0)}%`)}
+                              label={t('saved_records.success_rate', { value: `${(record.resultSummary.successRate * 100).toFixed(0)}%` })}
                               color={record.resultSummary.successRate >= 0.8 ? 'success' : record.resultSummary.successRate >= 0.5 ? 'warning' : 'error'}
                               variant="filled"
                             />
                             <Chip
                               size="small"
-                              label={copy.medianFinal(formatCurrency(record.resultSummary.medianFinalPortfolio, record.region, language))}
+                              label={t('saved_records.median_final', { value: formatCurrency(record.resultSummary.medianFinalPortfolio, record.region, language) })}
                               variant="outlined"
                             />
                           </Stack>
@@ -264,26 +184,26 @@ export function SavedRecordsDialog({ open, onClose }: Props) {
                   />
                   <ListItemSecondaryAction sx={{ top: '50%' }}>
                     <Stack spacing={0.5}>
-                      <Tooltip title={copy.apply}>
+                      <Tooltip title={t('saved_records.apply')}>
                         <IconButton color="primary" onClick={() => applyRecord(record)}>
                           <PlayArrowIcon />
                         </IconButton>
                       </Tooltip>
                       {confirmDeleteId === record.id ? (
                         <Stack direction="row" spacing={0}>
-                          <Tooltip title={copy.confirmDelete}>
+                          <Tooltip title={t('saved_records.confirm_delete')}>
                             <IconButton color="error" size="small" onClick={() => { deleteRecord(record.id); setConfirmDeleteId(null) }}>
                               <CheckIcon fontSize="small" />
                             </IconButton>
                           </Tooltip>
-                          <Tooltip title={copy.cancel}>
+                          <Tooltip title={t('saved_records.cancel')}>
                             <IconButton size="small" onClick={() => setConfirmDeleteId(null)}>
                               <CloseIcon fontSize="small" />
                             </IconButton>
                           </Tooltip>
                         </Stack>
                       ) : (
-                        <Tooltip title={copy.delete}>
+                        <Tooltip title={t('saved_records.delete')}>
                           <IconButton size="small" sx={{ opacity: 0.4 }} onClick={() => setConfirmDeleteId(record.id)}>
                             <DeleteIcon fontSize="small" />
                           </IconButton>
@@ -298,7 +218,7 @@ export function SavedRecordsDialog({ open, onClose }: Props) {
         )}
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>{copy.close}</Button>
+        <Button onClick={onClose}>{t('saved_records.close')}</Button>
       </DialogActions>
     </Dialog>
   )

@@ -152,7 +152,7 @@ const REGION_NAME_MAP: Record<UiLanguage, Record<Region, string>> = {
     'ph-manila': 'Manila',
     'ph-cebu': 'Cebu',
   },
-  zh: {
+  'zh-Hant': {
     us: '美國',
     tw: '台灣',
     jp: '日本',
@@ -184,7 +184,7 @@ const ASSET_LABEL_MAP: Record<UiLanguage, Record<Region, Record<keyof Allocation
     'ph-manila': REGION_CONFIGS['ph-manila'].assetLabels,
     'ph-cebu': REGION_CONFIGS['ph-cebu'].assetLabels,
   },
-  zh: {
+  'zh-Hant': {
     us: {
       sp500: 'S&P 500',
       intlStock: '國際股票',
@@ -272,12 +272,12 @@ const ASSET_LABEL_MAP: Record<UiLanguage, Record<Region, Record<keyof Allocation
 
 const NUMBER_LOCALE_MAP: Record<UiLanguage, string> = {
   en: 'en-US',
-  zh: 'zh-CN',
+  'zh-Hant': 'zh-TW',
   ja: 'ja-JP',
 }
 
 function getCompactUnit(language: UiLanguage, large: 'tenThousand' | 'hundredMillion'): string {
-  if (language === 'zh') return large === 'hundredMillion' ? '億' : '萬'
+  if (language === 'zh-Hant') return large === 'hundredMillion' ? '億' : '萬'
   if (language === 'ja') return large === 'hundredMillion' ? '億' : '万'
   return large === 'hundredMillion' ? 'B' : 'K'
 }

@@ -21,36 +21,13 @@ import { Controls } from './components/Controls'
 import { ResultPanel } from './components/ResultPanel'
 import { StoryPanel } from './components/StoryPanel'
 import { useColorMode } from './ThemeContext'
-import { useGameStore } from './store/gameStore'
 import { useI18n } from './i18n'
 import type { UiLanguage } from './i18n/types'
+import { useGameStore } from './store/gameStore'
 
 const DRAWER_WIDTH = 380
 const DRAWER_WIDTH_MOBILE = 320
-
-const COPY: Record<UiLanguage, { title: string; subtitle: string; language: string }> = {
-  en: {
-    title: 'Life Simulation Game',
-    subtitle: 'Block Bootstrap Retirement Simulator',
-    language: 'Language',
-  },
-  zh: {
-    title: '人生模擬遊戲',
-    subtitle: '區塊自助法退休模擬器',
-    language: '語言',
-  },
-  ja: {
-    title: 'ライフシミュレーションゲーム',
-    subtitle: 'ブロック・ブートストラップ退職シミュレーター',
-    language: '言語',
-  },
-}
-
-const LANGUAGE_LABELS: Record<UiLanguage, string> = {
-  en: 'English',
-  zh: '中文',
-  ja: '日本語',
-}
+const LANGUAGE_OPTIONS: UiLanguage[] = ['en', 'zh-Hant', 'ja']
 
 export function App() {
   const theme = useTheme()
@@ -59,8 +36,7 @@ export function App() {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const viewMode = useGameStore((s) => s.viewMode)
   const { mode, toggle: toggleColorMode } = useColorMode()
-  const { language, setLanguage } = useI18n()
-  const copy = COPY[language]
+  const { language, setLanguage, t } = useI18n()
 
   const drawerW = isMobile ? DRAWER_WIDTH_MOBILE : DRAWER_WIDTH
 
@@ -81,21 +57,21 @@ export function App() {
           )}
           <CasinoIcon sx={{ mr: 0.5 }} />
           <Typography variant="h6" noWrap sx={{ flexGrow: 1, fontWeight: 700, fontSize: { xs: 16, sm: 20 } }}>
-            {copy.title}
+            {t('app.title')}
           </Typography>
           {!isSmall && (
             <Typography variant="caption" sx={{ opacity: 0.7 }}>
-              {copy.subtitle}
+              {t('app.subtitle')}
             </Typography>
           )}
-          <FormControl size="small" sx={{ minWidth: { xs: 96, sm: 118 } }}>
+          <FormControl size="small" sx={{ minWidth: { xs: 96, sm: 132 } }}>
             <InputLabel id="language-select-label" sx={{ color: 'inherit' }}>
-              {copy.language}
+              {t('app.language')}
             </InputLabel>
             <Select
               labelId="language-select-label"
               value={language}
-              label={copy.language}
+              label={t('app.language')}
               onChange={(e) => setLanguage(e.target.value as UiLanguage)}
               sx={{
                 color: 'inherit',
@@ -103,9 +79,11 @@ export function App() {
                 '& .MuiSvgIcon-root': { color: 'inherit' },
               }}
             >
-              <MenuItem value="en">{LANGUAGE_LABELS.en}</MenuItem>
-              <MenuItem value="zh">{LANGUAGE_LABELS.zh}</MenuItem>
-              <MenuItem value="ja">{LANGUAGE_LABELS.ja}</MenuItem>
+              {LANGUAGE_OPTIONS.map((option) => (
+                <MenuItem key={option} value={option}>
+                  {t(`language_name.${option}`)}
+                </MenuItem>
+              ))}
             </Select>
           </FormControl>
           <IconButton color="inherit" onClick={toggleColorMode} sx={{ ml: 0.5 }}>
