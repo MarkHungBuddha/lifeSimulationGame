@@ -8,6 +8,9 @@ import AccountBalanceIcon from '@mui/icons-material/AccountBalance'
 import WarningIcon from '@mui/icons-material/Warning'
 import InsightsIcon from '@mui/icons-material/Insights'
 import SavingsIcon from '@mui/icons-material/Savings'
+import { useI18n } from '../i18n'
+import { getLifestyleDisplay } from '../i18n/lifestyles'
+import type { UiLanguage } from '../i18n/types'
 import { useGameStore } from '../store/gameStore'
 import { LIFESTYLE_PRESETS } from '../engine/lifestyle'
 import { LIFESTYLE_PRESETS_TW } from '../engine/lifestyle_tw'
@@ -15,24 +18,29 @@ import { LIFESTYLE_PRESETS_JP } from '../engine/lifestyle_jp'
 import { getPhilippinesLifestylePresets } from '../engine/lifestyle_ph'
 import { formatCurrency, formatSliderValue, isPhilippinesRegion, type Region } from '../config/regions'
 
+type TranslateFn = (key: string, params?: Record<string, string | number>) => string
+
 export function ResultPanel() {
-  const result = useGameStore(s => s.result)
-  const currentAge = useGameStore(s => s.currentAge)
-  const retirementAge = useGameStore(s => s.retirementAge)
-  const lifestyleId = useGameStore(s => s.lifestyleId)
-  const annualIncome = useGameStore(s => s.annualIncome)
-  const annualExpense = useGameStore(s => s.annualExpense)
-  const annualContribution = useGameStore(s => s.annualContribution)
-  const region = useGameStore(s => s.region)
+  const result = useGameStore((s) => s.result)
+  const currentAge = useGameStore((s) => s.currentAge)
+  const retirementAge = useGameStore((s) => s.retirementAge)
+  const lifestyleId = useGameStore((s) => s.lifestyleId)
+  const annualIncome = useGameStore((s) => s.annualIncome)
+  const annualExpense = useGameStore((s) => s.annualExpense)
+  const annualContribution = useGameStore((s) => s.annualContribution)
+  const region = useGameStore((s) => s.region)
+  const { language, locale, t } = useI18n()
+
   const presets = isPhilippinesRegion(region)
     ? getPhilippinesLifestylePresets(region)
     : region === 'jp'
       ? LIFESTYLE_PRESETS_JP
-    : region === 'tw'
-      ? LIFESTYLE_PRESETS_TW
-      : LIFESTYLE_PRESETS
-  const fmt = (v: number) => formatCurrency(v, region)
-  const fmtSlider = (v: number) => formatSliderValue(v, region)
+      : region === 'tw'
+        ? LIFESTYLE_PRESETS_TW
+        : LIFESTYLE_PRESETS
+
+  const fmt = (v: number) => formatCurrency(v, region, language)
+  const fmtSlider = (v: number) => formatSliderValue(v, region, language)
 
   if (!result) {
     return (
@@ -41,9 +49,9 @@ export function ResultPanel() {
         justifyContent: 'center', height: '80vh', color: 'text.disabled',
       }}>
         <InsightsIcon sx={{ fontSize: 80, mb: 2, opacity: 0.3 }} />
-        <Typography variant="h5">調整左側參數後按「執行模擬」</Typography>
+        <Typography variant="h5">{t('result.empty_title')}</Typography>
         <Typography variant="body2" sx={{ mt: 1 }}>
-          將以 Block Bootstrap 重抽樣歷史資料進行蒙地卡羅模擬
+          {t('result.empty_body')}
         </Typography>
       </Box>
     )
@@ -52,54 +60,57 @@ export function ResultPanel() {
   const rate = result.successRate
   const rateColor = rate >= 0.8 ? 'success' : rate >= 0.5 ? 'warning' : 'error'
   const rateHex = rate >= 0.8 ? '#2e7d32' : rate >= 0.5 ? '#ed6c02' : '#d32f2f'
+  const lifestylePreset = lifestyleId !== 'custom'
+    ? presets[lifestyleId as keyof typeof presets]
+    : null
+  const lifestyleDisplay = lifestyleId !== 'custom'
+    ? getLifestyleDisplay(region, lifestyleId as Exclude<typeof lifestyleId, 'custom'>, language)
+    : null
 
   return (
     <Box sx={{ p: { xs: 2, sm: 3 } }}>
-      {/* 生活風格摘要 */}
       <Paper variant="outlined" sx={{ p: { xs: 1.5, sm: 2 }, mb: 2 }}>
         <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
           <SavingsIcon color="primary" />
           <Typography variant="subtitle1" fontWeight={700}>
-            生活風格摘要
-            {lifestyleId !== 'custom' && (() => {
-              const preset = presets[lifestyleId as keyof typeof presets]
-              return preset ? ` — ${preset.emoji} ${preset.name}` : ''
-            })()}
+            {t('result.summary_title')}
+            {lifestyleDisplay ? ` — ${lifestyleDisplay.emoji} ${lifestyleDisplay.name}` : ''}
           </Typography>
         </Stack>
         <Grid container spacing={2}>
           <Grid size={{ xs: 6, sm: 3 }}>
-            <Typography variant="caption" color="text.secondary">年收入</Typography>
+            <Typography variant="caption" color="text.secondary">{t('result.annual_income')}</Typography>
             <Typography variant="body1" fontWeight={700}>{fmtSlider(annualIncome)}</Typography>
           </Grid>
           <Grid size={{ xs: 6, sm: 3 }}>
-            <Typography variant="caption" color="text.secondary">年開銷</Typography>
+            <Typography variant="caption" color="text.secondary">{t('result.annual_expense')}</Typography>
             <Typography variant="body1" fontWeight={700}>{fmtSlider(annualExpense)}</Typography>
           </Grid>
           <Grid size={{ xs: 6, sm: 3 }}>
-            <Typography variant="caption" color="text.secondary">年投資</Typography>
+            <Typography variant="caption" color="text.secondary">{t('result.annual_contribution')}</Typography>
             <Typography variant="body1" fontWeight={700}>{fmtSlider(annualContribution)}</Typography>
           </Grid>
           <Grid size={{ xs: 6, sm: 3 }}>
-            <Typography variant="caption" color="text.secondary">儲蓄率</Typography>
-            <Typography variant="body1" fontWeight={700}
-              color={annualIncome > 0 && annualContribution / annualIncome >= 0.3 ? 'success.main' : 'text.primary'}>
+            <Typography variant="caption" color="text.secondary">{t('result.savings_rate')}</Typography>
+            <Typography
+              variant="body1"
+              fontWeight={700}
+              color={annualIncome > 0 && annualContribution / annualIncome >= 0.3 ? 'success.main' : 'text.primary'}
+            >
               {annualIncome > 0 ? `${(annualContribution / annualIncome * 100).toFixed(0)}%` : '—'}
             </Typography>
           </Grid>
         </Grid>
         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-          月開銷 {fmtSlider(Math.round(annualExpense / 12))} ・
-          退休年齡 {retirementAge} 歲 ・
-          工作年數 {retirementAge - currentAge} 年
-          {lifestyleId !== 'custom' && (() => {
-            const preset = presets[lifestyleId as keyof typeof presets]
-            return preset ? ` ・ ${preset.description}` : ''
-          })()}
+          {t('result.summary_line', {
+            monthlyExpense: fmtSlider(Math.round(annualExpense / 12)),
+            retirementAge,
+            workYears: retirementAge - currentAge,
+          })}
+          {lifestyleDisplay ? ` ・ ${lifestyleDisplay.description}` : ''}
         </Typography>
       </Paper>
 
-      {/* 成功率 Hero */}
       <Paper elevation={2} sx={{
         p: { xs: 2.5, sm: 4 }, mb: { xs: 2, sm: 3 }, textAlign: 'center',
         background: `linear-gradient(135deg, ${rateHex}11, ${rateHex}08)`,
@@ -112,94 +123,93 @@ export function ResultPanel() {
           {(rate * 100).toFixed(1)}%
         </Typography>
         <Stack direction="row" spacing={1} justifyContent="center" sx={{ mt: 1.5 }} flexWrap="wrap" useFlexGap>
-          <Chip icon={<TrendingUpIcon />} label="退休存活率" color={rateColor} variant="outlined" />
-          <Chip label={`${result.numPaths.toLocaleString()} 條路徑`} variant="outlined" size="small" />
+          <Chip icon={<TrendingUpIcon />} label={t('result.hero_label')} color={rateColor} variant="outlined" />
+          <Chip label={t('result.paths', { count: result.numPaths.toLocaleString(locale) })} variant="outlined" size="small" />
         </Stack>
       </Paper>
 
-      {/* 統計卡片 */}
       <Grid container spacing={{ xs: 1, sm: 2 }} sx={{ mb: { xs: 2, sm: 3 } }}>
         <Grid size={{ xs: 6, sm: 6, md: 3 }}>
-          <StatCard icon={<AccountBalanceIcon />} label="中位最終資產"
+          <StatCard icon={<AccountBalanceIcon />} label={t('result.median_final_portfolio')}
             value={fmt(result.medianFinalPortfolio)} color="#1565c0" />
         </Grid>
         <Grid size={{ xs: 6, sm: 6, md: 3 }}>
-          <StatCard icon={<WarningIcon />} label="中位破產年齡"
-            value={result.medianDepletionAge ? `${result.medianDepletionAge.toFixed(0)} 歲` : '未破產'}
-            color={result.medianDepletionAge ? '#d32f2f' : '#2e7d32'} />
+          <StatCard
+            icon={<WarningIcon />}
+            label={t('result.median_depletion_age')}
+            value={result.medianDepletionAge ? t('result.age_suffix', { age: result.medianDepletionAge.toFixed(0) }) : t('result.not_depleted')}
+            color={result.medianDepletionAge ? '#d32f2f' : '#2e7d32'}
+          />
         </Grid>
         <Grid size={{ xs: 6, sm: 6, md: 3 }}>
-          <StatCard icon={<TrendingUpIcon />} label="P90 最終資產"
-            value={fmt(result.percentiles.p90[result.percentiles.p90.length - 1])}
-            color="#1565c0" />
+          <StatCard icon={<TrendingUpIcon />} label={t('result.p90_final_portfolio')}
+            value={fmt(result.percentiles.p90[result.percentiles.p90.length - 1])} color="#1565c0" />
         </Grid>
         <Grid size={{ xs: 6, sm: 6, md: 3 }}>
-          <StatCard icon={<TrendingUpIcon />} label="P10 最終資產"
-            value={fmt(result.percentiles.p10[result.percentiles.p10.length - 1])}
-            color="#e65100" />
+          <StatCard icon={<TrendingUpIcon />} label={t('result.p10_final_portfolio')}
+            value={fmt(result.percentiles.p10[result.percentiles.p10.length - 1])} color="#e65100" />
         </Grid>
       </Grid>
 
-      {/* 最大跌幅卡片 */}
       <Paper elevation={1} sx={{ p: { xs: 1.5, sm: 2 }, mb: { xs: 2, sm: 3 } }}>
         <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 1 }}>
-          最大跌幅（Max Drawdown）
+          {t('result.drawdown_title')}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5, display: { xs: 'none', sm: 'block' } }}>
-          模擬期間內，資產從高峰到低谷的最大跌幅百分比
+          {t('result.drawdown_body')}
         </Typography>
         <Grid container spacing={{ xs: 1, sm: 2 }}>
           <Grid size={{ xs: 6, sm: 3 }}>
-            <StatCard icon={<TrendingDownIcon />} label="中位跌幅"
-              value={`-${(result.maxDrawdown.median * 100).toFixed(1)}%`}
-              color={result.maxDrawdown.median > 0.3 ? '#d32f2f' : '#e65100'} />
+            <StatCard icon={<TrendingDownIcon />} label={t('result.drawdown_median')}
+              value={`-${(result.maxDrawdown.median * 100).toFixed(1)}%`} color={result.maxDrawdown.median > 0.3 ? '#d32f2f' : '#e65100'} />
           </Grid>
           <Grid size={{ xs: 6, sm: 3 }}>
-            <StatCard icon={<TrendingDownIcon />} label="P75 跌幅"
-              value={`-${(result.maxDrawdown.p75 * 100).toFixed(1)}%`}
-              color={result.maxDrawdown.p75 > 0.4 ? '#d32f2f' : '#e65100'} />
+            <StatCard icon={<TrendingDownIcon />} label={t('result.drawdown_p75')}
+              value={`-${(result.maxDrawdown.p75 * 100).toFixed(1)}%`} color={result.maxDrawdown.p75 > 0.4 ? '#d32f2f' : '#e65100'} />
           </Grid>
           <Grid size={{ xs: 6, sm: 3 }}>
-            <StatCard icon={<TrendingDownIcon />} label="P90 跌幅"
-              value={`-${(result.maxDrawdown.p90 * 100).toFixed(1)}%`}
-              color="#d32f2f" />
+            <StatCard icon={<TrendingDownIcon />} label={t('result.drawdown_p90')}
+              value={`-${(result.maxDrawdown.p90 * 100).toFixed(1)}%`} color="#d32f2f" />
           </Grid>
           <Grid size={{ xs: 6, sm: 3 }}>
-            <StatCard icon={<TrendingDownIcon />} label="最大跌幅"
-              value={`-${(result.maxDrawdown.worst * 100).toFixed(1)}%`}
-              color="#b71c1c" />
+            <StatCard icon={<TrendingDownIcon />} label={t('result.drawdown_worst')}
+              value={`-${(result.maxDrawdown.worst * 100).toFixed(1)}%`} color="#b71c1c" />
           </Grid>
         </Grid>
       </Paper>
 
-      {/* Percentile Band Chart */}
       <Paper elevation={1} sx={{ p: { xs: 1.5, sm: 2 }, mb: { xs: 2, sm: 3 } }}>
         <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 1 }}>
-          資產走勢 — Percentile Band Chart
+          {t('result.chart_title')}
         </Typography>
         <Box sx={{ overflowX: 'auto', mx: { xs: -0.5, sm: 0 } }}>
           <Box sx={{ minWidth: 480 }}>
-            <PercentileChart percentiles={result.percentiles}
-              currentAge={currentAge} retirementAge={retirementAge} region={region} />
+            <PercentileChart
+              percentiles={result.percentiles}
+              currentAge={currentAge}
+              retirementAge={retirementAge}
+              region={region}
+              language={language}
+              t={t}
+            />
           </Box>
         </Box>
         <Stack direction="row" spacing={2} sx={{ mt: 1.5, justifyContent: 'center' }} flexWrap="wrap" useFlexGap>
-          <Legend color="rgba(21,101,192,0.12)" label="P10 – P90" />
-          <Legend color="rgba(21,101,192,0.28)" label="P25 – P75" />
-          <Legend color="#1565c0" label="P50 中位數" line />
+          <Legend color="rgba(21,101,192,0.12)" label={t('result.legend_p10_p90')} />
+          <Legend color="rgba(21,101,192,0.28)" label={t('result.legend_p25_p75')} />
+          <Legend color="#1565c0" label={t('result.legend_p50')} line />
         </Stack>
       </Paper>
 
-      {/* Percentile 表格 */}
       <Paper elevation={1} sx={{ p: { xs: 1, sm: 2 } }}>
         <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 1 }}>
-          各年百分位資產值
+          {t('result.table_title')}
         </Typography>
         <TableContainer sx={{ maxHeight: { xs: 400, sm: 'none' } }}>
           <Table size="small" sx={{ '& .MuiTableCell-root': { px: { xs: 0.5, sm: 2 }, whiteSpace: 'nowrap', fontSize: { xs: 12, sm: 14 } } }}>
             <TableHead>
               <TableRow>
-                <TableCell>年齡</TableCell>
+                <TableCell>{t('result.age')}</TableCell>
                 <TableCell align="right" sx={{ color: '#d32f2f' }}>P10</TableCell>
                 <TableCell align="right" sx={{ color: '#e65100' }}>P25</TableCell>
                 <TableCell align="right" sx={{ fontWeight: 700 }}>P50</TableCell>
@@ -208,7 +218,7 @@ export function ResultPanel() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {getTableRows(result.percentiles.p50.length).map(i => (
+              {getTableRows(result.percentiles.p50.length).map((i) => (
                 <TableRow key={i} hover
                   sx={currentAge + i === retirementAge ? {
                     bgcolor: 'action.hover', borderLeft: '3px solid', borderColor: 'primary.main',
@@ -216,7 +226,7 @@ export function ResultPanel() {
                   <TableCell>
                     {currentAge + i}
                     {currentAge + i === retirementAge && (
-                      <Chip label="退休" size="small" color="primary" sx={{ ml: 0.5, height: 20, fontSize: 11 }} />
+                      <Chip label={t('result.retirement')} size="small" color="primary" sx={{ ml: 0.5, height: 20, fontSize: 11 }} />
                     )}
                   </TableCell>
                   <TableCell align="right" sx={{ color: '#d32f2f' }}>
@@ -244,9 +254,11 @@ export function ResultPanel() {
   )
 }
 
-/** 統計卡片 */
 function StatCard({ icon, label, value, color }: {
-  icon: React.ReactNode; label: string; value: string; color: string
+  icon: React.ReactNode
+  label: string
+  value: string
+  color: string
 }) {
   return (
     <Paper variant="outlined" sx={{ p: { xs: 1.5, sm: 2 }, textAlign: 'center' }}>
@@ -257,7 +269,6 @@ function StatCard({ icon, label, value, color }: {
   )
 }
 
-/** 圖例 */
 function Legend({ color, label, line }: { color: string; label: string; line?: boolean }) {
   return (
     <Stack direction="row" spacing={0.5} alignItems="center">
@@ -271,12 +282,6 @@ function Legend({ color, label, line }: { color: string; label: string; line?: b
   )
 }
 
-function formatMoney(n: number): string {
-  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M'
-  if (n >= 1_000) return (n / 1_000).toFixed(0) + 'K'
-  return n.toFixed(0)
-}
-
 function getTableRows(totalYears: number): number[] {
   const rows: number[] = []
   for (let i = 0; i < totalYears; i += 5) rows.push(i)
@@ -284,12 +289,13 @@ function getTableRows(totalYears: number): number[] {
   return rows
 }
 
-/** Canvas Percentile Band Chart with MUI theme colors */
-function PercentileChart({ percentiles, currentAge, retirementAge, region }: {
+function PercentileChart({ percentiles, currentAge, retirementAge, region, language, t }: {
   percentiles: { p10: number[]; p25: number[]; p50: number[]; p75: number[]; p90: number[] }
   currentAge: number
   retirementAge: number
   region: Region
+  language: UiLanguage
+  t: TranslateFn
 }) {
   const theme = useTheme()
   const primary = theme.palette.primary.main
@@ -307,7 +313,7 @@ function PercentileChart({ percentiles, currentAge, retirementAge, region }: {
     canvas.width = W * dpr
     canvas.height = H * dpr
     canvas.style.width = '100%'
-    canvas.style.maxWidth = W + 'px'
+    canvas.style.maxWidth = `${W}px`
     canvas.style.height = 'auto'
 
     const ctx = canvas.getContext('2d')!
@@ -324,7 +330,6 @@ function PercentileChart({ percentiles, currentAge, retirementAge, region }: {
     const x = (i: number) => pad.left + (i / (years - 1)) * plotW
     const y = (v: number) => pad.top + plotH - (Math.max(v, 0) / maxVal) * plotH
 
-    // Grid lines
     ctx.strokeStyle = gridColor
     ctx.lineWidth = 0.5
     for (let s = 1; s <= 5; s++) {
@@ -335,7 +340,6 @@ function PercentileChart({ percentiles, currentAge, retirementAge, region }: {
       ctx.stroke()
     }
 
-    // P10-P90 band
     ctx.fillStyle = `${primary}1F`
     ctx.beginPath()
     for (let i = 0; i < years; i++) ctx.lineTo(x(i), y(percentiles.p90[i]))
@@ -343,7 +347,6 @@ function PercentileChart({ percentiles, currentAge, retirementAge, region }: {
     ctx.closePath()
     ctx.fill()
 
-    // P25-P75 band
     ctx.fillStyle = `${primary}47`
     ctx.beginPath()
     for (let i = 0; i < years; i++) ctx.lineTo(x(i), y(percentiles.p75[i]))
@@ -351,7 +354,6 @@ function PercentileChart({ percentiles, currentAge, retirementAge, region }: {
     ctx.closePath()
     ctx.fill()
 
-    // P50 line
     ctx.strokeStyle = primary
     ctx.lineWidth = 2.5
     ctx.lineJoin = 'round'
@@ -362,7 +364,6 @@ function PercentileChart({ percentiles, currentAge, retirementAge, region }: {
     }
     ctx.stroke()
 
-    // Retirement vertical line
     const retireYear = retirementAge - currentAge
     if (retireYear > 0 && retireYear < years) {
       ctx.strokeStyle = '#ff980088'
@@ -377,10 +378,9 @@ function PercentileChart({ percentiles, currentAge, retirementAge, region }: {
       ctx.fillStyle = '#ff9800'
       ctx.font = '12px "Noto Sans TC", sans-serif'
       ctx.textAlign = 'center'
-      ctx.fillText('退休', x(retireYear), pad.top - 6)
+      ctx.fillText(t('result.retirement'), x(retireYear), pad.top - 6)
     }
 
-    // Zero line
     ctx.strokeStyle = '#ef535088'
     ctx.lineWidth = 1
     ctx.setLineDash([4, 4])
@@ -390,7 +390,6 @@ function PercentileChart({ percentiles, currentAge, retirementAge, region }: {
     ctx.stroke()
     ctx.setLineDash([])
 
-    // Axes
     ctx.strokeStyle = axisColor
     ctx.lineWidth = 1
     ctx.beginPath()
@@ -399,7 +398,6 @@ function PercentileChart({ percentiles, currentAge, retirementAge, region }: {
     ctx.lineTo(W - pad.right, pad.top + plotH)
     ctx.stroke()
 
-    // X labels
     ctx.fillStyle = labelColor
     ctx.font = '12px "Noto Sans TC", sans-serif'
     ctx.textAlign = 'center'
@@ -408,13 +406,12 @@ function PercentileChart({ percentiles, currentAge, retirementAge, region }: {
       ctx.fillText(`${currentAge + i}`, x(i), H - 14)
     }
     ctx.fillText(`${currentAge + years - 1}`, x(years - 1), H - 14)
-    ctx.fillText('年齡', pad.left + plotW / 2, H - 0)
+    ctx.fillText(t('result.age'), pad.left + plotW / 2, H)
 
-    // Y labels
     ctx.textAlign = 'right'
     for (let s = 0; s <= 5; s++) {
       const val = (maxVal / 5) * s
-      ctx.fillText(formatCurrency(val, region), pad.left - 8, y(val) + 4)
+      ctx.fillText(formatCurrency(val, region, language), pad.left - 8, y(val) + 4)
     }
   }
 
