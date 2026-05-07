@@ -1,6 +1,5 @@
 import {
   Box,
-  Chip,
   Divider,
   Grid,
   Paper,
@@ -31,6 +30,10 @@ const TERM_KEYS = [
   'drawdown',
   'allocation',
   'withdrawal',
+  'four_percent_rule',
+  'depletion_age',
+  'savings_rate',
+  'annual_contribution',
 ] as const
 
 export function GuidePanel({ mode }: { mode: GuideMode }) {
@@ -63,7 +66,6 @@ export function GuidePanel({ mode }: { mode: GuideMode }) {
               <Typography variant="h5" fontWeight={800}>
                 {t(`guide.${mode}.title`)}
               </Typography>
-              <Chip size="small" label={t(`guide.device.${device}`)} color="primary" variant="outlined" />
             </Stack>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 0.75, maxWidth: 820 }}>
               {t(`guide.${mode}.body`)}
@@ -115,7 +117,7 @@ export function GuidePanel({ mode }: { mode: GuideMode }) {
         </Stack>
         <Grid container spacing={1.25}>
           {TERM_KEYS.map((term) => (
-            <Grid key={term} size={{ xs: 12, sm: 6, lg: term === 'block_bootstrap' ? 6 : 3 }}>
+            <Grid key={term} size={{ xs: 12, sm: 6, lg: ['block_bootstrap', 'monte_carlo'].includes(term) ? 6 : 3 }}>
               <Box sx={{ height: '100%', p: 1.25, borderLeft: '3px solid', borderColor: 'primary.main', bgcolor: 'action.hover' }}>
                 <Stack direction="row" spacing={0.75} alignItems="center">
                   {term === 'survival_rate' && <PercentIcon color="primary" fontSize="small" />}
