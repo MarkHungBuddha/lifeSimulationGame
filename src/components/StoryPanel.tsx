@@ -8,7 +8,6 @@ import {
 } from '@mui/lab'
 import TrendingUpIcon from '@mui/icons-material/TrendingUp'
 import TrendingDownIcon from '@mui/icons-material/TrendingDown'
-import AutoStoriesIcon from '@mui/icons-material/AutoStories'
 import CakeIcon from '@mui/icons-material/Cake'
 import HomeIcon from '@mui/icons-material/Home'
 import type { EventCategory } from '../events/eventTypes'
@@ -18,6 +17,7 @@ import type { UiLanguage } from '../i18n/types'
 import { useGameStore } from '../store/gameStore'
 import { formatCurrency, formatCurrencySigned, getRegionLabel, type Region } from '../config/regions'
 import { OCCUPATION_MAP } from '../engine/occupationData'
+import { GuidePanel } from './GuidePanel'
 
 type TranslateFn = (key: string, params?: Record<string, string | number>) => string
 
@@ -74,18 +74,7 @@ export function StoryPanel() {
   const fmtM = (n: number) => formatCurrencySigned(n, region, language)
 
   if (!storyResult) {
-    return (
-      <Box sx={{
-        display: 'flex', flexDirection: 'column', alignItems: 'center',
-        justifyContent: 'center', height: '80vh', color: 'text.disabled',
-      }}>
-        <AutoStoriesIcon sx={{ fontSize: 80, mb: 2, opacity: 0.3 }} />
-        <Typography variant="h5">{t('story.empty_title')}</Typography>
-        <Typography variant="body2" sx={{ mt: 1 }}>
-          {t('story.empty_body')}
-        </Typography>
-      </Box>
-    )
+    return <GuidePanel mode="story" />
   }
 
   const { snapshots, bankrupt, bankruptAge, finalPortfolio, allEvents } = storyResult

@@ -6,7 +6,6 @@ import TrendingUpIcon from '@mui/icons-material/TrendingUp'
 import TrendingDownIcon from '@mui/icons-material/TrendingDown'
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance'
 import WarningIcon from '@mui/icons-material/Warning'
-import InsightsIcon from '@mui/icons-material/Insights'
 import SavingsIcon from '@mui/icons-material/Savings'
 import { useI18n } from '../i18n'
 import { getLifestyleDisplay } from '../i18n/lifestyles'
@@ -17,6 +16,7 @@ import { LIFESTYLE_PRESETS_TW } from '../engine/lifestyle_tw'
 import { LIFESTYLE_PRESETS_JP } from '../engine/lifestyle_jp'
 import { getPhilippinesLifestylePresets } from '../engine/lifestyle_ph'
 import { formatCurrency, formatSliderValue, isPhilippinesRegion, type Region } from '../config/regions'
+import { GuidePanel } from './GuidePanel'
 
 type TranslateFn = (key: string, params?: Record<string, string | number>) => string
 
@@ -43,18 +43,7 @@ export function ResultPanel() {
   const fmtSlider = (v: number) => formatSliderValue(v, region, language)
 
   if (!result) {
-    return (
-      <Box sx={{
-        display: 'flex', flexDirection: 'column', alignItems: 'center',
-        justifyContent: 'center', height: '80vh', color: 'text.disabled',
-      }}>
-        <InsightsIcon sx={{ fontSize: 80, mb: 2, opacity: 0.3 }} />
-        <Typography variant="h5">{t('result.empty_title')}</Typography>
-        <Typography variant="body2" sx={{ mt: 1 }}>
-          {t('result.empty_body')}
-        </Typography>
-      </Box>
-    )
+    return <GuidePanel mode="simulation" />
   }
 
   const rate = result.successRate
