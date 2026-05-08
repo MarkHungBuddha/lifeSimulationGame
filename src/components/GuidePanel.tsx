@@ -1,50 +1,34 @@
 import {
   Box,
   Divider,
-  Grid,
   Paper,
   Stack,
   Typography,
-  useMediaQuery,
-  useTheme,
 } from '@mui/material'
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance'
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import AutoStoriesIcon from '@mui/icons-material/AutoStories'
 import BarChartIcon from '@mui/icons-material/BarChart'
-import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
+import FactCheckIcon from '@mui/icons-material/FactCheck'
 import InsightsIcon from '@mui/icons-material/Insights'
-import MenuOpenIcon from '@mui/icons-material/MenuOpen'
-import PercentIcon from '@mui/icons-material/Percent'
-import PlayCircleIcon from '@mui/icons-material/PlayCircle'
-import TimelineIcon from '@mui/icons-material/Timeline'
 import TuneIcon from '@mui/icons-material/Tune'
 import { useI18n } from '../i18n'
 
 type GuideMode = 'simulation' | 'story'
 
-const TERM_KEYS = [
-  'survival_rate',
-  'monte_carlo',
-  'block_bootstrap',
-  'percentile',
-  'drawdown',
-  'allocation',
-  'withdrawal',
-  'four_percent_rule',
-  'depletion_age',
-  'savings_rate',
-  'annual_contribution',
-] as const
+const FLOW_KEYS = ['setup', 'assumptions', 'optional_modules', 'run', 'review'] as const
 
 export function GuidePanel({ mode }: { mode: GuideMode }) {
-  const theme = useTheme()
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'))
   const { t } = useI18n()
-  const device = isMobile ? 'mobile' : 'desktop'
 
-  const stepIcons = isMobile
-    ? [<MenuOpenIcon />, <TuneIcon />, mode === 'simulation' ? <BarChartIcon /> : <AutoStoriesIcon />, <PlayCircleIcon />]
-    : [<TuneIcon />, <AccountBalanceIcon />, mode === 'simulation' ? <BarChartIcon /> : <AutoStoriesIcon />, <PlayCircleIcon />]
+  const flowIcons = [
+    <TuneIcon />,
+    <FactCheckIcon />,
+    <AccountBalanceIcon />,
+    <BarChartIcon />,
+    mode === 'simulation' ? <CheckCircleOutlineIcon /> : <AutoStoriesIcon />,
+  ]
 
   return (
     <Box sx={{ p: { xs: 2, sm: 3 }, maxWidth: 1180, mx: 'auto' }}>
@@ -76,64 +60,80 @@ export function GuidePanel({ mode }: { mode: GuideMode }) {
         <Divider sx={{ my: { xs: 2, sm: 2.5 } }} />
 
         <Typography variant="subtitle1" fontWeight={800} sx={{ mb: 1.5 }}>
-          {t('guide.steps.title')}
+          {t('guide.flow.title')}
         </Typography>
-        <Grid container spacing={1.5}>
-          {[1, 2, 3, 4].map((step, index) => (
-            <Grid key={step} size={{ xs: 12, sm: 6, lg: 3 }}>
-              <Box
-                sx={{
-                  height: '100%',
-                  p: 1.5,
-                  borderRadius: 1.5,
-                  border: '1px solid',
-                  borderColor: 'divider',
-                  bgcolor: 'background.default',
-                }}
-              >
-                <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.75 }}>
-                  <Box sx={{ color: 'primary.main', display: 'flex', '& .MuiSvgIcon-root': { fontSize: 22 } }}>
-                    {stepIcons[index]}
-                  </Box>
-                  <Typography variant="subtitle2" fontWeight={800}>
-                    {t(`guide.${device}.step${step}.title`)}
-                  </Typography>
-                </Stack>
-                <Typography variant="body2" color="text.secondary">
-                  {t(`guide.${device}.step${step}.body.${mode}`)}
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', md: 'repeat(2, minmax(0, 1fr))', lg: 'repeat(5, minmax(0, 1fr))' },
+            gap: { xs: 1, md: 1.5 },
+            alignItems: 'stretch',
+            mb: { xs: 2, sm: 2.5 },
+          }}
+        >
+          {FLOW_KEYS.map((step, index) => (
+            <Box
+              key={step}
+              sx={{
+                p: { xs: 1.25, md: 1.5 },
+                minHeight: { xs: 0, md: 150 },
+                borderRadius: 1.5,
+                border: '1px solid',
+                borderColor: index === 3 ? 'primary.main' : 'divider',
+                bgcolor: index === 3 ? 'action.selected' : 'background.default',
+                position: 'relative',
+              }}
+            >
+              {index < FLOW_KEYS.length - 1 && (
+                <Box
+                  sx={{
+                    display: { xs: 'none', lg: 'flex' },
+                    position: 'absolute',
+                    top: 18,
+                    right: -15,
+                    zIndex: 1,
+                    width: 28,
+                    height: 28,
+                    borderRadius: '50%',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'primary.main',
+                    bgcolor: 'background.paper',
+                    border: '1px solid',
+                    borderColor: 'divider',
+                  }}
+                >
+                  <ArrowForwardIcon fontSize="small" />
+                </Box>
+              )}
+              <Stack spacing={0.75} alignItems="flex-start" textAlign="left">
+                <Box
+                  sx={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: '50%',
+                    display: 'grid',
+                    placeItems: 'center',
+                    color: index === 3 ? 'primary.contrastText' : 'primary.main',
+                    bgcolor: index === 3 ? 'primary.main' : 'action.hover',
+                    '& .MuiSvgIcon-root': { fontSize: 21 },
+                  }}
+                >
+                  {flowIcons[index]}
+                </Box>
+                <Typography variant="caption" color="text.secondary" fontWeight={800}>
+                  {t('guide.flow.step_label', { step: index + 1 })}
                 </Typography>
-              </Box>
-            </Grid>
-          ))}
-        </Grid>
-
-        <Divider sx={{ my: { xs: 2, sm: 2.5 } }} />
-
-        <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.5 }}>
-          <HelpOutlineIcon color="action" />
-          <Typography variant="subtitle1" fontWeight={800}>
-            {t('guide.terms.title')}
-          </Typography>
-        </Stack>
-        <Grid container spacing={1.25}>
-          {TERM_KEYS.map((term) => (
-            <Grid key={term} size={{ xs: 12, sm: 6, lg: ['block_bootstrap', 'monte_carlo'].includes(term) ? 6 : 3 }}>
-              <Box sx={{ height: '100%', p: 1.25, borderLeft: '3px solid', borderColor: 'primary.main', bgcolor: 'action.hover' }}>
-                <Stack direction="row" spacing={0.75} alignItems="center">
-                  {term === 'survival_rate' && <PercentIcon color="primary" fontSize="small" />}
-                  {term === 'allocation' && <AccountBalanceIcon color="primary" fontSize="small" />}
-                  {term === 'withdrawal' && <TimelineIcon color="primary" fontSize="small" />}
-                  <Typography variant="body2" fontWeight={800}>
-                    {t(`guide.term.${term}.title`)}
-                  </Typography>
-                </Stack>
-                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5, lineHeight: 1.45 }}>
-                  {t(`guide.term.${term}.body`)}
+                <Typography variant="subtitle2" fontWeight={800}>
+                  {t(`guide.flow.${step}.title.${mode}`)}
                 </Typography>
-              </Box>
-            </Grid>
+                <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.5 }}>
+                  {t(`guide.flow.${step}.body.${mode}`)}
+                </Typography>
+              </Stack>
+            </Box>
           ))}
-        </Grid>
+        </Box>
       </Paper>
     </Box>
   )

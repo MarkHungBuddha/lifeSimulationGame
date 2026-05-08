@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, useState, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { getNumberLocale } from './config/regions'
 import { translate } from './i18n/messages'
 import type { UiLanguage } from './i18n/types'
@@ -46,6 +46,11 @@ function getStoredLanguage(): UiLanguage {
 
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<UiLanguage>(getStoredLanguage)
+
+  useEffect(() => {
+    document.documentElement.lang = language === 'zh-Hant' ? 'zh-Hant' : language
+    document.title = translate(language, 'app.document_title')
+  }, [language])
 
   const setLanguage = (next: UiLanguage) => {
     setLanguageState(next)
