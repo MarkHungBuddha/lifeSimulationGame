@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import {
   Alert,
   Box,
@@ -24,12 +24,14 @@ import {
   TextField,
   ToggleButton,
   ToggleButtonGroup,
+  Tooltip,
   Typography,
 } from '@mui/material'
 import PlayArrowIcon from '@mui/icons-material/PlayArrow'
 import HourglassTopIcon from '@mui/icons-material/HourglassTop'
 import AutoStoriesIcon from '@mui/icons-material/AutoStories'
 import BarChartIcon from '@mui/icons-material/BarChart'
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
 import SaveIcon from '@mui/icons-material/Save'
 import FolderOpenIcon from '@mui/icons-material/FolderOpen'
 import { useI18n } from '../i18n'
@@ -295,7 +297,7 @@ function translate(copy: Record<string, string>, key: string, params?: Record<st
 export function Controls() {
   const store = useGameStore()
   const { saveRecord, records } = useSavedRecords()
-  const { language } = useI18n()
+  const { language, t } = useI18n()
   const copy = COPY[language]
   const [recordsDialogOpen, setRecordsDialogOpen] = useState(false)
   const [saveNameInput, setSaveNameInput] = useState('')
@@ -494,9 +496,9 @@ export function Controls() {
       <Divider sx={{ my: 1 }} />
 
       <Stack direction="row" alignItems="center" justifyContent="space-between">
-        <Typography variant="overline" color="text.secondary" fontWeight={700}>
+        <SectionHeading help={t('guide.term.allocation.body')}>
           {copy.allocation}
-        </Typography>
+        </SectionHeading>
         <Stack direction="row" alignItems="center" spacing={0.5}>
           <Chip size="small" label={copy.clear} variant="outlined" clickable onClick={() => store.setAllocation({ ...ZERO_ALLOCATION })} />
           <Chip size="small" label={`${(allocSum * 100).toFixed(0)}%`} color={allocValid ? 'success' : 'error'} variant="outlined" />
@@ -531,9 +533,9 @@ export function Controls() {
 
       <Divider sx={{ my: 1 }} />
 
-      <Typography variant="overline" color="text.secondary" fontWeight={700}>
+      <SectionHeading help={t('guide.term.withdrawal.body')}>
         {copy.withdrawal}
-      </Typography>
+      </SectionHeading>
       <FormControl size="small" fullWidth>
         <InputLabel>{copy.withdrawalType}</InputLabel>
         <Select
@@ -586,9 +588,9 @@ export function Controls() {
 
       <Divider sx={{ my: 1 }} />
 
-      <Typography variant="overline" color="text.secondary" fontWeight={700}>
+      <SectionHeading help={translate(copy, 'eventsHelp', { count: eventCount })}>
         {copy.events}
-      </Typography>
+      </SectionHeading>
       <FormControlLabel
         control={<Switch checked={store.enableEvents} onChange={(_, v) => store.setEnableEvents(v)} color="warning" />}
         label={(
@@ -596,27 +598,21 @@ export function Controls() {
             <Typography variant="body2" fontWeight={600}>
               {store.enableEvents ? copy.enabled : copy.disabled}
             </Typography>
-            <Typography variant="caption" color="text.secondary">
-              {translate(copy, 'eventsHelp', { count: eventCount })}
-            </Typography>
           </Stack>
         )}
       />
 
       <Divider sx={{ my: 1 }} />
 
-      <Typography variant="overline" color="text.secondary" fontWeight={700}>
+      <SectionHeading help={copy.occupationHelp}>
         {copy.occupation}
-      </Typography>
+      </SectionHeading>
       <FormControlLabel
         control={<Switch checked={occupationSupported && store.occupationEnabled} disabled={!occupationSupported} onChange={(_, v) => store.setOccupationEnabled(v)} color="info" />}
         label={(
           <Stack>
             <Typography variant="body2" fontWeight={600}>
               {store.occupationEnabled ? copy.enabled : copy.disabled}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              {copy.occupationHelp}
             </Typography>
           </Stack>
         )}
@@ -652,18 +648,15 @@ export function Controls() {
 
       <Divider sx={{ my: 1 }} />
 
-      <Typography variant="overline" color="text.secondary" fontWeight={700}>
+      <SectionHeading help={copy.housingHelp}>
         {copy.housing}
-      </Typography>
+      </SectionHeading>
       <FormControlLabel
         control={<Switch checked={store.housingEnabled} onChange={(_, v) => store.setHousingEnabled(v)} color="success" />}
         label={(
           <Stack>
             <Typography variant="body2" fontWeight={600}>
               {store.housingEnabled ? copy.enabled : copy.disabled}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              {copy.housingHelp}
             </Typography>
           </Stack>
         )}
@@ -721,18 +714,15 @@ export function Controls() {
       {region === 'tw' && (
         <>
           <Divider sx={{ my: 1 }} />
-          <Typography variant="overline" color="text.secondary" fontWeight={700}>
+          <SectionHeading help={copy.immigrationHelp}>
             {copy.immigration}
-          </Typography>
+          </SectionHeading>
           <FormControlLabel
             control={<Switch checked={store.immigrationEnabled} onChange={(_, v) => store.setImmigrationEnabled(v)} color="info" />}
             label={(
               <Stack>
                 <Typography variant="body2" fontWeight={600}>
                   {store.immigrationEnabled ? copy.enabled : copy.disabled}
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  {copy.immigrationHelp}
                 </Typography>
               </Stack>
             )}
@@ -808,9 +798,9 @@ export function Controls() {
 
       <Divider sx={{ my: 1 }} />
 
-      <Typography variant="overline" color="text.secondary" fontWeight={700}>
+      <SectionHeading help={`${t('guide.term.monte_carlo.body')} ${t('guide.term.block_bootstrap.body')}`}>
         {copy.simulation}
-      </Typography>
+      </SectionHeading>
       <SliderField label={copy.numPaths} value={store.numPaths} unit=""
         min={1000} max={50000} step={1000} onChange={store.setNumPaths}
         format={(v) => v.toLocaleString(language === 'ja' ? 'ja-JP' : language === 'zh-Hant' ? 'zh-TW' : 'en-US')} />
@@ -897,6 +887,23 @@ export function Controls() {
 
       <SavedRecordsDialog open={recordsDialogOpen} onClose={() => setRecordsDialogOpen(false)} />
     </Box>
+  )
+}
+
+function SectionHeading({ children, help }: { children: string; help?: ReactNode }) {
+  return (
+    <Stack direction="row" alignItems="center" spacing={0.5}>
+      <Typography variant="overline" color="text.secondary" fontWeight={700}>
+        {children}
+      </Typography>
+      {help && (
+        <Tooltip title={<Box sx={{ maxWidth: 280, lineHeight: 1.5 }}>{help}</Box>} arrow enterTouchDelay={0}>
+          <IconButton size="small" aria-label="Help" sx={{ p: 0.25 }}>
+            <HelpOutlineIcon sx={{ fontSize: 16 }} />
+          </IconButton>
+        </Tooltip>
+      )}
+    </Stack>
   )
 }
 

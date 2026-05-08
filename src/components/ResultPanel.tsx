@@ -1,13 +1,14 @@
+import type { ReactNode } from 'react'
 import {
   Box, Typography, Paper, Grid, Chip, Table, TableBody, TableCell,
-  TableContainer, TableHead, TableRow, Stack, useTheme,
+  TableContainer, TableHead, TableRow, Stack, useTheme, Tooltip, IconButton,
 } from '@mui/material'
 import TrendingUpIcon from '@mui/icons-material/TrendingUp'
 import TrendingDownIcon from '@mui/icons-material/TrendingDown'
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance'
 import WarningIcon from '@mui/icons-material/Warning'
-import InsightsIcon from '@mui/icons-material/Insights'
 import SavingsIcon from '@mui/icons-material/Savings'
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
 import { useI18n } from '../i18n'
 import { getLifestyleDisplay } from '../i18n/lifestyles'
 import type { UiLanguage } from '../i18n/types'
@@ -17,6 +18,7 @@ import { LIFESTYLE_PRESETS_TW } from '../engine/lifestyle_tw'
 import { LIFESTYLE_PRESETS_JP } from '../engine/lifestyle_jp'
 import { getPhilippinesLifestylePresets } from '../engine/lifestyle_ph'
 import { formatCurrency, formatSliderValue, isPhilippinesRegion, type Region } from '../config/regions'
+import { GuidePanel } from './GuidePanel'
 
 type TranslateFn = (key: string, params?: Record<string, string | number>) => string
 
@@ -43,18 +45,7 @@ export function ResultPanel() {
   const fmtSlider = (v: number) => formatSliderValue(v, region, language)
 
   if (!result) {
-    return (
-      <Box sx={{
-        display: 'flex', flexDirection: 'column', alignItems: 'center',
-        justifyContent: 'center', height: '80vh', color: 'text.disabled',
-      }}>
-        <InsightsIcon sx={{ fontSize: 80, mb: 2, opacity: 0.3 }} />
-        <Typography variant="h5">{t('result.empty_title')}</Typography>
-        <Typography variant="body2" sx={{ mt: 1 }}>
-          {t('result.empty_body')}
-        </Typography>
-      </Box>
-    )
+    return <GuidePanel mode="simulation" />
   }
 
   const rate = result.successRate
@@ -124,6 +115,7 @@ export function ResultPanel() {
         </Typography>
         <Stack direction="row" spacing={1} justifyContent="center" sx={{ mt: 1.5 }} flexWrap="wrap" useFlexGap>
           <Chip icon={<TrendingUpIcon />} label={t('result.hero_label')} color={rateColor} variant="outlined" />
+          <HelpButton title={t('guide.term.survival_rate.body')} />
           <Chip label={t('result.paths', { count: result.numPaths.toLocaleString(locale) })} variant="outlined" size="small" />
         </Stack>
       </Paper>
@@ -139,25 +131,26 @@ export function ResultPanel() {
             label={t('result.median_depletion_age')}
             value={result.medianDepletionAge ? t('result.age_suffix', { age: result.medianDepletionAge.toFixed(0) }) : t('result.not_depleted')}
             color={result.medianDepletionAge ? '#d32f2f' : '#2e7d32'}
+            help={t('guide.term.depletion_age.body')}
           />
         </Grid>
         <Grid size={{ xs: 6, sm: 6, md: 3 }}>
           <StatCard icon={<TrendingUpIcon />} label={t('result.p90_final_portfolio')}
-            value={fmt(result.percentiles.p90[result.percentiles.p90.length - 1])} color="#1565c0" />
+            value={fmt(result.percentiles.p90[result.percentiles.p90.length - 1])} color="#1565c0" help={t('guide.term.percentile.body')} />
         </Grid>
         <Grid size={{ xs: 6, sm: 6, md: 3 }}>
           <StatCard icon={<TrendingUpIcon />} label={t('result.p10_final_portfolio')}
-            value={fmt(result.percentiles.p10[result.percentiles.p10.length - 1])} color="#e65100" />
+            value={fmt(result.percentiles.p10[result.percentiles.p10.length - 1])} color="#e65100" help={t('guide.term.percentile.body')} />
         </Grid>
       </Grid>
 
       <Paper elevation={1} sx={{ p: { xs: 1.5, sm: 2 }, mb: { xs: 2, sm: 3 } }}>
-        <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 1 }}>
-          {t('result.drawdown_title')}
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5, display: { xs: 'none', sm: 'block' } }}>
-          {t('result.drawdown_body')}
-        </Typography>
+        <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 1 }}>
+          <Typography variant="subtitle1" fontWeight={700}>
+            {t('result.drawdown_title')}
+          </Typography>
+          <HelpButton title={t('guide.term.drawdown.body')} />
+        </Stack>
         <Grid container spacing={{ xs: 1, sm: 2 }}>
           <Grid size={{ xs: 6, sm: 3 }}>
             <StatCard icon={<TrendingDownIcon />} label={t('result.drawdown_median')}
@@ -179,9 +172,12 @@ export function ResultPanel() {
       </Paper>
 
       <Paper elevation={1} sx={{ p: { xs: 1.5, sm: 2 }, mb: { xs: 2, sm: 3 } }}>
-        <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 1 }}>
-          {t('result.chart_title')}
-        </Typography>
+        <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 1 }}>
+          <Typography variant="subtitle1" fontWeight={700}>
+            {t('result.chart_title')}
+          </Typography>
+          <HelpButton title={t('guide.term.percentile.body')} />
+        </Stack>
         <Box sx={{ overflowX: 'auto', mx: { xs: -0.5, sm: 0 } }}>
           <Box sx={{ minWidth: 480 }}>
             <PercentileChart
@@ -254,18 +250,32 @@ export function ResultPanel() {
   )
 }
 
-function StatCard({ icon, label, value, color }: {
-  icon: React.ReactNode
+function StatCard({ icon, label, value, color, help }: {
+  icon: ReactNode
   label: string
   value: string
   color: string
+  help?: string
 }) {
   return (
     <Paper variant="outlined" sx={{ p: { xs: 1.5, sm: 2 }, textAlign: 'center' }}>
       <Box sx={{ color, mb: 0.5, '& .MuiSvgIcon-root': { fontSize: { xs: 20, sm: 24 } } }}>{icon}</Box>
-      <Typography variant="caption" color="text.secondary" noWrap>{label}</Typography>
+      <Stack direction="row" alignItems="center" justifyContent="center" spacing={0.25}>
+        <Typography variant="caption" color="text.secondary" noWrap>{label}</Typography>
+        {help && <HelpButton title={help} />}
+      </Stack>
       <Typography fontWeight={700} noWrap sx={{ fontSize: { xs: '1rem', sm: '1.5rem' } }}>{value}</Typography>
     </Paper>
+  )
+}
+
+function HelpButton({ title }: { title: string }) {
+  return (
+    <Tooltip title={<Box sx={{ maxWidth: 280, lineHeight: 1.5 }}>{title}</Box>} arrow enterTouchDelay={0}>
+      <IconButton size="small" aria-label="Help" sx={{ p: 0.25 }}>
+        <HelpOutlineIcon sx={{ fontSize: 16 }} />
+      </IconButton>
+    </Tooltip>
   )
 }
 
