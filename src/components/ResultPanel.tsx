@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import {
   Box, Typography, Paper, Grid, Chip, Table, TableBody, TableCell,
   TableContainer, TableHead, TableRow, Stack, useTheme, Tooltip, IconButton,
@@ -59,27 +59,27 @@ export function ResultPanel() {
     : null
 
   return (
-    <Box sx={{ p: { xs: 2, sm: 3 } }}>
-      <Paper variant="outlined" sx={{ p: { xs: 1.5, sm: 2 }, mb: 2 }}>
-        <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
+    <Box sx={{ p: { xs: 1.25, sm: 2, md: 3 }, maxWidth: 1280, mx: 'auto' }}>
+      <Paper variant="outlined" sx={{ p: { xs: 1.25, sm: 2 }, mb: { xs: 1.5, sm: 2 } }}>
+        <Stack direction="row" alignItems="flex-start" spacing={1} sx={{ mb: 1.5 }}>
           <SavingsIcon color="primary" />
-          <Typography variant="subtitle1" fontWeight={700}>
+          <Typography variant="subtitle1" fontWeight={700} sx={{ minWidth: 0, lineHeight: 1.35 }}>
             {t('result.summary_title')}
             {lifestyleDisplay ? ` — ${lifestyleDisplay.emoji} ${lifestyleDisplay.name}` : ''}
           </Typography>
         </Stack>
-        <Grid container spacing={2}>
+        <Grid container spacing={{ xs: 1, sm: 2 }}>
           <Grid size={{ xs: 6, sm: 3 }}>
             <Typography variant="caption" color="text.secondary">{t('result.annual_income')}</Typography>
-            <Typography variant="body1" fontWeight={700}>{fmtSlider(annualIncome)}</Typography>
+            <Typography variant="body1" fontWeight={700} sx={{ overflowWrap: 'anywhere' }}>{fmtSlider(annualIncome)}</Typography>
           </Grid>
           <Grid size={{ xs: 6, sm: 3 }}>
             <Typography variant="caption" color="text.secondary">{t('result.annual_expense')}</Typography>
-            <Typography variant="body1" fontWeight={700}>{fmtSlider(annualExpense)}</Typography>
+            <Typography variant="body1" fontWeight={700} sx={{ overflowWrap: 'anywhere' }}>{fmtSlider(annualExpense)}</Typography>
           </Grid>
           <Grid size={{ xs: 6, sm: 3 }}>
             <Typography variant="caption" color="text.secondary">{t('result.annual_contribution')}</Typography>
-            <Typography variant="body1" fontWeight={700}>{fmtSlider(annualContribution)}</Typography>
+            <Typography variant="body1" fontWeight={700} sx={{ overflowWrap: 'anywhere' }}>{fmtSlider(annualContribution)}</Typography>
           </Grid>
           <Grid size={{ xs: 6, sm: 3 }}>
             <Typography variant="caption" color="text.secondary">{t('result.savings_rate')}</Typography>
@@ -92,7 +92,7 @@ export function ResultPanel() {
             </Typography>
           </Grid>
         </Grid>
-        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1, lineHeight: 1.55 }}>
           {t('result.summary_line', {
             monthlyExpense: fmtSlider(Math.round(annualExpense / 12)),
             retirementAge,
@@ -103,13 +103,13 @@ export function ResultPanel() {
       </Paper>
 
       <Paper elevation={2} sx={{
-        p: { xs: 2.5, sm: 4 }, mb: { xs: 2, sm: 3 }, textAlign: 'center',
+        p: { xs: 2, sm: 3, md: 4 }, mb: { xs: 1.5, sm: 3 }, textAlign: 'center',
         background: `linear-gradient(135deg, ${rateHex}11, ${rateHex}08)`,
         border: `1px solid ${rateHex}33`,
       }}>
         <Typography sx={{
           fontWeight: 800, color: rateHex, lineHeight: 1,
-          fontSize: { xs: '3rem', sm: '4rem', md: '6rem' },
+          fontSize: { xs: 'clamp(2.75rem, 16vw, 4.25rem)', md: '6rem' },
         }}>
           {(rate * 100).toFixed(1)}%
         </Typography>
@@ -144,7 +144,7 @@ export function ResultPanel() {
         </Grid>
       </Grid>
 
-      <Paper elevation={1} sx={{ p: { xs: 1.5, sm: 2 }, mb: { xs: 2, sm: 3 } }}>
+      <Paper elevation={1} sx={{ p: { xs: 1.25, sm: 2 }, mb: { xs: 1.5, sm: 3 } }}>
         <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 1 }}>
           <Typography variant="subtitle1" fontWeight={700}>
             {t('result.drawdown_title')}
@@ -171,25 +171,21 @@ export function ResultPanel() {
         </Grid>
       </Paper>
 
-      <Paper elevation={1} sx={{ p: { xs: 1.5, sm: 2 }, mb: { xs: 2, sm: 3 } }}>
-        <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 1 }}>
-          <Typography variant="subtitle1" fontWeight={700}>
+      <Paper elevation={1} sx={{ p: { xs: 1.25, sm: 2 }, mb: { xs: 1.5, sm: 3 } }}>
+        <Stack direction="row" alignItems="flex-start" spacing={0.5} sx={{ mb: 1 }}>
+          <Typography variant="subtitle1" fontWeight={700} sx={{ lineHeight: 1.35 }}>
             {t('result.chart_title')}
           </Typography>
           <HelpButton title={t('guide.term.percentile.body')} />
         </Stack>
-        <Box sx={{ overflowX: 'auto', mx: { xs: -0.5, sm: 0 } }}>
-          <Box sx={{ minWidth: 480 }}>
-            <PercentileChart
-              percentiles={result.percentiles}
-              currentAge={currentAge}
-              retirementAge={retirementAge}
-              region={region}
-              language={language}
-              t={t}
-            />
-          </Box>
-        </Box>
+        <PercentileChart
+          percentiles={result.percentiles}
+          currentAge={currentAge}
+          retirementAge={retirementAge}
+          region={region}
+          language={language}
+          t={t}
+        />
         <Stack direction="row" spacing={2} sx={{ mt: 1.5, justifyContent: 'center' }} flexWrap="wrap" useFlexGap>
           <Legend color="rgba(21,101,192,0.12)" label={t('result.legend_p10_p90')} />
           <Legend color="rgba(21,101,192,0.28)" label={t('result.legend_p25_p75')} />
@@ -197,12 +193,12 @@ export function ResultPanel() {
         </Stack>
       </Paper>
 
-      <Paper elevation={1} sx={{ p: { xs: 1, sm: 2 } }}>
+      <Paper elevation={1} sx={{ p: { xs: 0.75, sm: 2 } }}>
         <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 1 }}>
           {t('result.table_title')}
         </Typography>
-        <TableContainer sx={{ maxHeight: { xs: 400, sm: 'none' } }}>
-          <Table size="small" sx={{ '& .MuiTableCell-root': { px: { xs: 0.5, sm: 2 }, whiteSpace: 'nowrap', fontSize: { xs: 12, sm: 14 } } }}>
+        <TableContainer sx={{ maxHeight: { xs: 420, sm: 'none' }, overflowX: 'auto' }}>
+          <Table size="small" sx={{ minWidth: { xs: 520, sm: 0 }, '& .MuiTableCell-root': { px: { xs: 0.75, sm: 2 }, whiteSpace: 'nowrap', fontSize: { xs: 12, sm: 14 } } }}>
             <TableHead>
               <TableRow>
                 <TableCell>{t('result.age')}</TableCell>
@@ -258,13 +254,41 @@ function StatCard({ icon, label, value, color, help }: {
   help?: string
 }) {
   return (
-    <Paper variant="outlined" sx={{ p: { xs: 1.5, sm: 2 }, textAlign: 'center' }}>
+    <Paper
+      variant="outlined"
+      sx={{
+        p: { xs: 1.1, sm: 2 },
+        minHeight: { xs: 118, sm: 132 },
+        height: '100%',
+        textAlign: 'center',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
       <Box sx={{ color, mb: 0.5, '& .MuiSvgIcon-root': { fontSize: { xs: 20, sm: 24 } } }}>{icon}</Box>
-      <Stack direction="row" alignItems="center" justifyContent="center" spacing={0.25}>
-        <Typography variant="caption" color="text.secondary" noWrap>{label}</Typography>
+      <Stack direction="row" alignItems="flex-start" justifyContent="center" spacing={0.25} sx={{ minWidth: 0 }}>
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={{ lineHeight: 1.25, overflowWrap: 'anywhere' }}
+        >
+          {label}
+        </Typography>
         {help && <HelpButton title={help} />}
       </Stack>
-      <Typography fontWeight={700} noWrap sx={{ fontSize: { xs: '1rem', sm: '1.5rem' } }}>{value}</Typography>
+      <Typography
+        fontWeight={800}
+        sx={{
+          mt: 0.5,
+          lineHeight: 1.15,
+          fontSize: { xs: 'clamp(0.95rem, 4.2vw, 1.2rem)', sm: '1.5rem' },
+          overflowWrap: 'anywhere',
+        }}
+      >
+        {value}
+      </Typography>
     </Paper>
   )
 }
@@ -308,6 +332,9 @@ function PercentileChart({ percentiles, currentAge, retirementAge, region, langu
   t: TranslateFn
 }) {
   const theme = useTheme()
+  const containerRef = useRef<HTMLDivElement | null>(null)
+  const canvasRef = useRef<HTMLCanvasElement | null>(null)
+  const [chartWidth, setChartWidth] = useState(800)
   const primary = theme.palette.primary.main
 
   const isDark = theme.palette.mode === 'dark'
@@ -315,27 +342,49 @@ function PercentileChart({ percentiles, currentAge, retirementAge, region, langu
   const axisColor = isDark ? '#666' : '#bdbdbd'
   const labelColor = isDark ? '#aaa' : '#757575'
 
-  const canvasRef = (canvas: HTMLCanvasElement | null) => {
+  useEffect(() => {
+    const element = containerRef.current
+    if (!element) return
+
+    const updateWidth = () => {
+      setChartWidth(Math.max(320, Math.min(800, Math.floor(element.clientWidth))))
+    }
+
+    updateWidth()
+    const observer = new ResizeObserver(updateWidth)
+    observer.observe(element)
+
+    return () => observer.disconnect()
+  }, [])
+
+  useEffect(() => {
+    const canvas = canvasRef.current
     if (!canvas) return
+
     const dpr = window.devicePixelRatio || 1
-    const W = 800
-    const H = 380
+    const W = chartWidth
+    const H = Math.max(260, Math.round(W * 0.48))
     canvas.width = W * dpr
     canvas.height = H * dpr
     canvas.style.width = '100%'
-    canvas.style.maxWidth = `${W}px`
-    canvas.style.height = 'auto'
+    canvas.style.height = `${H}px`
 
     const ctx = canvas.getContext('2d')!
     ctx.scale(dpr, dpr)
     ctx.clearRect(0, 0, W, H)
 
-    const pad = { top: 20, right: 24, bottom: 44, left: 72 }
+    const compact = W < 520
+    const pad = {
+      top: compact ? 24 : 20,
+      right: compact ? 12 : 24,
+      bottom: compact ? 38 : 44,
+      left: compact ? 54 : 72,
+    }
     const plotW = W - pad.left - pad.right
     const plotH = H - pad.top - pad.bottom
 
     const years = percentiles.p50.length
-    const maxVal = Math.max(...percentiles.p90) * 1.08
+    const maxVal = Math.max(1, Math.max(...percentiles.p90) * 1.08)
 
     const x = (i: number) => pad.left + (i / (years - 1)) * plotW
     const y = (v: number) => pad.top + plotH - (Math.max(v, 0) / maxVal) * plotH
@@ -386,7 +435,7 @@ function PercentileChart({ percentiles, currentAge, retirementAge, region, langu
       ctx.setLineDash([])
 
       ctx.fillStyle = '#ff9800'
-      ctx.font = '12px "Noto Sans TC", sans-serif'
+      ctx.font = `${compact ? 10 : 12}px "Noto Sans TC", sans-serif`
       ctx.textAlign = 'center'
       ctx.fillText(t('result.retirement'), x(retireYear), pad.top - 6)
     }
@@ -409,9 +458,9 @@ function PercentileChart({ percentiles, currentAge, retirementAge, region, langu
     ctx.stroke()
 
     ctx.fillStyle = labelColor
-    ctx.font = '12px "Noto Sans TC", sans-serif'
+    ctx.font = `${compact ? 10 : 12}px "Noto Sans TC", sans-serif`
     ctx.textAlign = 'center'
-    const xStep = Math.max(1, Math.floor(years / 8))
+    const xStep = Math.max(1, Math.floor(years / (compact ? 5 : 8)))
     for (let i = 0; i < years; i += xStep) {
       ctx.fillText(`${currentAge + i}`, x(i), H - 14)
     }
@@ -419,11 +468,16 @@ function PercentileChart({ percentiles, currentAge, retirementAge, region, langu
     ctx.fillText(t('result.age'), pad.left + plotW / 2, H)
 
     ctx.textAlign = 'right'
-    for (let s = 0; s <= 5; s++) {
-      const val = (maxVal / 5) * s
+    const ySteps = compact ? 4 : 5
+    for (let s = 0; s <= ySteps; s++) {
+      const val = (maxVal / ySteps) * s
       ctx.fillText(formatCurrency(val, region, language), pad.left - 8, y(val) + 4)
     }
-  }
+  }, [axisColor, chartWidth, currentAge, gridColor, labelColor, language, percentiles, primary, region, retirementAge, t])
 
-  return <canvas ref={canvasRef} />
+  return (
+    <Box ref={containerRef} sx={{ width: '100%', minWidth: 0 }}>
+      <canvas ref={canvasRef} />
+    </Box>
+  )
 }
