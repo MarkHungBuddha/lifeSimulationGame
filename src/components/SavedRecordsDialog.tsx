@@ -23,6 +23,7 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow'
 import EditIcon from '@mui/icons-material/Edit'
 import CheckIcon from '@mui/icons-material/Check'
 import CloseIcon from '@mui/icons-material/Close'
+import { FEATURE_FLAGS } from '../config/featureFlags'
 import { formatCurrency, getRegionFlag } from '../config/regions'
 import { useI18n } from '../i18n'
 import { useGameStore } from '../store/gameStore'
@@ -67,11 +68,13 @@ export function SavedRecordsDialog({ open, onClose }: Props) {
         withdrawal: record.withdrawal,
         numPaths: record.numPaths,
         enableEvents: record.enableEvents,
-        immigrationEnabled: record.immigrationEnabled,
+        immigrationEnabled: FEATURE_FLAGS.immigrationPlan && record.immigrationEnabled,
         immigrationTarget: record.immigrationTarget,
         immigrationAge: record.immigrationAge,
         immigrationAllocation: { ...record.immigrationAllocation },
-        housingEnabled: record.housingEnabled,
+        occupationEnabled: FEATURE_FLAGS.occupationPlan && record.occupationEnabled,
+        occupationId: record.occupationId,
+        housingEnabled: FEATURE_FLAGS.housingPlan && record.housingEnabled,
         housingPurchaseAge: record.housingPurchaseAge,
         housingPriceToIncomeRatio: record.housingPriceToIncomeRatio,
         housingDownPaymentRatio: record.housingDownPaymentRatio,
@@ -161,8 +164,8 @@ export function SavedRecordsDialog({ open, onClose }: Props) {
                           <Chip size="small" label={t('saved_records.initial_portfolio', { value: formatCurrency(record.initialPortfolio, record.region, language) })} variant="outlined" />
                           <Chip size="small" label={t('saved_records.annual_contribution', { value: formatCurrency(record.annualContribution, record.region, language) })} variant="outlined" />
                           {record.enableEvents && <Chip size="small" label={t('saved_records.events')} color="warning" variant="outlined" />}
-                          {record.housingEnabled && <Chip size="small" label={t('saved_records.housing')} color="success" variant="outlined" />}
-                          {record.immigrationEnabled && <Chip size="small" label={t('saved_records.immigration')} color="info" variant="outlined" />}
+                          {FEATURE_FLAGS.housingPlan && record.housingEnabled && <Chip size="small" label={t('saved_records.housing')} color="success" variant="outlined" />}
+                          {FEATURE_FLAGS.immigrationPlan && record.immigrationEnabled && <Chip size="small" label={t('saved_records.immigration')} color="info" variant="outlined" />}
                         </Stack>
                         {record.resultSummary && (
                           <Stack direction="row" spacing={0.5}>

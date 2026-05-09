@@ -8,6 +8,7 @@ import { LIFESTYLE_PRESETS_TW } from '../engine/lifestyle_tw'
 import { LIFESTYLE_PRESETS_JP } from '../engine/lifestyle_jp'
 import { getPhilippinesLifestylePresets } from '../engine/lifestyle_ph'
 import { isPhilippinesRegion, type Region } from '../config/regions'
+import { FEATURE_FLAGS } from '../config/featureFlags'
 import type { ImmigrationPlan } from '../engine/immigrationTypes'
 import type { HousingPlan } from '../engine/housingTypes'
 import { HOUSING_PARAMS } from '../engine/housingData'
@@ -163,7 +164,7 @@ export const useGameStore = create<GameState>()(persist((set, get) => ({
     const presets = getLifestylePresets(r)
     const preset = presets.moderate
     const hp = HOUSING_PARAMS[r]
-    const occEnabled = !isPhilippinesRegion(r) && get().occupationEnabled
+    const occEnabled = FEATURE_FLAGS.occupationPlan && !isPhilippinesRegion(r) && get().occupationEnabled
     const occDefaults = occEnabled ? getOccupationDefaults(get().occupationId, r) : null
     set({
       region: r,
@@ -177,8 +178,8 @@ export const useGameStore = create<GameState>()(persist((set, get) => ({
       withdrawal: preset.withdrawal,
       result: null,
       storyResult: null,
-      immigrationEnabled: r === 'tw' ? get().immigrationEnabled : false,
-      immigrationTarget: r === 'tw' ? get().immigrationTarget : null,
+      immigrationEnabled: FEATURE_FLAGS.immigrationPlan && r === 'tw' ? get().immigrationEnabled : false,
+      immigrationTarget: FEATURE_FLAGS.immigrationPlan && r === 'tw' ? get().immigrationTarget : null,
       occupationEnabled: occEnabled,
       housingPriceToIncomeRatio: hp.defaultPriceToIncomeRatio,
       housingDownPaymentRatio: hp.defaultDownPaymentRatio,
@@ -212,7 +213,13 @@ export const useGameStore = create<GameState>()(persist((set, get) => ({
   setWithdrawal: (w) => set({ withdrawal: w, lifestyleId: 'custom' }),
   setNumPaths: (n) => set({ numPaths: n }),
   setEnableEvents: (v) => set({ enableEvents: v }),
-  setImmigrationEnabled: (v) => set({ immigrationEnabled: v, enableEvents: v ? true : get().enableEvents }),
+  setImmigrationEnabled: (v) => {
+    if (!FEATURE_FLAGS.immigrationPlan) {
+      set({ immigrationEnabled: false })
+      return
+    }
+    set({ immigrationEnabled: v, enableEvents: v ? true : get().enableEvents })
+  },
   setImmigrationTarget: (r) => {
     const presets = r ? getLifestylePresets(r) : getLifestylePresets('jp')
     set({ immigrationTarget: r, immigrationAllocation: { ...presets.moderate.allocation } })
@@ -220,7 +227,7 @@ export const useGameStore = create<GameState>()(persist((set, get) => ({
   setImmigrationAge: (v) => set({ immigrationAge: v }),
   setImmigrationAllocation: (a) => set({ immigrationAllocation: a }),
   setOccupationEnabled: (v) => {
-    if (isPhilippinesRegion(get().region)) {
+    if (!FEATURE_FLAGS.occupationPlan || isPhilippinesRegion(get().region)) {
       set({ occupationEnabled: false })
       return
     }
@@ -237,7 +244,7 @@ export const useGameStore = create<GameState>()(persist((set, get) => ({
     }
   },
   setOccupationId: (id) => {
-    if (isPhilippinesRegion(get().region)) {
+    if (!FEATURE_FLAGS.occupationPlan || isPhilippinesRegion(get().region)) {
       set({ occupationId: id })
       return
     }
@@ -249,7 +256,7 @@ export const useGameStore = create<GameState>()(persist((set, get) => ({
       lifestyleId: 'custom',
     })
   },
-  setHousingEnabled: (v) => set({ housingEnabled: v }),
+  setHousingEnabled: (v) => set({ housingEnabled: FEATURE_FLAGS.housingPlan ? v : false }),
   setHousingPurchaseAge: (v) => set({ housingPurchaseAge: v }),
   setHousingPriceToIncomeRatio: (v) => set({ housingPriceToIncomeRatio: v }),
   setHousingDownPaymentRatio: (v) => set({ housingDownPaymentRatio: v }),
@@ -285,7 +292,7 @@ export const useGameStore = create<GameState>()(persist((set, get) => ({
     }
 
     const immigrationPlan: ImmigrationPlan | undefined =
-      state.immigrationEnabled && state.immigrationTarget
+      FEATURE_FLAGS.immigrationPlan && state.immigrationEnabled && state.immigrationTarget
         ? {
             enabled: true,
             originRegion: state.region,
@@ -297,7 +304,7 @@ export const useGameStore = create<GameState>()(persist((set, get) => ({
         : undefined
 
     const housingPlan: HousingPlan | undefined =
-      state.housingEnabled
+      FEATURE_FLAGS.housingPlan && state.housingEnabled
         ? {
             enabled: true,
             purchaseAge: state.housingPurchaseAge,
@@ -308,7 +315,7 @@ export const useGameStore = create<GameState>()(persist((set, get) => ({
         : undefined
 
     const occupationPlan: OccupationPlan | undefined =
-      state.occupationEnabled
+      FEATURE_FLAGS.occupationPlan && state.occupationEnabled
         ? { enabled: true, occupationId: state.occupationId }
         : undefined
 
@@ -342,7 +349,7 @@ export const useGameStore = create<GameState>()(persist((set, get) => ({
     set({ isStoryRunning: true, storyResult: null })
 
     const immigrationPlan: ImmigrationPlan | undefined =
-      state.immigrationEnabled && state.immigrationTarget
+      FEATURE_FLAGS.immigrationPlan && state.immigrationEnabled && state.immigrationTarget
         ? {
             enabled: true,
             originRegion: state.region,
@@ -354,7 +361,7 @@ export const useGameStore = create<GameState>()(persist((set, get) => ({
         : undefined
 
     const housingPlan: HousingPlan | undefined =
-      state.housingEnabled
+      FEATURE_FLAGS.housingPlan && state.housingEnabled
         ? {
             enabled: true,
             purchaseAge: state.housingPurchaseAge,
@@ -365,7 +372,7 @@ export const useGameStore = create<GameState>()(persist((set, get) => ({
         : undefined
 
     const occupationPlan: OccupationPlan | undefined =
-      state.occupationEnabled
+      FEATURE_FLAGS.occupationPlan && state.occupationEnabled
         ? { enabled: true, occupationId: state.occupationId }
         : undefined
 
@@ -409,13 +416,13 @@ export const useGameStore = create<GameState>()(persist((set, get) => ({
     withdrawal: state.withdrawal,
     numPaths: state.numPaths,
     enableEvents: state.enableEvents,
-    immigrationEnabled: state.immigrationEnabled,
+    immigrationEnabled: FEATURE_FLAGS.immigrationPlan && state.immigrationEnabled,
     immigrationTarget: state.immigrationTarget,
     immigrationAge: state.immigrationAge,
     immigrationAllocation: state.immigrationAllocation,
-    occupationEnabled: state.occupationEnabled,
+    occupationEnabled: FEATURE_FLAGS.occupationPlan && state.occupationEnabled,
     occupationId: state.occupationId,
-    housingEnabled: state.housingEnabled,
+    housingEnabled: FEATURE_FLAGS.housingPlan && state.housingEnabled,
     housingPurchaseAge: state.housingPurchaseAge,
     housingPriceToIncomeRatio: state.housingPriceToIncomeRatio,
     housingDownPaymentRatio: state.housingDownPaymentRatio,

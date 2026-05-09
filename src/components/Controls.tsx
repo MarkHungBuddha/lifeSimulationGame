@@ -56,6 +56,7 @@ import {
   isPhilippinesRegion,
   type Region,
 } from '../config/regions'
+import { FEATURE_FLAGS } from '../config/featureFlags'
 import { useGameStore } from '../store/gameStore'
 import { useSavedRecords } from '../store/savedRecords'
 import { SavedRecordsDialog } from './SavedRecordsDialog'
@@ -312,7 +313,10 @@ export function Controls() {
         ? LIFESTYLE_LIST_TW
         : LIFESTYLE_LIST
   const eventCount = region === 'jp' ? EVENT_DATABASE_JP.length : region === 'tw' ? EVENT_DATABASE_TW.length : EVENT_DATABASE.length
-  const occupationSupported = !isPhilippinesRegion(region)
+  const showOccupationPlan = FEATURE_FLAGS.occupationPlan
+  const showHousingPlan = FEATURE_FLAGS.housingPlan
+  const showImmigrationPlan = FEATURE_FLAGS.immigrationPlan
+  const occupationSupported = showOccupationPlan && !isPhilippinesRegion(region)
   const r = cfg.sliderRanges
 
   const handleAllocationChange = (key: keyof Allocation, value: number) => {
@@ -355,13 +359,13 @@ export function Controls() {
       withdrawal: store.withdrawal,
       numPaths: store.numPaths,
       enableEvents: store.enableEvents,
-      immigrationEnabled: store.immigrationEnabled,
+      immigrationEnabled: showImmigrationPlan && store.immigrationEnabled,
       immigrationTarget: store.immigrationTarget,
       immigrationAge: store.immigrationAge,
       immigrationAllocation: { ...store.immigrationAllocation },
-      occupationEnabled: store.occupationEnabled,
+      occupationEnabled: showOccupationPlan && store.occupationEnabled,
       occupationId: store.occupationId,
-      housingEnabled: store.housingEnabled,
+      housingEnabled: showHousingPlan && store.housingEnabled,
       housingPurchaseAge: store.housingPurchaseAge,
       housingPriceToIncomeRatio: store.housingPriceToIncomeRatio,
       housingDownPaymentRatio: store.housingDownPaymentRatio,
@@ -376,7 +380,7 @@ export function Controls() {
   }
 
   const hp = HOUSING_PARAMS[region]
-  const effectiveRegion = store.immigrationEnabled && store.immigrationTarget ? store.immigrationTarget : region
+  const effectiveRegion = showImmigrationPlan && store.immigrationEnabled && store.immigrationTarget ? store.immigrationTarget : region
   const effectiveHousing = HOUSING_PARAMS[effectiveRegion]
   const estimatedPrice = store.annualIncome * store.housingPriceToIncomeRatio
   const downPayment = estimatedPrice * store.housingDownPaymentRatio
@@ -602,116 +606,124 @@ export function Controls() {
         )}
       />
 
-      <Divider sx={{ my: 1 }} />
-
-      <SectionHeading help={copy.occupationHelp}>
-        {copy.occupation}
-      </SectionHeading>
-      <FormControlLabel
-        control={<Switch checked={occupationSupported && store.occupationEnabled} disabled={!occupationSupported} onChange={(_, v) => store.setOccupationEnabled(v)} color="info" />}
-        label={(
-          <Stack>
-            <Typography variant="body2" fontWeight={600}>
-              {store.occupationEnabled ? copy.enabled : copy.disabled}
-            </Typography>
-          </Stack>
-        )}
-      />
-      {occupationSupported && store.occupationEnabled && selectedOcc && (
-        <Paper variant="outlined" sx={{ p: 2, mt: 1, mb: 2 }}>
-          <FormControl fullWidth size="small" sx={{ mb: 2 }}>
-            <InputLabel>{copy.occupationLabel}</InputLabel>
-            <Select value={store.occupationId} label={copy.occupationLabel} onChange={(e) => store.setOccupationId(Number(e.target.value))}>
-              {OCCUPATIONS.map((occ) => (
-                <MenuItem key={occ.id} value={occ.id}>
-                  {occ.emoji} {occ.name[region]}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-
-          <Typography variant="body2" color="text.secondary">
-            {selectedOcc.description[region]}
-          </Typography>
-          <Typography variant="body2" sx={{ mt: 1 }}>
-            {copy.baseSalary}: {formatCurrency(selectedOcc.baseSalary[region], region, language)}
-          </Typography>
-          <Typography variant="body2">
-            {copy.raiseRange}: {(selectedOcc.raiseRange[region][0] * 100).toFixed(1)}% ~ {(selectedOcc.raiseRange[region][1] * 100).toFixed(1)}%
-          </Typography>
-
-          <Alert severity="info" sx={{ mt: 1 }}>
-            {copy.occupationInfo}
-          </Alert>
-        </Paper>
-      )}
-
-      <Divider sx={{ my: 1 }} />
-
-      <SectionHeading help={copy.housingHelp}>
-        {copy.housing}
-      </SectionHeading>
-      <FormControlLabel
-        control={<Switch checked={store.housingEnabled} onChange={(_, v) => store.setHousingEnabled(v)} color="success" />}
-        label={(
-          <Stack>
-            <Typography variant="body2" fontWeight={600}>
-              {store.housingEnabled ? copy.enabled : copy.disabled}
-            </Typography>
-          </Stack>
-        )}
-      />
-      {store.housingEnabled && (
+      {showOccupationPlan && (
         <>
-          <SliderField label={copy.housingPurchaseAge} value={store.housingPurchaseAge} unit=""
-            min={store.currentAge} max={store.retirementAge}
-            onChange={store.setHousingPurchaseAge} />
-          <SliderField label={copy.housingPriceRatio} value={store.housingPriceToIncomeRatio} unit="x"
-            min={hp.priceToIncomeRange.min} max={hp.priceToIncomeRange.max} step={hp.priceToIncomeRange.step}
-            onChange={store.setHousingPriceToIncomeRatio}
-            format={(v) => `${v}x`} />
-          <SliderField label={copy.housingDownPayment} value={store.housingDownPaymentRatio * 100} unit="%"
-            min={10} max={50} step={5}
-            onChange={(v) => store.setHousingDownPaymentRatio(v / 100)}
-            format={(v) => `${v.toFixed(0)}%`} />
+          <Divider sx={{ my: 1 }} />
 
-          <FormControl size="small" fullWidth>
-            <InputLabel>{copy.housingMortgageYears}</InputLabel>
-            <Select label={copy.housingMortgageYears} value={store.housingMortgageYears} onChange={(e) => store.setHousingMortgageYears(e.target.value as number)}>
-              {hp.mortgageYearsOptions.map((y) => (
-                <MenuItem key={y} value={y}>{y}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          <SectionHeading help={copy.occupationHelp}>
+            {copy.occupation}
+          </SectionHeading>
+          <FormControlLabel
+            control={<Switch checked={occupationSupported && store.occupationEnabled} disabled={!occupationSupported} onChange={(_, v) => store.setOccupationEnabled(v)} color="info" />}
+            label={(
+              <Stack>
+                <Typography variant="body2" fontWeight={600}>
+                  {store.occupationEnabled ? copy.enabled : copy.disabled}
+                </Typography>
+              </Stack>
+            )}
+          />
+          {occupationSupported && store.occupationEnabled && selectedOcc && (
+            <Paper variant="outlined" sx={{ p: 2, mt: 1, mb: 2 }}>
+              <FormControl fullWidth size="small" sx={{ mb: 2 }}>
+                <InputLabel>{copy.occupationLabel}</InputLabel>
+                <Select value={store.occupationId} label={copy.occupationLabel} onChange={(e) => store.setOccupationId(Number(e.target.value))}>
+                  {OCCUPATIONS.map((occ) => (
+                    <MenuItem key={occ.id} value={occ.id}>
+                      {occ.emoji} {occ.name[region]}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
 
-          <Paper variant="outlined" sx={{ p: 1.5, mt: 1, bgcolor: 'action.hover' }}>
-            <Stack spacing={0.5}>
-              <Stack direction="row" justifyContent="space-between">
-                <Typography variant="caption" color="text.secondary">{copy.housingPrice}</Typography>
-                <Typography variant="caption" fontWeight={700}>{formatCurrency(estimatedPrice, region, language)}</Typography>
-              </Stack>
-              <Stack direction="row" justifyContent="space-between">
-                <Typography variant="caption" color="text.secondary">{copy.housingUpfront}</Typography>
-                <Typography variant="caption" fontWeight={700}>{formatCurrency(downPayment + closingCost, region, language)}</Typography>
-              </Stack>
-              <Stack direction="row" justifyContent="space-between">
-                <Typography variant="caption" color="text.secondary">{copy.housingMonthly}</Typography>
-                <Typography variant="caption" fontWeight={700} color="warning.main">{formatCurrency(Math.round(monthlyPayment), region, language)}</Typography>
-              </Stack>
-              <Stack direction="row" justifyContent="space-between">
-                <Typography variant="caption" color="text.secondary">{copy.housingRate}</Typography>
-                <Typography variant="caption" fontWeight={700}>{(effectiveHousing.mortgageRate * 100).toFixed(1)}%</Typography>
-              </Stack>
-            </Stack>
-          </Paper>
+              <Typography variant="body2" color="text.secondary">
+                {selectedOcc.description[region]}
+              </Typography>
+              <Typography variant="body2" sx={{ mt: 1 }}>
+                {copy.baseSalary}: {formatCurrency(selectedOcc.baseSalary[region], region, language)}
+              </Typography>
+              <Typography variant="body2">
+                {copy.raiseRange}: {(selectedOcc.raiseRange[region][0] * 100).toFixed(1)}% ~ {(selectedOcc.raiseRange[region][1] * 100).toFixed(1)}%
+              </Typography>
 
-          <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, lineHeight: 1.4 }}>
-            {copy.housingNote}
-          </Typography>
+              <Alert severity="info" sx={{ mt: 1 }}>
+                {copy.occupationInfo}
+              </Alert>
+            </Paper>
+          )}
         </>
       )}
 
-      {region === 'tw' && (
+      {showHousingPlan && (
+        <>
+          <Divider sx={{ my: 1 }} />
+
+          <SectionHeading help={copy.housingHelp}>
+            {copy.housing}
+          </SectionHeading>
+          <FormControlLabel
+            control={<Switch checked={store.housingEnabled} onChange={(_, v) => store.setHousingEnabled(v)} color="success" />}
+            label={(
+              <Stack>
+                <Typography variant="body2" fontWeight={600}>
+                  {store.housingEnabled ? copy.enabled : copy.disabled}
+                </Typography>
+              </Stack>
+            )}
+          />
+          {store.housingEnabled && (
+            <>
+              <SliderField label={copy.housingPurchaseAge} value={store.housingPurchaseAge} unit=""
+                min={store.currentAge} max={store.retirementAge}
+                onChange={store.setHousingPurchaseAge} />
+              <SliderField label={copy.housingPriceRatio} value={store.housingPriceToIncomeRatio} unit="x"
+                min={hp.priceToIncomeRange.min} max={hp.priceToIncomeRange.max} step={hp.priceToIncomeRange.step}
+                onChange={store.setHousingPriceToIncomeRatio}
+                format={(v) => `${v}x`} />
+              <SliderField label={copy.housingDownPayment} value={store.housingDownPaymentRatio * 100} unit="%"
+                min={10} max={50} step={5}
+                onChange={(v) => store.setHousingDownPaymentRatio(v / 100)}
+                format={(v) => `${v.toFixed(0)}%`} />
+
+              <FormControl size="small" fullWidth>
+                <InputLabel>{copy.housingMortgageYears}</InputLabel>
+                <Select label={copy.housingMortgageYears} value={store.housingMortgageYears} onChange={(e) => store.setHousingMortgageYears(e.target.value as number)}>
+                  {hp.mortgageYearsOptions.map((y) => (
+                    <MenuItem key={y} value={y}>{y}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              <Paper variant="outlined" sx={{ p: 1.5, mt: 1, bgcolor: 'action.hover' }}>
+                <Stack spacing={0.5}>
+                  <Stack direction="row" justifyContent="space-between">
+                    <Typography variant="caption" color="text.secondary">{copy.housingPrice}</Typography>
+                    <Typography variant="caption" fontWeight={700}>{formatCurrency(estimatedPrice, region, language)}</Typography>
+                  </Stack>
+                  <Stack direction="row" justifyContent="space-between">
+                    <Typography variant="caption" color="text.secondary">{copy.housingUpfront}</Typography>
+                    <Typography variant="caption" fontWeight={700}>{formatCurrency(downPayment + closingCost, region, language)}</Typography>
+                  </Stack>
+                  <Stack direction="row" justifyContent="space-between">
+                    <Typography variant="caption" color="text.secondary">{copy.housingMonthly}</Typography>
+                    <Typography variant="caption" fontWeight={700} color="warning.main">{formatCurrency(Math.round(monthlyPayment), region, language)}</Typography>
+                  </Stack>
+                  <Stack direction="row" justifyContent="space-between">
+                    <Typography variant="caption" color="text.secondary">{copy.housingRate}</Typography>
+                    <Typography variant="caption" fontWeight={700}>{(effectiveHousing.mortgageRate * 100).toFixed(1)}%</Typography>
+                  </Stack>
+                </Stack>
+              </Paper>
+
+              <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, lineHeight: 1.4 }}>
+                {copy.housingNote}
+              </Typography>
+            </>
+          )}
+        </>
+      )}
+
+      {showImmigrationPlan && region === 'tw' && (
         <>
           <Divider sx={{ my: 1 }} />
           <SectionHeading help={copy.immigrationHelp}>
