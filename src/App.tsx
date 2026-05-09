@@ -18,7 +18,7 @@ import CloseIcon from '@mui/icons-material/Close'
 import DarkModeIcon from '@mui/icons-material/DarkMode'
 import LightModeIcon from '@mui/icons-material/LightMode'
 import TuneIcon from '@mui/icons-material/Tune'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Controls } from './components/Controls'
 import { MobileActionBar } from './components/MobileActionBar'
 import { MobileQuickSetup } from './components/MobileQuickSetup'
@@ -26,6 +26,7 @@ import { ResultPanel } from './components/ResultPanel'
 import { StoryPanel } from './components/StoryPanel'
 import { useColorMode } from './ThemeContext'
 import { useI18n } from './i18n'
+import { FEATURE_FLAGS } from './config/featureFlags'
 import type { UiLanguage } from './i18n/types'
 import { useGameStore } from './store/gameStore'
 
@@ -39,8 +40,15 @@ export function App() {
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'))
   const [settingsOpen, setSettingsOpen] = useState(false)
   const viewMode = useGameStore((s) => s.viewMode)
+  const setViewMode = useGameStore((s) => s.setViewMode)
   const { mode, toggle: toggleColorMode } = useColorMode()
   const { language, setLanguage, t } = useI18n()
+
+  useEffect(() => {
+    if (!FEATURE_FLAGS.storyMode && viewMode === 'story') {
+      setViewMode('simulation')
+    }
+  }, [setViewMode, viewMode])
 
   const drawerW = isMobile ? DRAWER_WIDTH_MOBILE : DRAWER_WIDTH
 
@@ -174,7 +182,7 @@ export function App() {
         }}
       >
         {isMobile && <MobileQuickSetup onAdjust={() => setSettingsOpen(true)} />}
-        {viewMode === 'simulation' ? <ResultPanel /> : <StoryPanel />}
+        {FEATURE_FLAGS.storyMode && viewMode === 'story' ? <StoryPanel /> : <ResultPanel />}
       </Box>
       {isMobile && <MobileActionBar onAdjust={() => setSettingsOpen(true)} />}
     </Box>
