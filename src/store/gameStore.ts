@@ -261,7 +261,7 @@ export const useGameStore = create<GameState>()(persist((set, get) => ({
   setHousingPriceToIncomeRatio: (v) => set({ housingPriceToIncomeRatio: v }),
   setHousingDownPaymentRatio: (v) => set({ housingDownPaymentRatio: v }),
   setHousingMortgageYears: (v) => set({ housingMortgageYears: v }),
-  setViewMode: (m) => set({ viewMode: m }),
+  setViewMode: (m) => set({ viewMode: FEATURE_FLAGS.storyMode ? m : 'simulation' }),
 
   runSimulation: () => {
     const state = get()
@@ -345,6 +345,11 @@ export const useGameStore = create<GameState>()(persist((set, get) => ({
   },
 
   runStory: () => {
+    if (!FEATURE_FLAGS.storyMode) {
+      set({ viewMode: 'simulation', isStoryRunning: false, storyResult: null })
+      return
+    }
+
     const state = get()
     set({ isStoryRunning: true, storyResult: null })
 

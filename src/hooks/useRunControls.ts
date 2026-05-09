@@ -2,6 +2,7 @@ import AutoStoriesIcon from '@mui/icons-material/AutoStories'
 import HourglassTopIcon from '@mui/icons-material/HourglassTop'
 import PlayArrowIcon from '@mui/icons-material/PlayArrow'
 import type { SvgIconComponent } from '@mui/icons-material'
+import { FEATURE_FLAGS } from '../config/featureFlags'
 import type { Allocation } from '../engine/simulator'
 import { useI18n } from '../i18n'
 import { useGameStore } from '../store/gameStore'
@@ -21,7 +22,7 @@ export function useRunControls() {
   const immigrationAllocationValid = isFullAllocation(store.immigrationAllocation)
   const requiresImmigrationAllocation = store.immigrationEnabled && !!store.immigrationTarget
   const hasInvalidAssumptions = !allocationValid || (requiresImmigrationAllocation && !immigrationAllocationValid)
-  const isStoryMode = store.viewMode === 'story'
+  const isStoryMode = FEATURE_FLAGS.storyMode && store.viewMode === 'story'
   const isBusy = isStoryMode ? store.isStoryRunning : store.isRunning
   const disabled = isBusy || hasInvalidAssumptions
   const progressLabel = `${(store.progress * 100).toFixed(0)}%`

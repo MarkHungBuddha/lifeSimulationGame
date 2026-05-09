@@ -22,6 +22,7 @@ import { LIFESTYLE_LIST, type LifestyleId } from '../engine/lifestyle'
 import { LIFESTYLE_LIST_JP } from '../engine/lifestyle_jp'
 import { LIFESTYLE_LIST_TW } from '../engine/lifestyle_tw'
 import { getPhilippinesLifestyleList } from '../engine/lifestyle_ph'
+import { FEATURE_FLAGS } from '../config/featureFlags'
 import { formatSliderValue, getRegionLabel, isPhilippinesRegion, type Region } from '../config/regions'
 import { useRunControls } from '../hooks/useRunControls'
 import { useGameStore } from '../store/gameStore'
@@ -41,6 +42,7 @@ export function MobileQuickSetup({ onAdjust }: { onAdjust: () => void }) {
   const runControls = useRunControls()
   const lifestyleList = getLifestyleList(store.region)
   const lifestyleValue = store.lifestyleId
+  const effectiveViewMode = FEATURE_FLAGS.storyMode ? store.viewMode : 'simulation'
   const selectedLifestyle = store.lifestyleId !== 'custom'
     ? getLifestyleDisplay(store.region, store.lifestyleId as Exclude<LifestyleId, 'custom'>, language)
     : null
@@ -126,22 +128,24 @@ export function MobileQuickSetup({ onAdjust }: { onAdjust: () => void }) {
             <SummaryItem label={t('result.retirement')} value={t('result.age_suffix', { age: store.retirementAge })} />
           </Box>
 
-          <ToggleButtonGroup
-            fullWidth
-            size="small"
-            exclusive
-            value={store.viewMode}
-            onChange={(_, value) => value && store.setViewMode(value)}
-          >
-            <ToggleButton value="simulation">
-              <BarChartIcon sx={{ mr: 0.5, fontSize: 18 }} />
-              {t('mobile_setup.simulation')}
-            </ToggleButton>
-            <ToggleButton value="story">
-              <AutoStoriesIcon sx={{ mr: 0.5, fontSize: 18 }} />
-              {t('mobile_setup.story')}
-            </ToggleButton>
-          </ToggleButtonGroup>
+          {FEATURE_FLAGS.storyMode && (
+            <ToggleButtonGroup
+              fullWidth
+              size="small"
+              exclusive
+              value={effectiveViewMode}
+              onChange={(_, value) => value && store.setViewMode(value)}
+            >
+              <ToggleButton value="simulation">
+                <BarChartIcon sx={{ mr: 0.5, fontSize: 18 }} />
+                {t('mobile_setup.simulation')}
+              </ToggleButton>
+              <ToggleButton value="story">
+                <AutoStoriesIcon sx={{ mr: 0.5, fontSize: 18 }} />
+                {t('mobile_setup.story')}
+              </ToggleButton>
+            </ToggleButtonGroup>
+          )}
 
           <Stack direction="row" spacing={1}>
             <Button

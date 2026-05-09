@@ -316,6 +316,8 @@ export function Controls() {
   const showOccupationPlan = FEATURE_FLAGS.occupationPlan
   const showHousingPlan = FEATURE_FLAGS.housingPlan
   const showImmigrationPlan = FEATURE_FLAGS.immigrationPlan
+  const showStoryMode = FEATURE_FLAGS.storyMode
+  const effectiveViewMode = showStoryMode ? store.viewMode : 'simulation'
   const occupationSupported = showOccupationPlan && !isPhilippinesRegion(region)
   const r = cfg.sliderRanges
 
@@ -817,20 +819,22 @@ export function Controls() {
         min={1000} max={50000} step={1000} onChange={store.setNumPaths}
         format={(v) => v.toLocaleString(language === 'ja' ? 'ja-JP' : language === 'zh-Hant' ? 'zh-TW' : 'en-US')} />
 
-      <ToggleButtonGroup fullWidth size="small" exclusive value={store.viewMode} onChange={(_, v) => v && store.setViewMode(v)} sx={{ mb: 1 }}>
+      <ToggleButtonGroup fullWidth size="small" exclusive value={effectiveViewMode} onChange={(_, v) => v && store.setViewMode(v)} sx={{ mb: 1 }}>
         <ToggleButton value="simulation">
           <BarChartIcon sx={{ mr: 0.5, fontSize: 18 }} /> {copy.simulationView}
         </ToggleButton>
-        <ToggleButton value="story">
-          <AutoStoriesIcon sx={{ mr: 0.5, fontSize: 18 }} /> {copy.storyView}
-        </ToggleButton>
+        {showStoryMode && (
+          <ToggleButton value="story">
+            <AutoStoriesIcon sx={{ mr: 0.5, fontSize: 18 }} /> {copy.storyView}
+          </ToggleButton>
+        )}
       </ToggleButtonGroup>
 
       {store.isRunning && (
         <LinearProgress variant="determinate" value={store.progress * 100} sx={{ borderRadius: 1 }} />
       )}
 
-      {store.viewMode === 'simulation' ? (
+      {effectiveViewMode === 'simulation' ? (
         <Button
           variant="contained"
           size="large"
