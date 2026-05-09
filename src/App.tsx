@@ -1,6 +1,7 @@
 import {
   AppBar,
   Box,
+  Button,
   Drawer,
   FormControl,
   IconButton,
@@ -12,12 +13,15 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material'
-import MenuIcon from '@mui/icons-material/Menu'
 import CasinoIcon from '@mui/icons-material/Casino'
+import CloseIcon from '@mui/icons-material/Close'
 import DarkModeIcon from '@mui/icons-material/DarkMode'
 import LightModeIcon from '@mui/icons-material/LightMode'
+import TuneIcon from '@mui/icons-material/Tune'
 import { useState } from 'react'
 import { Controls } from './components/Controls'
+import { MobileActionBar } from './components/MobileActionBar'
+import { MobileQuickSetup } from './components/MobileQuickSetup'
 import { ResultPanel } from './components/ResultPanel'
 import { StoryPanel } from './components/StoryPanel'
 import { useColorMode } from './ThemeContext'
@@ -33,7 +37,7 @@ export function App() {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'))
-  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [settingsOpen, setSettingsOpen] = useState(false)
   const viewMode = useGameStore((s) => s.viewMode)
   const { mode, toggle: toggleColorMode } = useColorMode()
   const { language, setLanguage, t } = useI18n()
@@ -46,14 +50,47 @@ export function App() {
     </Box>
   )
 
+  const mobileSettings = (
+    <Box sx={{ maxHeight: 'calc(100dvh - 56px)', display: 'flex', flexDirection: 'column' }}>
+      <Box
+        sx={{
+          px: 2,
+          py: 1,
+          minHeight: 52,
+          display: 'flex',
+          alignItems: 'center',
+          borderBottom: '1px solid',
+          borderColor: 'divider',
+        }}
+      >
+        <TuneIcon sx={{ mr: 1 }} />
+        <Typography variant="subtitle1" fontWeight={800} sx={{ flexGrow: 1 }}>
+          {t('settings_sheet.title')}
+        </Typography>
+        <IconButton edge="end" aria-label={t('settings_sheet.close')} onClick={() => setSettingsOpen(false)}>
+          <CloseIcon />
+        </IconButton>
+      </Box>
+      <Box sx={{ overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
+        <Controls />
+      </Box>
+    </Box>
+  )
+
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh' }}>
       <AppBar position="fixed" sx={{ zIndex: (t) => t.zIndex.drawer + 1 }} elevation={1}>
         <Toolbar sx={{ minHeight: { xs: 56, sm: 64 }, gap: 1 }}>
           {isMobile && (
-            <IconButton color="inherit" edge="start" sx={{ mr: 0.5 }} onClick={() => setDrawerOpen(true)}>
-              <MenuIcon />
-            </IconButton>
+            <Button
+              color="inherit"
+              size="small"
+              startIcon={<TuneIcon />}
+              onClick={() => setSettingsOpen(true)}
+              sx={{ minWidth: 0, px: 1, fontWeight: 700 }}
+            >
+              {t('mobile_action.adjust')}
+            </Button>
           )}
           <CasinoIcon sx={{ mr: 0.5 }} />
           <Typography variant="h6" noWrap sx={{ flexGrow: 1, fontWeight: 700, fontSize: { xs: 16, sm: 20 } }}>
@@ -94,11 +131,18 @@ export function App() {
 
       {isMobile ? (
         <Drawer
-          open={drawerOpen}
-          onClose={() => setDrawerOpen(false)}
-          sx={{ '& .MuiDrawer-paper': { width: drawerW, pt: { xs: '56px', sm: '64px' } } }}
+          anchor="bottom"
+          open={settingsOpen}
+          onClose={() => setSettingsOpen(false)}
+          sx={{
+            '& .MuiDrawer-paper': {
+              borderTopLeftRadius: 8,
+              borderTopRightRadius: 8,
+              maxHeight: 'calc(100dvh - 56px)',
+            },
+          }}
         >
-          {sidebar}
+          {mobileSettings}
         </Drawer>
       ) : (
         <Drawer
@@ -124,12 +168,15 @@ export function App() {
         sx={{
           flexGrow: 1,
           pt: { xs: '56px', sm: '64px' },
+          pb: isMobile ? 'calc(76px + env(safe-area-inset-bottom))' : 0,
           minHeight: '100vh',
           bgcolor: 'background.default',
         }}
       >
+        {isMobile && <MobileQuickSetup onAdjust={() => setSettingsOpen(true)} />}
         {viewMode === 'simulation' ? <ResultPanel /> : <StoryPanel />}
       </Box>
+      {isMobile && <MobileActionBar onAdjust={() => setSettingsOpen(true)} />}
     </Box>
   )
 }
