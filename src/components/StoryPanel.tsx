@@ -74,7 +74,7 @@ export function StoryPanel() {
   const fmtM = (n: number) => formatCurrencySigned(n, region, language)
 
   if (!storyResult) {
-    return <GuidePanel mode="simulation" />
+    return <GuidePanel mode="story" />
   }
 
   const { snapshots, bankrupt, bankruptAge, finalPortfolio, allEvents } = storyResult
