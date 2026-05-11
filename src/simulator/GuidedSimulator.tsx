@@ -678,7 +678,7 @@ function SelectField({ label, value, onChange, children }: {
   )
 }
 
-function ToggleField({ label, checked, onChange, copy }: {
+function ToggleField({ label, checked, onChange, copy, disabled = false }: {
   label: string
   checked: boolean
   onChange: (checked: boolean) => void
