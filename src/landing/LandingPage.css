@@ -1,0 +1,583 @@
+.landingPage {
+  --landing-bg: #fafaf7;
+  --landing-paper: #fffdf8;
+  --landing-ink: #0a0a0a;
+  --landing-ink-soft: #4a4a4a;
+  --landing-ink-faint: #6f6f6f;
+  --landing-line: rgba(10, 10, 10, 0.12);
+  --landing-accent: #c8392f;
+  --landing-success: #2a6d3a;
+  min-height: 100vh;
+  background: var(--landing-bg);
+  color: var(--landing-ink);
+  font-family: "Inter", "Noto Sans TC", "Noto Sans JP", sans-serif;
+  overflow-x: hidden;
+}
+
+.landingPage * {
+  box-sizing: border-box;
+}
+
+.landingTopNav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 20px 48px;
+  background: linear-gradient(180deg, var(--landing-bg) 62%, rgba(250, 250, 247, 0));
+  pointer-events: none;
+}
+
+.landingTopNav > * {
+  pointer-events: auto;
+}
+
+.landingBrand {
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.landingBrand span {
+  color: var(--landing-accent);
+}
+
+.landingNavActions {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.landingLangSwitch {
+  display: flex;
+  gap: 4px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+}
+
+.landingLangSwitch button,
+.landingSkipButton,
+.landingProgress button,
+.landingAgePicker button,
+.landingSequenceToggle button,
+.landingPrimaryButton {
+  font: inherit;
+}
+
+.landingLangSwitch button {
+  border: 0;
+  border-bottom: 1px solid transparent;
+  background: transparent;
+  color: var(--landing-ink-faint);
+  cursor: pointer;
+  padding: 4px 6px;
+}
+
+.landingLangSwitch button.active,
+.landingLangSwitch button:hover {
+  border-color: var(--landing-ink);
+  color: var(--landing-ink);
+}
+
+.landingSkipButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--landing-line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--landing-ink);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 8px 16px;
+}
+
+.landingSkipButton:hover {
+  border-color: var(--landing-ink);
+  background: var(--landing-ink);
+  color: var(--landing-bg);
+}
+
+.landingSkipButton span,
+.landingPrimaryButton span {
+  transition: transform 0.2s ease;
+}
+
+.landingSkipButton:hover span,
+.landingPrimaryButton:hover span {
+  transform: translateX(4px);
+}
+
+.landingProgress {
+  position: fixed;
+  left: 48px;
+  top: 50%;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transform: translateY(-50%);
+}
+
+.landingProgress button {
+  width: 8px;
+  height: 8px;
+  border: 1px solid var(--landing-ink);
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.landingProgress button.active {
+  background: var(--landing-ink);
+}
+
+.landingProgress button:hover {
+  transform: scale(1.4);
+}
+
+.landingScene {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100svh;
+  padding: 120px 48px;
+}
+
+.landingSceneInner {
+  width: 100%;
+  max-width: 880px;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.9s ease, transform 0.9s ease;
+}
+
+.landingScene.visible .landingSceneInner {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.landingSceneLabel {
+  margin-bottom: 32px;
+  color: var(--landing-ink-faint);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.landingSceneLabel span {
+  color: var(--landing-ink);
+}
+
+.landingHeadline {
+  max-width: 980px;
+  margin: 0 0 28px;
+  font-family: "Fraunces", Georgia, serif;
+  font-size: clamp(40px, 6vw, 76px);
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1.02;
+}
+
+.landingHeadlineHero {
+  font-size: clamp(48px, 8vw, 104px);
+  line-height: 0.98;
+}
+
+.landingHeadline em {
+  display: inline;
+  font-style: italic;
+  font-weight: 300;
+}
+
+.landingLede {
+  max-width: 600px;
+  margin: 0;
+  color: var(--landing-ink-soft);
+  font-size: 19px;
+  line-height: 1.5;
+}
+
+.landingLedeLarge {
+  font-size: 22px;
+}
+
+.landingHookSub {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 40px;
+  color: var(--landing-ink-faint);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 13px;
+}
+
+.landingHookSub span {
+  width: 40px;
+  height: 1px;
+  background: currentColor;
+}
+
+.landingScrollCue {
+  position: absolute;
+  bottom: 48px;
+  left: 50%;
+  color: var(--landing-ink-faint);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  transform: translateX(-50%);
+  animation: landingBob 2s ease-in-out infinite;
+}
+
+@keyframes landingBob {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(8px); }
+}
+
+.landingAgePicker {
+  display: flex;
+  flex-direction: column;
+  margin-top: 56px;
+}
+
+.landingAgePicker button {
+  display: flex;
+  align-items: baseline;
+  gap: 24px;
+  width: 100%;
+  border: 0;
+  border-top: 1px solid var(--landing-line);
+  background: transparent;
+  color: var(--landing-ink);
+  cursor: pointer;
+  padding: 22px 0;
+  text-align: left;
+  transition: background 0.2s ease, padding-left 0.2s ease;
+}
+
+.landingAgePicker button:last-child {
+  border-bottom: 1px solid var(--landing-line);
+}
+
+.landingAgePicker button:hover {
+  padding-left: 16px;
+}
+
+.landingAgePicker button.selected {
+  padding-left: 24px;
+  background: linear-gradient(90deg, rgba(200, 57, 47, 0.05), transparent 62%);
+}
+
+.landingAgeLabel {
+  width: 110px;
+  flex: 0 0 auto;
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 36px;
+  line-height: 1;
+}
+
+.landingAgePicker button.selected .landingAgeLabel {
+  color: var(--landing-accent);
+}
+
+.landingAgeText {
+  color: var(--landing-ink-soft);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.landingAgePicker button.selected .landingAgeText {
+  color: var(--landing-ink);
+}
+
+.landingAgeCallout {
+  max-width: 540px;
+  margin: 40px 0 0;
+  border-left: 2px solid var(--landing-ink);
+  padding-left: 24px;
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 22px;
+  font-style: italic;
+  line-height: 1.4;
+}
+
+.landingUncertaintyGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  margin-top: 56px;
+  border: 1px solid var(--landing-line);
+  background: var(--landing-line);
+}
+
+.landingUncertaintyItem {
+  min-height: 150px;
+  background: var(--landing-bg);
+  padding: 32px 28px;
+}
+
+.landingUncertaintyItem h3 {
+  margin: 0 0 10px;
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 1.2;
+}
+
+.landingUncertaintyItem p {
+  margin: 0;
+  color: var(--landing-ink-faint);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  text-transform: uppercase;
+}
+
+.landingDemo {
+  margin-top: 48px;
+  border: 1px solid var(--landing-line);
+  padding: 40px;
+}
+
+.landingDemoTitle {
+  margin: 0 0 16px;
+  color: var(--landing-ink-faint);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.landingFormula {
+  margin: 0 0 32px;
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 28px;
+  line-height: 1.3;
+}
+
+.landingFormula em {
+  color: var(--landing-accent);
+  font-style: italic;
+}
+
+.landingSequenceToggle {
+  display: flex;
+  border: 1px solid var(--landing-ink);
+}
+
+.landingSequenceToggle button {
+  flex: 1;
+  border: 0;
+  border-right: 1px solid var(--landing-ink);
+  background: transparent;
+  color: var(--landing-ink-soft);
+  cursor: pointer;
+  padding: 12px 16px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.landingSequenceToggle button:last-child {
+  border-right: 0;
+}
+
+.landingSequenceToggle button.active {
+  background: var(--landing-ink);
+  color: var(--landing-bg);
+}
+
+.landingChart {
+  width: 100%;
+  height: 200px;
+  margin-top: 24px;
+  color: var(--landing-ink);
+}
+
+.landingChart text {
+  fill: var(--landing-ink-faint);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9px;
+}
+
+.landingOutcome {
+  margin: 12px 0 0;
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 20px;
+  line-height: 1.4;
+}
+
+.landingOutcome span {
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  color: var(--landing-ink-soft);
+}
+
+.landingOutcome.good {
+  color: var(--landing-success);
+}
+
+.landingOutcome.bad {
+  color: var(--landing-accent);
+}
+
+.landingMcSteps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+  margin-top: 40px;
+}
+
+.landingMcStep {
+  border-top: 1px solid var(--landing-ink);
+  padding-top: 16px;
+}
+
+.landingMcStep span {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--landing-ink-faint);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+}
+
+.landingMcStep p {
+  margin: 0;
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 18px;
+  line-height: 1.35;
+}
+
+.landingCtaRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 24px;
+  margin-top: 72px;
+}
+
+.landingPrimaryButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  border: 0;
+  background: var(--landing-ink);
+  color: var(--landing-bg);
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 500;
+  padding: 20px 32px;
+}
+
+.landingPrimaryButton:hover {
+  background: var(--landing-accent);
+}
+
+.landingCtaRow p {
+  margin: 0;
+  color: var(--landing-ink-faint);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+}
+
+.landingEndNote {
+  border-top: 1px solid var(--landing-line);
+  padding: 80px 48px 60px;
+  text-align: center;
+}
+
+.landingEndNote p {
+  max-width: 540px;
+  margin: 0 auto;
+  color: var(--landing-ink-soft);
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 18px;
+  font-style: italic;
+  line-height: 1.5;
+}
+
+@media (max-width: 720px) {
+  .landingTopNav {
+    padding: 16px 24px;
+  }
+
+  .landingNavActions {
+    gap: 10px;
+  }
+
+  .landingBrand {
+    font-size: 17px;
+  }
+
+  .landingSkipButton {
+    padding: 7px 10px;
+  }
+
+  .landingProgress {
+    left: 16px;
+  }
+
+  .landingScene {
+    padding: 104px 24px;
+  }
+
+  .landingHeadline,
+  .landingHeadlineHero {
+    font-size: clamp(38px, 12vw, 58px);
+  }
+
+  .landingLede,
+  .landingLedeLarge {
+    font-size: 17px;
+  }
+
+  .landingAgePicker button {
+    gap: 14px;
+  }
+
+  .landingAgeLabel {
+    width: 78px;
+    font-size: 28px;
+  }
+
+  .landingUncertaintyGrid,
+  .landingMcSteps {
+    grid-template-columns: 1fr;
+  }
+
+  .landingDemo {
+    padding: 24px;
+  }
+
+  .landingFormula {
+    font-size: 22px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landingPage *,
+  .landingPage *::before,
+  .landingPage *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .landingScrollCue {
+    animation: none;
+  }
+}
