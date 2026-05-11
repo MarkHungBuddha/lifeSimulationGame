@@ -50,7 +50,7 @@ export function ResultPanel() {
 
   const rate = result.successRate
   const rateColor = rate >= 0.8 ? 'success' : rate >= 0.5 ? 'warning' : 'error'
-  const rateHex = rate >= 0.8 ? '#2e7d32' : rate >= 0.5 ? '#ed6c02' : '#d32f2f'
+  const rateHex = rate >= 0.8 ? '#2a6d3a' : rate >= 0.5 ? '#9b5f15' : '#a92f28'
   const lifestylePreset = lifestyleId !== 'custom'
     ? presets[lifestyleId as keyof typeof presets]
     : null
@@ -123,24 +123,24 @@ export function ResultPanel() {
       <Grid container spacing={{ xs: 1, sm: 2 }} sx={{ mb: { xs: 2, sm: 3 } }}>
         <Grid size={{ xs: 6, sm: 6, md: 3 }}>
           <StatCard icon={<AccountBalanceIcon />} label={t('result.median_final_portfolio')}
-            value={fmt(result.medianFinalPortfolio)} color="#1565c0" />
+            value={fmt(result.medianFinalPortfolio)} color="#0a0a0a" />
         </Grid>
         <Grid size={{ xs: 6, sm: 6, md: 3 }}>
           <StatCard
             icon={<WarningIcon />}
             label={t('result.median_depletion_age')}
             value={result.medianDepletionAge ? t('result.age_suffix', { age: result.medianDepletionAge.toFixed(0) }) : t('result.not_depleted')}
-            color={result.medianDepletionAge ? '#d32f2f' : '#2e7d32'}
+            color={result.medianDepletionAge ? '#a92f28' : '#2a6d3a'}
             help={t('guide.term.depletion_age.body')}
           />
         </Grid>
         <Grid size={{ xs: 6, sm: 6, md: 3 }}>
           <StatCard icon={<TrendingUpIcon />} label={t('result.p90_final_portfolio')}
-            value={fmt(result.percentiles.p90[result.percentiles.p90.length - 1])} color="#1565c0" help={t('guide.term.percentile.body')} />
+            value={fmt(result.percentiles.p90[result.percentiles.p90.length - 1])} color="#0a0a0a" help={t('guide.term.percentile.body')} />
         </Grid>
         <Grid size={{ xs: 6, sm: 6, md: 3 }}>
           <StatCard icon={<TrendingUpIcon />} label={t('result.p10_final_portfolio')}
-            value={fmt(result.percentiles.p10[result.percentiles.p10.length - 1])} color="#e65100" help={t('guide.term.percentile.body')} />
+            value={fmt(result.percentiles.p10[result.percentiles.p10.length - 1])} color="#c8392f" help={t('guide.term.percentile.body')} />
         </Grid>
       </Grid>
 
@@ -154,19 +154,19 @@ export function ResultPanel() {
         <Grid container spacing={{ xs: 1, sm: 2 }}>
           <Grid size={{ xs: 6, sm: 3 }}>
             <StatCard icon={<TrendingDownIcon />} label={t('result.drawdown_median')}
-              value={`-${(result.maxDrawdown.median * 100).toFixed(1)}%`} color={result.maxDrawdown.median > 0.3 ? '#d32f2f' : '#e65100'} />
+              value={`-${(result.maxDrawdown.median * 100).toFixed(1)}%`} color={result.maxDrawdown.median > 0.3 ? '#a92f28' : '#c8392f'} />
           </Grid>
           <Grid size={{ xs: 6, sm: 3 }}>
             <StatCard icon={<TrendingDownIcon />} label={t('result.drawdown_p75')}
-              value={`-${(result.maxDrawdown.p75 * 100).toFixed(1)}%`} color={result.maxDrawdown.p75 > 0.4 ? '#d32f2f' : '#e65100'} />
+              value={`-${(result.maxDrawdown.p75 * 100).toFixed(1)}%`} color={result.maxDrawdown.p75 > 0.4 ? '#a92f28' : '#c8392f'} />
           </Grid>
           <Grid size={{ xs: 6, sm: 3 }}>
             <StatCard icon={<TrendingDownIcon />} label={t('result.drawdown_p90')}
-              value={`-${(result.maxDrawdown.p90 * 100).toFixed(1)}%`} color="#d32f2f" />
+              value={`-${(result.maxDrawdown.p90 * 100).toFixed(1)}%`} color="#a92f28" />
           </Grid>
           <Grid size={{ xs: 6, sm: 3 }}>
             <StatCard icon={<TrendingDownIcon />} label={t('result.drawdown_worst')}
-              value={`-${(result.maxDrawdown.worst * 100).toFixed(1)}%`} color="#b71c1c" />
+            value={`-${(result.maxDrawdown.worst * 100).toFixed(1)}%`} color="#7f231e" />
           </Grid>
         </Grid>
       </Paper>
@@ -187,9 +187,9 @@ export function ResultPanel() {
           t={t}
         />
         <Stack direction="row" spacing={2} sx={{ mt: 1.5, justifyContent: 'center' }} flexWrap="wrap" useFlexGap>
-          <Legend color="rgba(21,101,192,0.12)" label={t('result.legend_p10_p90')} />
-          <Legend color="rgba(21,101,192,0.28)" label={t('result.legend_p25_p75')} />
-          <Legend color="#1565c0" label={t('result.legend_p50')} line />
+          <Legend color="rgba(10,10,10,0.10)" label={t('result.legend_p10_p90')} />
+          <Legend color="rgba(200,57,47,0.22)" label={t('result.legend_p25_p75')} />
+          <Legend color="#0a0a0a" label={t('result.legend_p50')} line />
         </Stack>
       </Paper>
 
@@ -202,11 +202,11 @@ export function ResultPanel() {
             <TableHead>
               <TableRow>
                 <TableCell>{t('result.age')}</TableCell>
-                <TableCell align="right" sx={{ color: '#d32f2f' }}>P10</TableCell>
-                <TableCell align="right" sx={{ color: '#e65100' }}>P25</TableCell>
+                <TableCell align="right" sx={{ color: '#a92f28' }}>P10</TableCell>
+                <TableCell align="right" sx={{ color: '#c8392f' }}>P25</TableCell>
                 <TableCell align="right" sx={{ fontWeight: 700 }}>P50</TableCell>
-                <TableCell align="right" sx={{ color: '#2e7d32' }}>P75</TableCell>
-                <TableCell align="right" sx={{ color: '#1565c0' }}>P90</TableCell>
+                <TableCell align="right" sx={{ color: '#2a6d3a' }}>P75</TableCell>
+                <TableCell align="right" sx={{ color: '#0a0a0a' }}>P90</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -221,19 +221,19 @@ export function ResultPanel() {
                       <Chip label={t('result.retirement')} size="small" color="primary" sx={{ ml: 0.5, height: 20, fontSize: 11 }} />
                     )}
                   </TableCell>
-                  <TableCell align="right" sx={{ color: '#d32f2f' }}>
+                  <TableCell align="right" sx={{ color: '#a92f28' }}>
                     {fmt(result.percentiles.p10[i])}
                   </TableCell>
-                  <TableCell align="right" sx={{ color: '#e65100' }}>
+                  <TableCell align="right" sx={{ color: '#c8392f' }}>
                     {fmt(result.percentiles.p25[i])}
                   </TableCell>
                   <TableCell align="right" sx={{ fontWeight: 700 }}>
                     {fmt(result.percentiles.p50[i])}
                   </TableCell>
-                  <TableCell align="right" sx={{ color: '#2e7d32' }}>
+                  <TableCell align="right" sx={{ color: '#2a6d3a' }}>
                     {fmt(result.percentiles.p75[i])}
                   </TableCell>
-                  <TableCell align="right" sx={{ color: '#1565c0' }}>
+                  <TableCell align="right" sx={{ color: '#0a0a0a' }}>
                     {fmt(result.percentiles.p90[i])}
                   </TableCell>
                 </TableRow>
@@ -425,7 +425,7 @@ function PercentileChart({ percentiles, currentAge, retirementAge, region, langu
 
     const retireYear = retirementAge - currentAge
     if (retireYear > 0 && retireYear < years) {
-      ctx.strokeStyle = '#ff980088'
+      ctx.strokeStyle = '#c8392f88'
       ctx.lineWidth = 1.5
       ctx.setLineDash([6, 4])
       ctx.beginPath()
@@ -434,8 +434,8 @@ function PercentileChart({ percentiles, currentAge, retirementAge, region, langu
       ctx.stroke()
       ctx.setLineDash([])
 
-      ctx.fillStyle = '#ff9800'
-      ctx.font = `${compact ? 10 : 12}px "Noto Sans TC", sans-serif`
+      ctx.fillStyle = '#c8392f'
+      ctx.font = `${compact ? 10 : 12}px "JetBrains Mono", "Noto Sans TC", monospace`
       ctx.textAlign = 'center'
       ctx.fillText(t('result.retirement'), x(retireYear), pad.top - 6)
     }

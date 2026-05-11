@@ -22,13 +22,13 @@ import { GuidePanel } from './GuidePanel'
 type TranslateFn = (key: string, params?: Record<string, string | number>) => string
 
 const CATEGORY_COLORS: Record<EventCategory, string> = {
-  market: '#1565c0',
-  career: '#6a1b9a',
-  health: '#c62828',
+  market: '#0a0a0a',
+  career: '#7a5a35',
+  health: '#a92f28',
   family: '#2e7d32',
-  property: '#e65100',
-  legal: '#37474f',
-  immigration: '#00838f',
+  property: '#c8392f',
+  legal: '#4a4a4a',
+  immigration: '#2f6f73',
 }
 
 const CATEGORY_EMOJI: Record<EventCategory, string> = {
@@ -141,9 +141,9 @@ export function StoryPanel() {
       <Paper elevation={2} sx={{
         p: 3, mb: 3, textAlign: 'center',
         background: bankrupt
-          ? 'linear-gradient(135deg, #d32f2f11, #d32f2f08)'
-          : 'linear-gradient(135deg, #2e7d3211, #2e7d3208)',
-        border: bankrupt ? '1px solid #d32f2f33' : '1px solid #2e7d3233',
+          ? 'linear-gradient(135deg, #a92f2811, #a92f2808)'
+          : 'linear-gradient(135deg, #2a6d3a11, #2a6d3a08)',
+        border: bankrupt ? '1px solid #a92f2833' : '1px solid #2a6d3a33',
       }}>
         <Typography variant="h3" fontWeight={800} color={bankrupt ? 'error.main' : 'success.main'}>
           {bankrupt ? t('story.bankrupt', { age: bankruptAge ?? 0 }) : t('story.survived')}
@@ -163,11 +163,11 @@ export function StoryPanel() {
         <Paper elevation={2} sx={{
           p: 2.5, mb: 3, textAlign: 'center',
           background: immigrationOutcome.success
-            ? 'linear-gradient(135deg, #00838f11, #00838f08)'
-            : 'linear-gradient(135deg, #ff6f0011, #ff6f0008)',
-          border: immigrationOutcome.success ? '1px solid #00838f33' : '1px solid #ff6f0033',
+            ? 'linear-gradient(135deg, #2f6f7311, #2f6f7308)'
+            : 'linear-gradient(135deg, #c8392f11, #c8392f08)',
+          border: immigrationOutcome.success ? '1px solid #2f6f7333' : '1px solid #c8392f33',
         }}>
-          <Typography variant="h4" fontWeight={800} color={immigrationOutcome.success ? '#00838f' : '#e65100'}>
+          <Typography variant="h4" fontWeight={800} color={immigrationOutcome.success ? '#2f6f73' : '#c8392f'}>
             {immigrationOutcome.success
               ? t('story.immigration_success', { flag: targetFlag, age: immigrationOutcome.settledAge ?? 0, target: targetName })
               : immigrationOutcome.phase === 'abandoned'
@@ -196,10 +196,10 @@ export function StoryPanel() {
       {hasHousing && lastHousingSnap && (
         <Paper elevation={2} sx={{
           p: 2.5, mb: 3, textAlign: 'center',
-          background: 'linear-gradient(135deg, #e6510011, #e6510008)',
-          border: '1px solid #e6510033',
+          background: 'linear-gradient(135deg, #c8392f11, #c8392f08)',
+          border: '1px solid #c8392f33',
         }}>
-          <Typography variant="h4" fontWeight={800} color="#e65100">
+          <Typography variant="h4" fontWeight={800} color="#c8392f">
             {t('story.housing_bought', { age: housingPurchaseAge ?? 0 })}
           </Typography>
           <Stack direction="row" spacing={2} justifyContent="center" sx={{ mt: 1.5 }} flexWrap="wrap" useFlexGap>
@@ -225,10 +225,10 @@ export function StoryPanel() {
         return (
           <Paper elevation={2} sx={{
             p: 2.5, mb: 3, textAlign: 'center',
-            background: 'linear-gradient(135deg, #1565c011, #1565c008)',
-            border: '1px solid #1565c033',
+            background: 'linear-gradient(135deg, #0a0a0a0d, #0a0a0a05)',
+            border: '1px solid #0a0a0a22',
           }}>
-            <Typography variant="h5" fontWeight={800} color="#1565c0">
+            <Typography variant="h5" fontWeight={800} color="#0a0a0a">
               {occ.emoji} {occ.name[region]}
             </Typography>
             <Typography variant="body1" color="text.secondary" sx={{ mt: 0.5 }}>
@@ -316,7 +316,7 @@ export function StoryPanel() {
                   </Typography>
 
                   {snap.currentSalary != null && snap.raiseRate != null && !isRetirement && age < retirementAge && (
-                    <Typography variant="caption" color="#1565c0">
+                    <Typography variant="caption" color="#0a0a0a">
                       {t('story.salary', { value: fmtP(snap.currentSalary) })}
                       {snap.raiseRate > 0 && ` ${t('story.raise', { value: `${(snap.raiseRate * 100).toFixed(1)}%` })}`}
                     </Typography>
@@ -325,11 +325,11 @@ export function StoryPanel() {
                   {isHousingPurchase && snap.housing && (
                     <Paper variant="outlined" sx={{
                       mt: 1, p: 1.5,
-                      borderLeft: '3px solid #e65100',
-                      bgcolor: '#fff3e010',
+                      borderLeft: '3px solid #c8392f',
+                      bgcolor: '#c8392f10',
                     }}>
                       <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 0.5 }}>
-                        <HomeIcon sx={{ fontSize: 16, color: '#e65100' }} />
+                        <HomeIcon sx={{ fontSize: 16, color: '#c8392f' }} />
                         <Typography variant="body2" fontWeight={700}>{t('story.home_purchase_card')}</Typography>
                       </Stack>
                       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
@@ -339,7 +339,7 @@ export function StoryPanel() {
                   )}
 
                   {snap.housing?.ownsHouse && !isHousingPurchase && (
-                    <Typography variant="caption" color="#e65100">
+                    <Typography variant="caption" color="#c8392f">
                       {t('story.home_status', { value: fmtP(snap.housing.houseValue) })}
                       {snap.housing.mortgageBalance > 0
                         ? ` · ${t('story.home_mortgage_balance', { value: fmtP(snap.housing.mortgageBalance) })}`
@@ -352,7 +352,7 @@ export function StoryPanel() {
                     <Paper key={j} variant="outlined" sx={{
                       mt: 1, p: 1.5,
                       borderLeft: `3px solid ${CATEGORY_COLORS[evt.event.category]}`,
-                      bgcolor: evt.event.isPositive ? '#e8f5e910' : '#fff3e010',
+                      bgcolor: evt.event.isPositive ? '#2a6d3a10' : '#c8392f10',
                     }}>
                       <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 0.5 }}>
                         <Typography variant="body2">
@@ -460,7 +460,7 @@ function StoryChart({ snapshots, currentAge, retirementAge, region, language }: 
     for (let i = 0; i < years; i++) {
       if (snapshots[i].events.length > 0) {
         const hasPositive = snapshots[i].events.some((e) => e.event.isPositive)
-        ctx.fillStyle = hasPositive ? '#2e7d32' : '#e65100'
+        ctx.fillStyle = hasPositive ? '#2a6d3a' : '#c8392f'
         ctx.beginPath()
         ctx.arc(x(i), y(snapshots[i].portfolioEnd), 4, 0, Math.PI * 2)
         ctx.fill()
@@ -469,7 +469,7 @@ function StoryChart({ snapshots, currentAge, retirementAge, region, language }: 
 
     const retireIdx = retirementAge - currentAge
     if (retireIdx > 0 && retireIdx < years) {
-      ctx.strokeStyle = '#ff980088'
+      ctx.strokeStyle = '#c8392f88'
       ctx.lineWidth = 1
       ctx.setLineDash([4, 4])
       ctx.beginPath()
@@ -480,7 +480,7 @@ function StoryChart({ snapshots, currentAge, retirementAge, region, language }: 
     }
 
     ctx.fillStyle = labelColor
-    ctx.font = '11px sans-serif'
+    ctx.font = '11px "JetBrains Mono", "Noto Sans TC", monospace'
     ctx.textAlign = 'center'
     const step = Math.max(1, Math.floor(years / 8))
     for (let i = 0; i < years; i += step) {

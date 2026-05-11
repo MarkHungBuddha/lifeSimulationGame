@@ -63,12 +63,12 @@ import { SavedRecordsDialog } from './SavedRecordsDialog'
 
 const ASSET_KEYS: (keyof Allocation)[] = ['sp500', 'intlStock', 'bond', 'gold', 'cash', 'reits']
 const ASSET_COLORS: Record<keyof Allocation, string> = {
-  sp500: '#1565c0',
-  intlStock: '#0d47a1',
-  bond: '#6a1b9a',
-  gold: '#f9a825',
+  sp500: '#0a0a0a',
+  intlStock: '#4a4a4a',
+  bond: '#7a5a35',
+  gold: '#b68a2e',
   cash: '#2e7d32',
-  reits: '#e65100',
+  reits: '#c8392f',
 }
 
 const ZERO_ALLOCATION: Allocation = { sp500: 0, intlStock: 0, bond: 0, gold: 0, cash: 0, reits: 0 }
