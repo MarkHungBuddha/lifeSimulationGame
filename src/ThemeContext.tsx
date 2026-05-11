@@ -1,7 +1,5 @@
-import { createContext, useContext, useState, useMemo, type ReactNode } from 'react'
+import { useMemo, type ReactNode } from 'react'
 import { ThemeProvider, createTheme, CssBaseline } from '@mui/material'
-
-type ColorMode = 'light' | 'dark'
 
 const landingPalette = {
   bg: '#fafaf7',
@@ -16,41 +14,13 @@ const landingPalette = {
   danger: '#a92f28',
 }
 
-const ColorModeContext = createContext<{ mode: ColorMode; toggle: () => void }>({
-  mode: 'light',
-  toggle: () => {},
-})
-
-export const useColorMode = () => useContext(ColorModeContext)
-
-function getStoredMode(): ColorMode {
-  try {
-    const v = localStorage.getItem('colorMode')
-    if (v === 'dark' || v === 'light') return v
-  } catch { /* noop */ }
-  if (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-    return 'dark'
-  }
-  return 'light'
-}
-
 export function AppThemeProvider({ children }: { children: ReactNode }) {
-  const [mode, setMode] = useState<ColorMode>(getStoredMode)
-
-  const toggle = () => {
-    setMode(prev => {
-      const next = prev === 'light' ? 'dark' : 'light'
-      try { localStorage.setItem('colorMode', next) } catch { /* noop */ }
-      return next
-    })
-  }
-
   const theme = useMemo(() => createTheme({
     palette: {
-      mode,
+      mode: 'light',
       primary: {
-        main: mode === 'light' ? landingPalette.ink : '#f5f1e8',
-        contrastText: mode === 'light' ? landingPalette.bg : '#111',
+        main: landingPalette.ink,
+        contrastText: landingPalette.bg,
       },
       secondary: {
         main: landingPalette.accent,
@@ -59,26 +29,20 @@ export function AppThemeProvider({ children }: { children: ReactNode }) {
       success: { main: landingPalette.success },
       warning: { main: landingPalette.warning },
       error: { main: landingPalette.danger },
-      divider: mode === 'light' ? landingPalette.line : 'rgba(245, 241, 232, 0.16)',
-      text: mode === 'light'
-        ? {
-            primary: landingPalette.ink,
-            secondary: landingPalette.inkSoft,
-            disabled: landingPalette.inkFaint,
-          }
-        : {
-            primary: '#f5f1e8',
-            secondary: '#c9c2b6',
-            disabled: '#8f887e',
-          },
-      ...(mode === 'light'
-        ? { background: { default: landingPalette.bg, paper: landingPalette.paper } }
-        : { background: { default: '#11100e', paper: '#1a1815' } }
-      ),
+      divider: landingPalette.line,
+      text: {
+        primary: landingPalette.ink,
+        secondary: landingPalette.inkSoft,
+        disabled: landingPalette.inkFaint,
+      },
+      background: {
+        default: landingPalette.bg,
+        paper: landingPalette.paper,
+      },
       action: {
-        hover: mode === 'light' ? 'rgba(10, 10, 10, 0.04)' : 'rgba(245, 241, 232, 0.06)',
-        selected: mode === 'light' ? 'rgba(200, 57, 47, 0.08)' : 'rgba(200, 57, 47, 0.18)',
-        disabledBackground: mode === 'light' ? 'rgba(10, 10, 10, 0.08)' : 'rgba(245, 241, 232, 0.08)',
+        hover: 'rgba(10, 10, 10, 0.04)',
+        selected: 'rgba(200, 57, 47, 0.08)',
+        disabledBackground: 'rgba(10, 10, 10, 0.08)',
       },
     },
     typography: {
@@ -109,8 +73,8 @@ export function AppThemeProvider({ children }: { children: ReactNode }) {
             MozOsxFontSmoothing: 'grayscale',
           },
           '::selection': {
-            background: mode === 'light' ? landingPalette.ink : '#f5f1e8',
-            color: mode === 'light' ? landingPalette.bg : '#11100e',
+            background: landingPalette.ink,
+            color: landingPalette.bg,
           },
         },
       },
@@ -134,7 +98,7 @@ export function AppThemeProvider({ children }: { children: ReactNode }) {
         styleOverrides: {
           root: ({ theme }) => ({
             backgroundImage: 'none',
-            backgroundColor: theme.palette.mode === 'light' ? 'rgba(250, 250, 247, 0.94)' : 'rgba(17, 16, 14, 0.94)',
+            backgroundColor: 'rgba(250, 250, 247, 0.94)',
             color: theme.palette.text.primary,
             borderBottom: `1px solid ${theme.palette.divider}`,
             boxShadow: 'none',
@@ -210,7 +174,7 @@ export function AppThemeProvider({ children }: { children: ReactNode }) {
             height: 14,
             boxShadow: 'none',
             '&:hover, &.Mui-focusVisible': {
-              boxShadow: `0 0 0 8px rgba(200, 57, 47, 0.12)`,
+              boxShadow: '0 0 0 8px rgba(200, 57, 47, 0.12)',
             },
           },
         },
@@ -258,16 +222,12 @@ export function AppThemeProvider({ children }: { children: ReactNode }) {
         },
       },
     },
-  }), [mode])
-
-  const ctx = useMemo(() => ({ mode, toggle }), [mode])
+  }), [])
 
   return (
-    <ColorModeContext.Provider value={ctx}>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        {children}
-      </ThemeProvider>
-    </ColorModeContext.Provider>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      {children}
+    </ThemeProvider>
   )
 }

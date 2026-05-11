@@ -59,7 +59,7 @@ export function ResultPanel() {
     : null
 
   return (
-    <Box sx={{ p: { xs: 1.25, sm: 2, md: 3 }, maxWidth: 1280, mx: 'auto' }}>
+    <Box sx={{ p: { xs: 0.75, sm: 2, md: 3 }, maxWidth: 1280, mx: 'auto', minWidth: 0, overflowX: 'hidden' }}>
       <Paper variant="outlined" sx={{ p: { xs: 1.25, sm: 2 }, mb: { xs: 1.5, sm: 2 } }}>
         <Stack direction="row" alignItems="flex-start" spacing={1} sx={{ mb: 1.5 }}>
           <SavingsIcon color="primary" />
@@ -69,19 +69,19 @@ export function ResultPanel() {
           </Typography>
         </Stack>
         <Grid container spacing={{ xs: 1, sm: 2 }}>
-          <Grid size={{ xs: 6, sm: 3 }}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Typography variant="caption" color="text.secondary">{t('result.annual_income')}</Typography>
             <Typography variant="body1" fontWeight={700} sx={{ overflowWrap: 'anywhere' }}>{fmtSlider(annualIncome)}</Typography>
           </Grid>
-          <Grid size={{ xs: 6, sm: 3 }}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Typography variant="caption" color="text.secondary">{t('result.annual_expense')}</Typography>
             <Typography variant="body1" fontWeight={700} sx={{ overflowWrap: 'anywhere' }}>{fmtSlider(annualExpense)}</Typography>
           </Grid>
-          <Grid size={{ xs: 6, sm: 3 }}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Typography variant="caption" color="text.secondary">{t('result.annual_contribution')}</Typography>
             <Typography variant="body1" fontWeight={700} sx={{ overflowWrap: 'anywhere' }}>{fmtSlider(annualContribution)}</Typography>
           </Grid>
-          <Grid size={{ xs: 6, sm: 3 }}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Typography variant="caption" color="text.secondary">{t('result.savings_rate')}</Typography>
             <Typography
               variant="body1"
@@ -103,7 +103,7 @@ export function ResultPanel() {
       </Paper>
 
       <Paper elevation={2} sx={{
-        p: { xs: 2, sm: 3, md: 4 }, mb: { xs: 1.5, sm: 3 }, textAlign: 'center',
+        p: { xs: 1.5, sm: 3, md: 4 }, mb: { xs: 1.5, sm: 3 }, textAlign: 'center',
         background: `linear-gradient(135deg, ${rateHex}11, ${rateHex}08)`,
         border: `1px solid ${rateHex}33`,
       }}>
@@ -121,11 +121,11 @@ export function ResultPanel() {
       </Paper>
 
       <Grid container spacing={{ xs: 1, sm: 2 }} sx={{ mb: { xs: 2, sm: 3 } }}>
-        <Grid size={{ xs: 6, sm: 6, md: 3 }}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <StatCard icon={<AccountBalanceIcon />} label={t('result.median_final_portfolio')}
             value={fmt(result.medianFinalPortfolio)} color="#0a0a0a" />
         </Grid>
-        <Grid size={{ xs: 6, sm: 6, md: 3 }}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <StatCard
             icon={<WarningIcon />}
             label={t('result.median_depletion_age')}
@@ -134,11 +134,11 @@ export function ResultPanel() {
             help={t('guide.term.depletion_age.body')}
           />
         </Grid>
-        <Grid size={{ xs: 6, sm: 6, md: 3 }}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <StatCard icon={<TrendingUpIcon />} label={t('result.p90_final_portfolio')}
             value={fmt(result.percentiles.p90[result.percentiles.p90.length - 1])} color="#0a0a0a" help={t('guide.term.percentile.body')} />
         </Grid>
-        <Grid size={{ xs: 6, sm: 6, md: 3 }}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <StatCard icon={<TrendingUpIcon />} label={t('result.p10_final_portfolio')}
             value={fmt(result.percentiles.p10[result.percentiles.p10.length - 1])} color="#c8392f" help={t('guide.term.percentile.body')} />
         </Grid>
@@ -152,19 +152,19 @@ export function ResultPanel() {
           <HelpButton title={t('guide.term.drawdown.body')} />
         </Stack>
         <Grid container spacing={{ xs: 1, sm: 2 }}>
-          <Grid size={{ xs: 6, sm: 3 }}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <StatCard icon={<TrendingDownIcon />} label={t('result.drawdown_median')}
               value={`-${(result.maxDrawdown.median * 100).toFixed(1)}%`} color={result.maxDrawdown.median > 0.3 ? '#a92f28' : '#c8392f'} />
           </Grid>
-          <Grid size={{ xs: 6, sm: 3 }}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <StatCard icon={<TrendingDownIcon />} label={t('result.drawdown_p75')}
               value={`-${(result.maxDrawdown.p75 * 100).toFixed(1)}%`} color={result.maxDrawdown.p75 > 0.4 ? '#a92f28' : '#c8392f'} />
           </Grid>
-          <Grid size={{ xs: 6, sm: 3 }}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <StatCard icon={<TrendingDownIcon />} label={t('result.drawdown_p90')}
               value={`-${(result.maxDrawdown.p90 * 100).toFixed(1)}%`} color="#a92f28" />
           </Grid>
-          <Grid size={{ xs: 6, sm: 3 }}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <StatCard icon={<TrendingDownIcon />} label={t('result.drawdown_worst')}
             value={`-${(result.maxDrawdown.worst * 100).toFixed(1)}%`} color="#7f231e" />
           </Grid>
@@ -197,8 +197,8 @@ export function ResultPanel() {
         <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 1 }}>
           {t('result.table_title')}
         </Typography>
-        <TableContainer sx={{ maxHeight: { xs: 420, sm: 'none' }, overflowX: 'auto' }}>
-          <Table size="small" sx={{ minWidth: { xs: 520, sm: 0 }, '& .MuiTableCell-root': { px: { xs: 0.75, sm: 2 }, whiteSpace: 'nowrap', fontSize: { xs: 12, sm: 14 } } }}>
+        <TableContainer sx={{ maxHeight: { xs: 420, sm: 'none' }, overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+          <Table size="small" sx={{ minWidth: { xs: 480, sm: 0 }, '& .MuiTableCell-root': { px: { xs: 0.75, sm: 2 }, whiteSpace: 'nowrap', fontSize: { xs: 12, sm: 14 } } }}>
             <TableHead>
               <TableRow>
                 <TableCell>{t('result.age')}</TableCell>
@@ -258,7 +258,7 @@ function StatCard({ icon, label, value, color, help }: {
       variant="outlined"
       sx={{
         p: { xs: 1.1, sm: 2 },
-        minHeight: { xs: 118, sm: 132 },
+        minHeight: { xs: 104, sm: 132 },
         height: '100%',
         textAlign: 'center',
         display: 'flex',
@@ -283,7 +283,7 @@ function StatCard({ icon, label, value, color, help }: {
         sx={{
           mt: 0.5,
           lineHeight: 1.15,
-          fontSize: { xs: 'clamp(0.95rem, 4.2vw, 1.2rem)', sm: '1.5rem' },
+          fontSize: { xs: 'clamp(0.95rem, 5vw, 1.18rem)', sm: '1.5rem' },
           overflowWrap: 'anywhere',
         }}
       >
@@ -347,7 +347,7 @@ function PercentileChart({ percentiles, currentAge, retirementAge, region, langu
     if (!element) return
 
     const updateWidth = () => {
-      setChartWidth(Math.max(320, Math.min(800, Math.floor(element.clientWidth))))
+      setChartWidth(Math.max(260, Math.min(800, Math.floor(element.clientWidth))))
     }
 
     updateWidth()
@@ -363,7 +363,8 @@ function PercentileChart({ percentiles, currentAge, retirementAge, region, langu
 
     const dpr = window.devicePixelRatio || 1
     const W = chartWidth
-    const H = Math.max(260, Math.round(W * 0.48))
+    const compact = W < 520
+    const H = Math.max(compact ? 220 : 260, Math.round(W * 0.48))
     canvas.width = W * dpr
     canvas.height = H * dpr
     canvas.style.width = '100%'
@@ -373,12 +374,11 @@ function PercentileChart({ percentiles, currentAge, retirementAge, region, langu
     ctx.scale(dpr, dpr)
     ctx.clearRect(0, 0, W, H)
 
-    const compact = W < 520
     const pad = {
       top: compact ? 24 : 20,
-      right: compact ? 12 : 24,
+      right: compact ? 8 : 24,
       bottom: compact ? 38 : 44,
-      left: compact ? 54 : 72,
+      left: compact ? 46 : 72,
     }
     const plotW = W - pad.left - pad.right
     const plotH = H - pad.top - pad.bottom
