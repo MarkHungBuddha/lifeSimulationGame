@@ -36,7 +36,15 @@ export function LandingPage() {
     initialPortfolio: 250000,
     stockPct: 70,
   })
-  const { activeScene, visibleScenes } = useActiveScene(5)
+  const progressLabels = [
+    copy.scenes[0].label,
+    copy.scenes[1].label,
+    copy.scenes[2].label,
+    copy.fourPercentScene.label,
+    copy.scenes[3].label,
+    copy.scenes[4].label,
+  ]
+  const { activeScene, visibleScenes } = useActiveScene(6)
 
   useEffect(() => {
     document.title = 'Monte Carlo - Will your retirement plan survive?'
@@ -66,7 +74,7 @@ export function LandingPage() {
         setLanguage={setLanguage}
         onSkip={() => goSimulator(false)}
       />
-      <ProgressDots activeScene={activeScene} labels={copy.scenes.map((scene) => scene.label)} />
+      <ProgressDots activeScene={activeScene} labels={progressLabels} />
 
       <Scene number={1} label={copy.scenes[0].label} visible={visibleScenes.has(1)}>
         <h1 className="landingHeadline landingHeadlineHero">
@@ -104,7 +112,14 @@ export function LandingPage() {
         </div>
       </Scene>
 
-      <Scene number={4} label={copy.scenes[3].label} visible={visibleScenes.has(4)}>
+      <Scene number={4} label={copy.fourPercentScene.label} visible={visibleScenes.has(4)}>
+        <h2 className="landingHeadline">
+          {copy.fourPercentScene.headline} <em>{copy.fourPercentScene.emphasis}</em>
+        </h2>
+        <p className="landingRuleIntro">{copy.fourPercentScene.body}</p>
+      </Scene>
+
+      <Scene number={5} label={copy.scenes[3].label} visible={visibleScenes.has(5)}>
         <h2 className="landingHeadline">
           {copy.scenes[3].headline} <em>{copy.scenes[3].emphasis}</em>
         </h2>
@@ -116,7 +131,6 @@ export function LandingPage() {
             title: copy.demoTitle,
             start: copy.demoStart,
             withdraw: copy.demoWithdraw,
-            explainer: copy.fourPercentExplainer,
             good: copy.seqGood,
             bad: copy.seqBad,
             outcomeLabel: copy.outcomeLabel,
@@ -126,7 +140,7 @@ export function LandingPage() {
         />
       </Scene>
 
-      <Scene number={5} label={copy.scenes[4].label} visible={visibleScenes.has(5)}>
+      <Scene number={6} label={copy.scenes[4].label} visible={visibleScenes.has(6)}>
         <h2 className="landingHeadline">
           {copy.scenes[4].headline} <em>{copy.scenes[4].emphasis}</em>
         </h2>
@@ -340,7 +354,6 @@ function FourPercentDemo({ sequence, setSequence, copy }: {
     title: string
     start: string
     withdraw: string
-    explainer: string
     good: string
     bad: string
     outcomeLabel: string
@@ -358,7 +371,6 @@ function FourPercentDemo({ sequence, setSequence, copy }: {
       <p className="landingFormula">
         {copy.start} <em>$1,000,000</em> / {copy.withdraw} <em>$40,000/yr</em>
       </p>
-      <p className="landingRuleExplainer">{copy.explainer}</p>
       <div className="landingSequenceToggle" role="tablist" aria-label="Return sequence">
         <button
           type="button"

@@ -449,14 +449,14 @@
   line-height: 1.3;
 }
 
-.landingRuleExplainer {
+.landingRuleIntro {
   max-width: 720px;
-  margin: -16px 0 28px;
+  margin: 0;
   border-left: 2px solid var(--landing-accent);
-  padding-left: 18px;
+  padding: 8px 0 8px 22px;
   color: var(--landing-ink-soft);
-  font-size: 15px;
-  line-height: 1.55;
+  font-size: 22px;
+  line-height: 1.5;
 }
 
 .landingFormula em {

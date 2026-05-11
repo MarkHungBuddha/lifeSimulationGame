@@ -14,10 +14,15 @@ export interface LandingCopy {
   ageRows: Record<number, string>
   ageCallout: string
   uncertainties: { question: string; answer: string }[]
+  fourPercentScene: {
+    label: string
+    headline: string
+    emphasis: string
+    body: string
+  }
   demoTitle: string
   demoStart: string
   demoWithdraw: string
-  fourPercentExplainer: string
   seqGood: string
   seqBad: string
   outcomeLabel: string
@@ -77,7 +82,7 @@ export const landingContent: Record<UiLanguage, LandingCopy> = {
         lede: "Monte Carlo simulation runs your plan through booms, crashes, stagnation, and inflation shocks. It does not tell you what will happen. It tells you how often your plan survives.",
       },
     ],
-    hookSub: '5 scenes / 90 seconds / then you simulate',
+    hookSub: '6 scenes / 90 seconds / then you simulate',
     ageRows: {
       30: 'If you spend $40K/yr, you need about $1.6M and the money has to last 60+ years.',
       40: 'About $1.2M, lasting 50 years.',
@@ -92,10 +97,15 @@ export const landingContent: Record<UiLanguage, LandingCopy> = {
       { question: 'How will markets behave?', answer: 'Bull, bear, lost decade. Order matters.' },
       { question: 'How will your life change?', answer: 'Health, family, taste. All moving.' },
     ],
+    fourPercentScene: {
+      label: 'The shortcut',
+      headline: 'What does the',
+      emphasis: '4% rule do?',
+      body: 'The 4% rule is a quick retirement shortcut: estimate your first-year retirement spending, then divide by 4%. Spending $40K a year points to about $1M saved. It is useful for sizing the goal before you simulate.',
+    },
     demoTitle: 'Same money. Same withdrawal. Different luck.',
     demoStart: 'Start with',
     demoWithdraw: 'withdraw',
-    fourPercentExplainer: 'The 4% rule is a quick retirement shortcut: estimate your first-year retirement spending, then divide by 4%. Spending $40K a year points to about $1M saved. It is useful for sizing the goal, but it does not test bad timing, inflation, or a retirement that lasts longer than expected.',
     seqGood: 'Good luck',
     seqBad: 'Bad luck',
     outcomeLabel: 'Outcome:',
@@ -157,7 +167,7 @@ export const landingContent: Record<UiLanguage, LandingCopy> = {
         lede: '蒙地卡羅模擬會把你的計畫放進榮景、崩盤、停滯、通膨衝擊。它不告訴你會發生什麼，而是告訴你計畫有多常能存活。',
       },
     ],
-    hookSub: '5 個場景 / 90 秒 / 然後開始模擬',
+    hookSub: '6 個場景 / 90 秒 / 然後開始模擬',
     ageRows: {
       30: '如果每年花 $40K，你需要約 $1.6M，而且要撐 60 年以上。',
       40: '約 $1.2M，要撐 50 年。',
@@ -172,10 +182,15 @@ export const landingContent: Record<UiLanguage, LandingCopy> = {
       { question: '市場會怎麼走？', answer: '牛市、熊市、失落十年。順序很重要。' },
       { question: '你的人生會怎麼變？', answer: '健康、家庭、品味，都會變。' },
     ],
+    fourPercentScene: {
+      label: '快速估算',
+      headline: '4% 法則',
+      emphasis: '在做什麼？',
+      body: '4% 法則是一個快速估算退休本金的方法：先估每年退休支出，再除以 4%。如果每年要花 $40K，大約代表需要 $1M 本金。它適合先抓目標大小，再進一步用模擬檢查。',
+    },
     demoTitle: '一樣的本金。一樣的提領。不一樣的運氣。',
     demoStart: '從',
     demoWithdraw: '每年提領',
-    fourPercentExplainer: '4% 法則是一個快速估算退休本金的方法：先估每年退休支出，再除以 4%。如果每年要花 $40K，大約代表需要 $1M 本金。它適合抓目標大小，但不能檢查壞時機、通膨、或退休時間比預期更長的風險。',
     seqGood: '好運氣',
     seqBad: '壞運氣',
     outcomeLabel: '結果：',
@@ -237,7 +252,7 @@ export const landingContent: Record<UiLanguage, LandingCopy> = {
         lede: 'モンテカルロ・シミュレーションは、好景気、暴落、停滞、インフレを含む多くの未来で計画を試します。何が起きるかではなく、どれくらい生き残るかを示します。',
       },
     ],
-    hookSub: '5シーン / 90秒 / そしてシミュレーション',
+    hookSub: '6シーン / 90秒 / そしてシミュレーション',
     ageRows: {
       30: '年間 $40K 使うなら約 $1.6M が必要で、60年以上もたせる必要があります。',
       40: '約 $1.2M、50年もたせる。',
@@ -252,10 +267,15 @@ export const landingContent: Record<UiLanguage, LandingCopy> = {
       { question: '市場はどう動く？', answer: '強気、弱気、失われた10年。順序が重要です。' },
       { question: '人生はどう変わる？', answer: '健康、家族、好み。すべて動きます。' },
     ],
+    fourPercentScene: {
+      label: '近道',
+      headline: '4%ルールは',
+      emphasis: '何をする？',
+      body: '4%ルールは退職資金を素早く見積もる方法です。退職後の年間支出を4%で割ります。年間$40K使うなら約$1Mが目安です。まず目標額をつかみ、その後シミュレーションで検証します。',
+    },
     demoTitle: '同じ元本。同じ引き出し。違う運。',
     demoStart: '開始',
     demoWithdraw: '毎年引き出し',
-    fourPercentExplainer: '4%ルールは退職資金を素早く見積もる方法です。退職後の年間支出を4%で割ります。年間$40K使うなら約$1Mが目安です。ただし、悪いタイミング、インフレ、想定より長い退職期間までは検証できません。',
     seqGood: '幸運',
     seqBad: '不運',
     outcomeLabel: '結果：',
