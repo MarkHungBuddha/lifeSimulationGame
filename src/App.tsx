@@ -53,7 +53,7 @@ export function App() {
   const drawerW = isMobile ? DRAWER_WIDTH_MOBILE : DRAWER_WIDTH
 
   const sidebar = (
-    <Box sx={{ width: drawerW, height: '100%', overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
+    <Box sx={{ width: drawerW, height: '100%', overflowY: 'auto', WebkitOverflowScrolling: 'touch', bgcolor: 'background.default' }}>
       <Controls />
     </Box>
   )
@@ -86,9 +86,9 @@ export function App() {
   )
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
-      <AppBar position="fixed" sx={{ zIndex: (t) => t.zIndex.drawer + 1 }} elevation={1}>
-        <Toolbar sx={{ minHeight: { xs: 56, sm: 64 }, gap: 1 }}>
+    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
+      <AppBar position="fixed" sx={{ zIndex: (t) => t.zIndex.drawer + 1 }} elevation={0}>
+        <Toolbar sx={{ minHeight: { xs: 56, sm: 64 }, gap: 1.25, px: { xs: 2, sm: 3, md: 6 } }}>
           {isMobile && (
             <Button
               color="inherit"
@@ -100,17 +100,17 @@ export function App() {
               {t('mobile_action.adjust')}
             </Button>
           )}
-          <CasinoIcon sx={{ mr: 0.5 }} />
-          <Typography variant="h6" noWrap sx={{ flexGrow: 1, fontWeight: 700, fontSize: { xs: 16, sm: 20 } }}>
+          <CasinoIcon sx={{ mr: 0.5, color: 'secondary.main' }} />
+          <Typography variant="h6" noWrap sx={{ flexGrow: 1, fontWeight: 500, fontSize: { xs: 17, sm: 20 } }}>
             {t('app.title')}
           </Typography>
           {!isSmall && (
-            <Typography variant="caption" sx={{ opacity: 0.7 }}>
+            <Typography variant="caption" color="text.secondary" sx={{ fontFamily: '"JetBrains Mono", monospace' }}>
               {t('app.subtitle')}
             </Typography>
           )}
           <FormControl size="small" sx={{ minWidth: { xs: 96, sm: 132 } }}>
-            <InputLabel id="language-select-label" sx={{ color: 'inherit' }}>
+            <InputLabel id="language-select-label">
               {t('app.language')}
             </InputLabel>
             <Select
@@ -119,9 +119,9 @@ export function App() {
               label={t('app.language')}
               onChange={(e) => setLanguage(e.target.value as UiLanguage)}
               sx={{
-                color: 'inherit',
-                '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.35)' },
-                '& .MuiSvgIcon-root': { color: 'inherit' },
+                color: 'text.primary',
+                bgcolor: 'transparent',
+                '& .MuiOutlinedInput-notchedOutline': { borderColor: 'divider' },
               }}
             >
               {LANGUAGE_OPTIONS.map((option) => (
@@ -144,9 +144,11 @@ export function App() {
           onClose={() => setSettingsOpen(false)}
           sx={{
             '& .MuiDrawer-paper': {
-              borderTopLeftRadius: 8,
-              borderTopRightRadius: 8,
+              borderTopLeftRadius: 0,
+              borderTopRightRadius: 0,
               maxHeight: 'calc(100dvh - 56px)',
+              borderTop: '1px solid',
+              borderColor: 'divider',
             },
           }}
         >
@@ -164,6 +166,7 @@ export function App() {
               pt: '64px',
               borderRight: '1px solid',
               borderColor: 'divider',
+              bgcolor: 'background.default',
             },
           }}
         >
