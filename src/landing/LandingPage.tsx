@@ -86,14 +86,6 @@ export function LandingPage() {
         </h2>
         <p className="landingLede">{copy.scenes[1].lede}</p>
         <AgePicker selectedAge={selectedAge} setSelectedAge={setSelectedAge} copy={copy.ageRows} />
-        <LandingInputGrid
-          title={copy.inputTitle}
-          subtitle={copy.inputSubtitle}
-          labels={copy.inputs}
-          values={{ ...inputs, retirementAge: selectedAge }}
-          setInputs={setInputs}
-          setSelectedAge={setSelectedAge}
-        />
         <p className="landingAgeCallout">{copy.ageCallout}</p>
       </Scene>
 
@@ -147,6 +139,14 @@ export function LandingPage() {
             </div>
           ))}
         </div>
+        <LandingInputGrid
+          title={copy.inputTitle}
+          subtitle={copy.inputSubtitle}
+          labels={copy.inputs}
+          values={{ ...inputs, retirementAge: selectedAge }}
+          setInputs={setInputs}
+          setSelectedAge={setSelectedAge}
+        />
         <div className="landingCtaRow">
           <button className="landingPrimaryButton" type="button" onClick={() => goSimulator(true)}>
             {copy.cta}
