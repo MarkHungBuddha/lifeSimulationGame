@@ -15,14 +15,11 @@ import {
 } from '@mui/material'
 import CasinoIcon from '@mui/icons-material/Casino'
 import CloseIcon from '@mui/icons-material/Close'
-import DarkModeIcon from '@mui/icons-material/DarkMode'
-import LightModeIcon from '@mui/icons-material/LightMode'
 import TuneIcon from '@mui/icons-material/Tune'
 import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Controls } from './components/Controls'
 import { GuidedSimulator } from './simulator/GuidedSimulator'
-import { useColorMode } from './ThemeContext'
 import { useI18n } from './i18n'
 import { FEATURE_FLAGS } from './config/featureFlags'
 import type { UiLanguage } from './i18n/types'
@@ -56,7 +53,6 @@ export function SimulatorApp() {
   const setInitialPortfolio = useGameStore((s) => s.setInitialPortfolio)
   const setAllocation = useGameStore((s) => s.setAllocation)
   const setWithdrawal = useGameStore((s) => s.setWithdrawal)
-  const { mode, toggle: toggleColorMode } = useColorMode()
   const { language, setLanguage, t } = useI18n()
 
   useEffect(() => {
@@ -182,9 +178,6 @@ export function SimulatorApp() {
               ))}
             </Select>
           </FormControl>
-          <IconButton color="inherit" onClick={toggleColorMode} sx={{ ml: 0.5 }}>
-            {mode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}
-          </IconButton>
           <Button
             color="inherit"
             size="small"

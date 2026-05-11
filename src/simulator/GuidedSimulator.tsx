@@ -39,6 +39,7 @@ interface GuidedCopy {
   runAgain: string
   enabled: string
   disabled: string
+  blocked: string
   custom: string
   on: string
   off: string
@@ -77,6 +78,7 @@ const GUIDED_COPY: Record<UiLanguage, GuidedCopy> = {
     runAgain: 'Run again',
     enabled: 'Enabled',
     disabled: 'Disabled',
+    blocked: 'Blocked in demo',
     custom: 'Custom',
     on: 'On',
     off: 'Off',
@@ -160,6 +162,7 @@ const GUIDED_COPY: Record<UiLanguage, GuidedCopy> = {
     runAgain: '重新模擬',
     enabled: '已啟用',
     disabled: '未啟用',
+    blocked: 'Demo 暫不開放',
     custom: '自訂',
     on: '開',
     off: '關',
@@ -243,6 +246,7 @@ const GUIDED_COPY: Record<UiLanguage, GuidedCopy> = {
     runAgain: '再実行',
     enabled: '有効',
     disabled: '無効',
+    blocked: 'デモでは利用不可',
     custom: 'カスタム',
     on: 'オン',
     off: 'オフ',
@@ -528,8 +532,8 @@ export function GuidedSimulator({ onOpenAdvanced, startOnResults }: {
               </div>
               <div className="guidedGrid three">
                 <ToggleField label={copy.labels.randomEvents} checked={store.enableEvents} onChange={store.setEnableEvents} copy={copy} />
-                <ToggleField label={copy.labels.housingPlan} checked={store.housingEnabled} onChange={store.setHousingEnabled} copy={copy} />
-                <ToggleField label={copy.labels.occupationSimulation} checked={store.occupationEnabled} onChange={store.setOccupationEnabled} copy={copy} />
+                <ToggleField label={copy.labels.housingPlan} checked={false} onChange={() => {}} copy={copy} disabled />
+                <ToggleField label={copy.labels.occupationSimulation} checked={false} onChange={() => {}} copy={copy} disabled />
               </div>
               <Metrics>
                 <Metric label={copy.labels.stockWeight} value={`${((store.allocation.sp500 + store.allocation.intlStock) * 100).toFixed(0)}%`} />
@@ -679,12 +683,19 @@ function ToggleField({ label, checked, onChange, copy }: {
   checked: boolean
   onChange: (checked: boolean) => void
   copy: GuidedCopy
+  disabled?: boolean
 }) {
   return (
-    <label className="guidedChoice">
+    <label className={`guidedChoice ${disabled ? 'disabled' : ''}`}>
       <strong>{label}</strong>
-      <span>{checked ? copy.enabled : copy.disabled}</span>
-      <input type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} style={{ marginTop: 16 }} />
+      <span>{disabled ? copy.blocked : checked ? copy.enabled : copy.disabled}</span>
+      <input
+        type="checkbox"
+        checked={checked}
+        disabled={disabled}
+        onChange={(event) => onChange(event.target.checked)}
+        style={{ marginTop: 16 }}
+      />
     </label>
   )
 }

@@ -187,6 +187,11 @@
   background: linear-gradient(90deg, rgba(200, 57, 47, 0.06), transparent 72%);
 }
 
+.guidedChoice.disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
 .guidedChoice strong {
   display: block;
   margin-bottom: 8px;
