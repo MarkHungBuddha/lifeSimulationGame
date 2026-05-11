@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, type Dispatch, type ReactNode, type SetStateAction } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { UiLanguage } from '../i18n/types'
 import { useI18n } from '../i18n'
@@ -9,9 +9,18 @@ import './LandingPage.css'
 
 const languageOptions: { value: UiLanguage; label: string }[] = [
   { value: 'en', label: 'EN' },
-  { value: 'zh-Hant', label: '中' },
-  { value: 'ja', label: '日' },
+  { value: 'zh-Hant', label: 'ZH' },
+  { value: 'ja', label: 'JA' },
 ]
+
+interface LandingInputs {
+  currentAge: number
+  annualIncome: number
+  annualExpense: number
+  annualContribution: number
+  initialPortfolio: number
+  stockPct: number
+}
 
 export function LandingPage() {
   const navigate = useNavigate()
@@ -19,6 +28,14 @@ export function LandingPage() {
   const copy = landingContent[language]
   const [selectedAge, setSelectedAge] = useState<RetirementAge>(50)
   const [sequence, setSequence] = useState<SequenceKind>('good')
+  const [inputs, setInputs] = useState<LandingInputs>({
+    currentAge: 30,
+    annualIncome: 80000,
+    annualExpense: 40000,
+    annualContribution: 20000,
+    initialPortfolio: 250000,
+    stockPct: 70,
+  })
   const { activeScene, visibleScenes } = useActiveScene(5)
 
   useEffect(() => {
@@ -26,7 +43,17 @@ export function LandingPage() {
   }, [language])
 
   const goSimulator = (withParams: boolean) => {
-    const params = withParams ? `?retireAge=${selectedAge}&lang=${language}` : ''
+    const params = withParams ? `?${new URLSearchParams({
+      currentAge: String(inputs.currentAge),
+      retireAge: String(selectedAge),
+      annualIncome: String(inputs.annualIncome),
+      annualExpense: String(inputs.annualExpense),
+      annualContribution: String(inputs.annualContribution),
+      initialPortfolio: String(inputs.initialPortfolio),
+      stockPct: String(inputs.stockPct),
+      lang: language,
+      autoRun: '1',
+    }).toString()}` : ''
     navigate(`/simulator${params}`)
   }
 
@@ -59,6 +86,14 @@ export function LandingPage() {
         </h2>
         <p className="landingLede">{copy.scenes[1].lede}</p>
         <AgePicker selectedAge={selectedAge} setSelectedAge={setSelectedAge} copy={copy.ageRows} />
+        <LandingInputGrid
+          title={copy.inputTitle}
+          subtitle={copy.inputSubtitle}
+          labels={copy.inputs}
+          values={{ ...inputs, retirementAge: selectedAge }}
+          setInputs={setInputs}
+          setSelectedAge={setSelectedAge}
+        />
         <p className="landingAgeCallout">{copy.ageCallout}</p>
       </Scene>
 
@@ -89,6 +124,7 @@ export function LandingPage() {
             title: copy.demoTitle,
             start: copy.demoStart,
             withdraw: copy.demoWithdraw,
+            explainer: copy.fourPercentExplainer,
             good: copy.seqGood,
             bad: copy.seqBad,
             outcomeLabel: copy.outcomeLabel,
@@ -114,7 +150,7 @@ export function LandingPage() {
         <div className="landingCtaRow">
           <button className="landingPrimaryButton" type="button" onClick={() => goSimulator(true)}>
             {copy.cta}
-            <span aria-hidden="true">→</span>
+            <span aria-hidden="true">-&gt;</span>
           </button>
           <p>{copy.ctaNote}</p>
         </div>
@@ -152,10 +188,84 @@ function TopNav({ brand, skip, language, setLanguage, onSkip }: {
           ))}
         </div>
         <button className="landingSkipButton" type="button" onClick={onSkip}>
-          {skip}<span aria-hidden="true">→</span>
+          {skip}<span aria-hidden="true">-&gt;</span>
         </button>
       </div>
     </nav>
+  )
+}
+
+function LandingInputGrid({ title, subtitle, labels, values, setInputs, setSelectedAge }: {
+  title: string
+  subtitle: string
+  labels: {
+    currentAge: string
+    retirementAge: string
+    annualIncome: string
+    annualExpense: string
+    annualContribution: string
+    initialPortfolio: string
+    stockPct: string
+  }
+  values: LandingInputs & { retirementAge: RetirementAge }
+  setInputs: Dispatch<SetStateAction<LandingInputs>>
+  setSelectedAge: (age: RetirementAge) => void
+}) {
+  const updateInput = (key: keyof LandingInputs, value: number) => {
+    setInputs((prev) => ({ ...prev, [key]: value }))
+  }
+
+  return (
+    <div className="landingInputPanel">
+      <div className="landingInputIntro">
+        <h3>{title}</h3>
+        <p>{subtitle}</p>
+      </div>
+      <div className="landingInputGrid">
+        <NumberField label={labels.currentAge} value={values.currentAge} min={20} max={69} step={1} onChange={(value) => updateInput('currentAge', value)} />
+        <label className="landingNumberField">
+          <span>{labels.retirementAge}</span>
+          <select value={values.retirementAge} onChange={(event) => setSelectedAge(Number(event.target.value) as RetirementAge)}>
+            {retirementAges.map((age) => <option key={age} value={age}>{age}</option>)}
+          </select>
+        </label>
+        <NumberField label={labels.annualIncome} value={values.annualIncome} min={0} max={1000000} step={5000} onChange={(value) => updateInput('annualIncome', value)} />
+        <NumberField label={labels.annualExpense} value={values.annualExpense} min={0} max={1000000} step={5000} onChange={(value) => updateInput('annualExpense', value)} />
+        <NumberField label={labels.annualContribution} value={values.annualContribution} min={0} max={1000000} step={5000} onChange={(value) => updateInput('annualContribution', value)} />
+        <NumberField label={labels.initialPortfolio} value={values.initialPortfolio} min={0} max={10000000} step={25000} onChange={(value) => updateInput('initialPortfolio', value)} />
+        <NumberField label={labels.stockPct} value={values.stockPct} min={0} max={100} step={5} suffix="%" onChange={(value) => updateInput('stockPct', value)} />
+      </div>
+    </div>
+  )
+}
+
+function NumberField({ label, value, min, max, step, suffix, onChange }: {
+  label: string
+  value: number
+  min: number
+  max: number
+  step: number
+  suffix?: string
+  onChange: (value: number) => void
+}) {
+  return (
+    <label className="landingNumberField">
+      <span>{label}</span>
+      <div>
+        <input
+          type="number"
+          value={value}
+          min={min}
+          max={max}
+          step={step}
+          onChange={(event) => {
+            const parsed = Number(event.target.value)
+            if (Number.isFinite(parsed)) onChange(Math.min(max, Math.max(min, parsed)))
+          }}
+        />
+        {suffix && <b>{suffix}</b>}
+      </div>
+    </label>
   )
 }
 
@@ -230,6 +340,7 @@ function FourPercentDemo({ sequence, setSequence, copy }: {
     title: string
     start: string
     withdraw: string
+    explainer: string
     good: string
     bad: string
     outcomeLabel: string
@@ -247,6 +358,7 @@ function FourPercentDemo({ sequence, setSequence, copy }: {
       <p className="landingFormula">
         {copy.start} <em>$1,000,000</em> / {copy.withdraw} <em>$40,000/yr</em>
       </p>
+      <p className="landingRuleExplainer">{copy.explainer}</p>
       <div className="landingSequenceToggle" role="tablist" aria-label="Return sequence">
         <button
           type="button"

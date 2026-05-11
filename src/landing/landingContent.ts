@@ -17,12 +17,24 @@ export interface LandingCopy {
   demoTitle: string
   demoStart: string
   demoWithdraw: string
+  fourPercentExplainer: string
   seqGood: string
   seqBad: string
   outcomeLabel: string
   outcomeGood: string
   outcomeBad: string
   mcSteps: string[]
+  inputTitle: string
+  inputSubtitle: string
+  inputs: {
+    currentAge: string
+    retirementAge: string
+    annualIncome: string
+    annualExpense: string
+    annualContribution: string
+    initialPortfolio: string
+    stockPct: string
+  }
   cta: string
   ctaNote: string
   end: string
@@ -83,6 +95,7 @@ export const landingContent: Record<UiLanguage, LandingCopy> = {
     demoTitle: 'Same money. Same withdrawal. Different luck.',
     demoStart: 'Start with',
     demoWithdraw: 'withdraw',
+    fourPercentExplainer: 'The 4% rule is a quick retirement shortcut: estimate your first-year retirement spending, then divide by 4%. Spending $40K a year points to about $1M saved. It is useful for sizing the goal, but it does not test bad timing, inflation, or a retirement that lasts longer than expected.',
     seqGood: 'Good luck',
     seqBad: 'Bad luck',
     outcomeLabel: 'Outcome:',
@@ -93,6 +106,17 @@ export const landingContent: Record<UiLanguage, LandingCopy> = {
       'Run 10,000 paths through real market history.',
       'Read survival rate, then adjust the plan.',
     ],
+    inputTitle: 'Build your first scenario',
+    inputSubtitle: 'Use rough numbers now. The simulator will open with these assumptions and run automatically.',
+    inputs: {
+      currentAge: 'Current age',
+      retirementAge: 'Retirement age',
+      annualIncome: 'Annual income',
+      annualExpense: 'Annual spending',
+      annualContribution: 'Annual invest',
+      initialPortfolio: 'Savings today',
+      stockPct: 'Stock allocation',
+    },
     cta: 'Run your simulation',
     ctaNote: 'Free / No signup / Your data stays in your browser',
     end: 'There is no plan that lets you retire tomorrow. But if you start preparing today, it might come sooner than you think.',
@@ -151,6 +175,7 @@ export const landingContent: Record<UiLanguage, LandingCopy> = {
     demoTitle: '一樣的本金。一樣的提領。不一樣的運氣。',
     demoStart: '從',
     demoWithdraw: '每年提領',
+    fourPercentExplainer: '4% 法則是一個快速估算退休本金的方法：先估每年退休支出，再除以 4%。如果每年要花 $40K，大約代表需要 $1M 本金。它適合抓目標大小，但不能檢查壞時機、通膨、或退休時間比預期更長的風險。',
     seqGood: '好運氣',
     seqBad: '壞運氣',
     outcomeLabel: '結果：',
@@ -161,6 +186,17 @@ export const landingContent: Record<UiLanguage, LandingCopy> = {
       '用真實市場資料跑 10,000 條路徑。',
       '看存活率，然後調整計畫。',
     ],
+    inputTitle: '建立你的第一個情境',
+    inputSubtitle: '先用粗略數字即可。進入模擬器後會直接套用這些假設並自動跑一次。',
+    inputs: {
+      currentAge: '目前年齡',
+      retirementAge: '退休年齡',
+      annualIncome: '年收入',
+      annualExpense: '年支出',
+      annualContribution: '每年投入',
+      initialPortfolio: '目前資產',
+      stockPct: '股票比例',
+    },
     cta: '開始模擬',
     ctaNote: '免費 / 免註冊 / 資料只留在你的瀏覽器',
     end: '沒有計畫可以讓你明天就退休。但如果你今天開始準備，那一天可能比你想的更早。',
@@ -219,6 +255,7 @@ export const landingContent: Record<UiLanguage, LandingCopy> = {
     demoTitle: '同じ元本。同じ引き出し。違う運。',
     demoStart: '開始',
     demoWithdraw: '毎年引き出し',
+    fourPercentExplainer: '4%ルールは退職資金を素早く見積もる方法です。退職後の年間支出を4%で割ります。年間$40K使うなら約$1Mが目安です。ただし、悪いタイミング、インフレ、想定より長い退職期間までは検証できません。',
     seqGood: '幸運',
     seqBad: '不運',
     outcomeLabel: '結果：',
@@ -229,6 +266,17 @@ export const landingContent: Record<UiLanguage, LandingCopy> = {
       '実際の市場データで10,000パスを実行。',
       '生存率を見て、計画を調整。',
     ],
+    inputTitle: '最初のシナリオを作成',
+    inputSubtitle: '大まかな数字で構いません。シミュレーターを開くと、この条件で自動実行します。',
+    inputs: {
+      currentAge: '現在の年齢',
+      retirementAge: '退職年齢',
+      annualIncome: '年収',
+      annualExpense: '年間支出',
+      annualContribution: '年間投資',
+      initialPortfolio: '現在の資産',
+      stockPct: '株式比率',
+    },
     cta: 'シミュレーション開始',
     ctaNote: '無料 / 登録不要 / データはブラウザ内のみ',
     end: '明日退職できる計画は存在しません。しかし今日から準備を始めれば、その日は思ったより早いかもしれません。',

@@ -315,6 +315,86 @@
   line-height: 1.4;
 }
 
+.landingInputPanel {
+  margin-top: 32px;
+  border: 1px solid var(--landing-line);
+  padding: 28px;
+}
+
+.landingInputIntro {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.landingInputIntro h3 {
+  margin: 0;
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 26px;
+  font-weight: 400;
+  line-height: 1.15;
+}
+
+.landingInputIntro p {
+  margin: 0;
+  color: var(--landing-ink-soft);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.landingInputGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.landingNumberField {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+
+.landingNumberField span {
+  color: var(--landing-ink-faint);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  line-height: 1.3;
+  text-transform: uppercase;
+}
+
+.landingNumberField div {
+  position: relative;
+}
+
+.landingNumberField input,
+.landingNumberField select {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid var(--landing-line);
+  border-radius: 0;
+  background: var(--landing-bg);
+  color: var(--landing-ink);
+  font: 600 15px "Inter", "Noto Sans TC", sans-serif;
+  padding: 10px 12px;
+}
+
+.landingNumberField input:focus,
+.landingNumberField select:focus {
+  border-color: var(--landing-accent);
+  outline: 0;
+}
+
+.landingNumberField b {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  color: var(--landing-ink-faint);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+  transform: translateY(-50%);
+}
+
 .landingUncertaintyGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -367,6 +447,16 @@
   font-family: "Fraunces", Georgia, serif;
   font-size: 28px;
   line-height: 1.3;
+}
+
+.landingRuleExplainer {
+  max-width: 720px;
+  margin: -16px 0 28px;
+  border-left: 2px solid var(--landing-accent);
+  padding-left: 18px;
+  color: var(--landing-ink-soft);
+  font-size: 15px;
+  line-height: 1.55;
 }
 
 .landingFormula em {
@@ -555,8 +645,18 @@
   }
 
   .landingUncertaintyGrid,
+  .landingInputGrid,
   .landingMcSteps {
     grid-template-columns: 1fr;
+  }
+
+  .landingInputIntro {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .landingInputPanel {
+    padding: 20px;
   }
 
   .landingDemo {
