@@ -3,6 +3,7 @@ import { createSeededRNG } from '../src/engine/rng'
 import { blockBootstrap, type HistoricalData } from '../src/engine/bootstrap'
 import { simulatePath, type SimulationParams } from '../src/engine/simulator'
 import { rollEventsForYear } from '../src/events/eventEngine'
+import { EVENT_DATABASE_PH } from '../src/events/eventDatabase_ph'
 import { normalizeTriggeredEvents } from '../src/events/eventEffects'
 import { getAnnualRaise, getOccupationDefaults } from '../src/engine/occupationEngine'
 import { OCCUPATIONS, OCCUPATION_MAP } from '../src/engine/occupationData'
@@ -416,6 +417,51 @@ describe('Event engine occupation filter', () => {
 // ============================================================
 // 職業事件 Modifier 測試
 // ============================================================
+describe('Philippines random events', () => {
+  it('PH event database uses PH-specific event ids and avoids occupation-only events for MVP', () => {
+    expect(EVENT_DATABASE_PH.length).toBeGreaterThanOrEqual(10)
+    expect(EVENT_DATABASE_PH.every(event => event.id.startsWith('ph_'))).toBe(true)
+    expect(EVENT_DATABASE_PH.every(event => !event.occupationIds || event.occupationIds.length === 0)).toBe(true)
+
+    const categories = new Set(EVENT_DATABASE_PH.map(event => event.category))
+    expect(categories.has('market')).toBe(true)
+    expect(categories.has('career')).toBe(true)
+    expect(categories.has('health')).toBe(true)
+    expect(categories.has('family')).toBe(true)
+    expect(categories.has('property')).toBe(true)
+  })
+
+  it('PH regions roll from the PH database instead of falling back to US events', () => {
+    for (const region of ['ph-manila', 'ph-cebu'] as const) {
+      const triggeredIds = new Set<string>()
+      for (let seed = 1; seed <= 500; seed++) {
+        const result = rollEventsForYear({
+          seed, age: 35, year: 5, portfolio: 1_200_000, annualIncome: 540_000,
+          isRetired: false, region, ownsHome: false,
+          housingModuleEnabled: false, occupationId: 0,
+        })
+        for (const event of result.events) triggeredIds.add(event.event.id)
+      }
+
+      expect(triggeredIds.size).toBeGreaterThan(0)
+      expect([...triggeredIds].every(id => id.startsWith('ph_'))).toBe(true)
+      expect(triggeredIds.has('layoff')).toBe(false)
+      expect(triggeredIds.has('market_crash')).toBe(false)
+    }
+  })
+
+  it('PH work-only events do not trigger after retirement', () => {
+    for (let seed = 1; seed <= 500; seed++) {
+      const result = rollEventsForYear({
+        seed, age: 70, year: 40, portfolio: 4_000_000, annualIncome: 540_000,
+        isRetired: true, region: 'ph-manila', ownsHome: false,
+        housingModuleEnabled: false, occupationId: 0,
+      })
+      expect(result.events.every(event => event.event.category !== 'career')).toBe(true)
+    }
+  })
+})
+
 describe('Occupation event modifiers', () => {
   it('modifier 機率倍率生效：高倍率職業觸發率 > 低倍率職業', () => {
     // IT (id:9) layoff probabilityMultiplier=1.5 vs 農林 (id:6) =0.3
