@@ -3,7 +3,7 @@ import { createSeededRNG } from '../src/engine/rng'
 import { blockBootstrap, type HistoricalData } from '../src/engine/bootstrap'
 import { simulatePath, type SimulationParams } from '../src/engine/simulator'
 import { rollEventsForYear } from '../src/events/eventEngine'
-import { normalizeTriggeredEvents } from '../src/events/eventEffects'
+import { calcImpactAmount, normalizeTriggeredEvents } from '../src/events/eventEffects'
 import { getAnnualRaise, getOccupationDefaults } from '../src/engine/occupationEngine'
 import { OCCUPATIONS, OCCUPATION_MAP } from '../src/engine/occupationData'
 import * as eventEngineModule from '../src/events/eventEngine'
@@ -508,6 +508,14 @@ describe('Occupation event modifiers', () => {
 // 事件 effect normalization / simulator 套用測試
 // ============================================================
 describe('Event effect normalization', () => {
+  it('permanent savings_boost uses annual income as the recurring adjustment base', () => {
+    const oneTime = calcImpactAmount('savings_boost', -0.02, 3_000_000, 100_000)
+    const recurring = calcImpactAmount('savings_boost', -0.02, 3_000_000, 100_000, true)
+
+    expect(oneTime.amount).toBe(-60_000)
+    expect(recurring.amount).toBe(-2_000)
+  })
+
   it('保留既有 aggregation 與 cap，並將 permanent savings 轉為永久支出調整', () => {
     const events: TriggeredEvent[] = [
       {

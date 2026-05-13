@@ -183,7 +183,7 @@ export function rollEventsForYear(
         || impact.type === 'savings_change'
       const effectiveValue = shouldApplyMult ? impact.value * impactMult : impact.value
       const { amount, description } = calcImpactAmount(
-        impact.type, effectiveValue, portfolio, annualIncome,
+        impact.type, effectiveValue, portfolio, annualIncome, impact.permanent,
       )
       actualImpacts.push({
         type: impact.type,

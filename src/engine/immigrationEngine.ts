@@ -343,6 +343,7 @@ function rollImmigrationEvents(
           impact.value,
           portfolio,
           annualIncome,
+          impact.permanent,
         )
         actualImpacts.push({
           type: impact.type,
