@@ -13,8 +13,10 @@ import { createSeededRNG } from '../engine/rng'
 import { EVENT_DATABASE, EVENT_MAP } from './eventDatabase'
 import { EVENT_DATABASE_TW, EVENT_MAP_TW } from './eventDatabase_tw'
 import { EVENT_DATABASE_JP, EVENT_MAP_JP } from './eventDatabase_jp'
+import { EVENT_DATABASE_PH, EVENT_MAP_PH } from './eventDatabase_ph'
 import type { RandomEvent, TriggeredEvent } from './eventTypes'
 import type { Region } from '../config/regions'
+import { isPhilippinesRegion } from '../config/regions'
 import { calcImpactAmount, normalizeTriggeredEvents } from './eventEffects'
 
 /** 取得年齡調整後的事件機率 */
@@ -55,6 +57,9 @@ const WORK_ONLY_EVENTS: Set<string> = new Set([
   'jp_layoff', 'jp_early_retirement', 'jp_job_change', 'jp_promotion',
   'jp_bonus_cut', 'jp_burnout', 'jp_non_regular', 'jp_company_bankrupt',
   'jp_karoshi_health',
+  // PH
+  'ph_job_loss', 'ph_underemployment_hours_cut', 'ph_bpo_growth_bonus',
+  'ph_bpo_account_loss',
 ])
 
 /** 當購屋模組啟用時，跳過這些事件（避免重複計算） */
@@ -66,6 +71,7 @@ const HOUSING_MODULE_SKIP: Set<string> = new Set([
 function getEventData(region: Region) {
   if (region === 'tw') return { database: EVENT_DATABASE_TW, map: EVENT_MAP_TW }
   if (region === 'jp') return { database: EVENT_DATABASE_JP, map: EVENT_MAP_JP }
+  if (isPhilippinesRegion(region)) return { database: EVENT_DATABASE_PH, map: EVENT_MAP_PH }
   return { database: EVENT_DATABASE, map: EVENT_MAP }
 }
 
