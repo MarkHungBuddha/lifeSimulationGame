@@ -656,6 +656,40 @@ describe('Simulator event application', () => {
     expect(result.snapshots[1].contribution).toBeCloseTo(20000 * result.snapshots[1].cumulativeInflation, 10)
   })
 
+  it('temporary income_change is prorated by event duration months', () => {
+    vi.spyOn(immigrationEngineModule, 'processImmigrationYear').mockImplementation(noImmigrationYear)
+    vi.spyOn(eventEngineModule, 'rollEventsForYear').mockImplementation(({ year }) => ({
+      events: year === 0
+        ? [{
+            event: {
+              id: 'six-month-income',
+              name: 'Six-month income shock',
+              category: 'career',
+              description: '',
+              baseProbability: 1,
+              durationMonths: [6, 6],
+              impacts: [],
+            },
+            age: 30,
+            year: 0,
+            durationMonths: 6,
+            durationYears: 1,
+            actualImpacts: [
+              { type: 'income_change', description: '', amount: -50000 },
+            ],
+          }]
+        : [],
+      totalPortfolioImpact: 0,
+      totalIncomeImpact: 0,
+      totalExpense: 0,
+    }))
+
+    const result = simulatePath(historicalData, baseParams, 42)
+
+    expect(result.snapshots[0].contribution).toBeCloseTo(15000, 10)
+    expect(result.snapshots[1].contribution).toBeCloseTo(20000 * result.snapshots[1].cumulativeInflation, 10)
+  })
+
   it('multi-year temporary income_change persists for the sampled event duration', () => {
     vi.spyOn(immigrationEngineModule, 'processImmigrationYear').mockImplementation(noImmigrationYear)
     vi.spyOn(eventEngineModule, 'rollEventsForYear').mockImplementation(({ year }) => ({
@@ -672,6 +706,8 @@ describe('Simulator event application', () => {
             },
             age: 30,
             year: 0,
+            durationMonths: 13,
+            durationYears: 2,
             actualImpacts: [
               { type: 'income_change', description: '', amount: -50000 },
             ],
@@ -685,7 +721,7 @@ describe('Simulator event application', () => {
     const result = simulatePath(historicalData, { ...baseParams, endAge: 33 }, 42)
 
     expect(result.snapshots[0].contribution).toBeCloseTo(10000, 10)
-    expect(result.snapshots[1].contribution).toBeCloseTo(10000 * result.snapshots[1].cumulativeInflation, 10)
+    expect(result.snapshots[1].contribution).toBeCloseTo((20000 - 50000 / 12 * 0.2) * result.snapshots[1].cumulativeInflation, 10)
     expect(result.snapshots[2].contribution).toBeCloseTo(20000 * result.snapshots[2].cumulativeInflation, 10)
   })
 

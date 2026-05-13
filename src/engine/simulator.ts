@@ -97,7 +97,7 @@ const ASSET_KEYS: (keyof Allocation)[] = ['sp500', 'intlStock', 'bond', 'gold', 
 
 interface ActiveRecurringEvent {
   source: TriggeredEvent
-  remainingYears: number
+  remainingMonths: number
 }
 
 function validateAllocation(alloc: Allocation): void {
@@ -148,10 +148,38 @@ function getDurationYears(event: TriggeredEvent): number {
   return maxMonths <= 0 ? 1 : Math.max(1, Math.ceil(maxMonths / 12))
 }
 
+function getDurationMonths(event: TriggeredEvent): number {
+  if (event.durationMonths != null) return event.durationMonths
+  return getDurationYears(event) * 12
+}
+
 function getRecurringImpacts(event: TriggeredEvent): TriggeredEvent['actualImpacts'] {
   return event.actualImpacts.filter(impact =>
     !impact.permanent && (impact.type === 'income_change' || impact.type === 'extra_expense'),
   )
+}
+
+function scaleImpactsForActiveMonths(
+  impacts: TriggeredEvent['actualImpacts'],
+  activeMonths: number,
+): TriggeredEvent['actualImpacts'] {
+  const incomeFraction = Math.max(0, Math.min(activeMonths, 12)) / 12
+  return impacts.map(impact => {
+    if (!impact.permanent && impact.type === 'income_change') {
+      return { ...impact, amount: impact.amount * incomeFraction }
+    }
+    return impact
+  })
+}
+
+function scaleTemporaryIncomeForFirstYear(event: TriggeredEvent): TriggeredEvent {
+  return {
+    ...event,
+    actualImpacts: scaleImpactsForActiveMonths(
+      event.actualImpacts,
+      Math.min(getDurationMonths(event), 12),
+    ),
+  }
 }
 
 export function simulatePath(
@@ -242,14 +270,18 @@ export function simulatePath(
     }
 
     // 一般事件與移民事件共用同一套 normalization / cap 規則
-    const ongoingEvents = activeRecurringEvents.map(({ source }) => ({
+    const ongoingEvents = activeRecurringEvents.map(({ source, remainingMonths }) => ({
       ...source,
       age,
       year: y,
+      actualImpacts: scaleImpactsForActiveMonths(source.actualImpacts, Math.min(remainingMonths, 12)),
     }))
     activeRecurringEvents = activeRecurringEvents
-      .map(({ source, remainingYears }) => ({ source, remainingYears: remainingYears - 1 }))
-      .filter(({ remainingYears }) => remainingYears > 0)
+      .map(({ source, remainingMonths }) => ({ source, remainingMonths: remainingMonths - 12 }))
+      .filter(({ remainingMonths }) => remainingMonths > 0)
+
+    generalEvents = generalEvents.map(scaleTemporaryIncomeForFirstYear)
+    immigrationEvents = immigrationEvents.map(scaleTemporaryIncomeForFirstYear)
 
     let events = [...ongoingEvents, ...generalEvents, ...immigrationEvents]
     const normalizedEffects = normalizeTriggeredEvents(events, portfolio, effectiveIncome)
@@ -285,11 +317,11 @@ export function simulatePath(
     allEvents.push(...events)
     for (const event of [...generalEvents, ...immigrationEvents]) {
       const recurringImpacts = getRecurringImpacts(event)
-      const remainingYears = getDurationYears(event) - 1
-      if (remainingYears > 0 && recurringImpacts.length > 0) {
+      const remainingMonths = getDurationMonths(event) - 12
+      if (remainingMonths > 0 && recurringImpacts.length > 0) {
         activeRecurringEvents.push({
           source: { ...event, actualImpacts: recurringImpacts },
-          remainingYears,
+          remainingMonths,
         })
       }
     }

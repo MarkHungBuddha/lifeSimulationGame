@@ -30,12 +30,16 @@ function getAdjustedProbability(event: RandomEvent, age: number): number {
   return event.baseProbability
 }
 
-function rollDurationYears(event: RandomEvent, rng: () => number): number {
+function rollDurationMonths(event: RandomEvent, rng: () => number): number {
   const [minMonths, maxMonths] = event.durationMonths
-  if (maxMonths <= 0) return 1
+  if (maxMonths <= 0) return 12
   const months = minMonths === maxMonths
     ? maxMonths
     : minMonths + rng() * (maxMonths - minMonths)
+  return Math.max(1, Math.ceil(months))
+}
+
+function durationYearsFromMonths(months: number): number {
   return Math.max(1, Math.ceil(months / 12))
 }
 
@@ -202,8 +206,10 @@ export function rollEventsForYear(
       })
     }
 
+    const durationMonths = rollDurationMonths(event, rng)
+
     triggered.push({
-      event, age, year, durationYears: rollDurationYears(event, rng), actualImpacts,
+      event, age, year, durationYears: durationYearsFromMonths(durationMonths), durationMonths, actualImpacts,
       displayName: occMod2?.name,
       displayDescription: occMod2?.description,
     })
