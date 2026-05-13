@@ -4,7 +4,7 @@ import { blockBootstrap, type HistoricalData } from '../src/engine/bootstrap'
 import { simulatePath, type SimulationParams } from '../src/engine/simulator'
 import { rollEventsForYear } from '../src/events/eventEngine'
 import { EVENT_DATABASE_PH } from '../src/events/eventDatabase_ph'
-import { normalizeTriggeredEvents } from '../src/events/eventEffects'
+import { calcImpactAmount, normalizeTriggeredEvents } from '../src/events/eventEffects'
 import { getAnnualRaise, getOccupationDefaults } from '../src/engine/occupationEngine'
 import { OCCUPATIONS, OCCUPATION_MAP } from '../src/engine/occupationData'
 import * as eventEngineModule from '../src/events/eventEngine'
@@ -161,6 +161,29 @@ describe('simulatePath', () => {
       expect(s.withdrawal).toBeGreaterThan(0)
       expect(s.contribution).toBe(0)
     }
+  })
+
+  it('fixed_rate withdrawal uses the portfolio at retirement as the base', () => {
+    const flatData: HistoricalData = {
+      '2000': { sp500: 0, bond: 0, gold: 0, cash: 0, reits: 0, cpi: 0 },
+      '2001': { sp500: 0, bond: 0, gold: 0, cash: 0, reits: 0, cpi: 0 },
+      '2002': { sp500: 0, bond: 0, gold: 0, cash: 0, reits: 0, cpi: 0 },
+      '2003': { sp500: 0, bond: 0, gold: 0, cash: 0, reits: 0, cpi: 0 },
+    }
+    const result = simulatePath(flatData, {
+      currentAge: 30,
+      retirementAge: 31,
+      endAge: 33,
+      initialPortfolio: 100,
+      annualContribution: 100,
+      annualIncome: 100,
+      allocation: { sp500: 0, intlStock: 0, bond: 0, gold: 0, cash: 1, reits: 0 },
+      withdrawal: { type: 'fixed_rate', rate: 0.1 },
+      enableEvents: false,
+    }, 42)
+
+    expect(result.snapshots[1].withdrawal).toBe(20)
+    expect(result.snapshots[2].withdrawal).toBe(20)
   })
 
   it('配置權重不為 1 時拋出錯誤', () => {
@@ -554,6 +577,14 @@ describe('Occupation event modifiers', () => {
 // 事件 effect normalization / simulator 套用測試
 // ============================================================
 describe('Event effect normalization', () => {
+  it('permanent savings_boost uses annual income as the recurring adjustment base', () => {
+    const oneTime = calcImpactAmount('savings_boost', -0.02, 3_000_000, 100_000)
+    const recurring = calcImpactAmount('savings_boost', -0.02, 3_000_000, 100_000, true)
+
+    expect(oneTime.amount).toBe(-60_000)
+    expect(recurring.amount).toBe(-2_000)
+  })
+
   it('保留既有 aggregation 與 cap，並將 permanent savings 轉為永久支出調整', () => {
     const events: TriggeredEvent[] = [
       {
@@ -669,6 +700,75 @@ describe('Simulator event application', () => {
 
     expect(result.snapshots[0].contribution).toBeCloseTo(10000, 10)
     expect(result.snapshots[1].contribution).toBeCloseTo(20000 * result.snapshots[1].cumulativeInflation, 10)
+  })
+
+  it('temporary income_change is prorated by event duration months', () => {
+    vi.spyOn(immigrationEngineModule, 'processImmigrationYear').mockImplementation(noImmigrationYear)
+    vi.spyOn(eventEngineModule, 'rollEventsForYear').mockImplementation(({ year }) => ({
+      events: year === 0
+        ? [{
+            event: {
+              id: 'six-month-income',
+              name: 'Six-month income shock',
+              category: 'career',
+              description: '',
+              baseProbability: 1,
+              durationMonths: [6, 6],
+              impacts: [],
+            },
+            age: 30,
+            year: 0,
+            durationMonths: 6,
+            durationYears: 1,
+            actualImpacts: [
+              { type: 'income_change', description: '', amount: -50000 },
+            ],
+          }]
+        : [],
+      totalPortfolioImpact: 0,
+      totalIncomeImpact: 0,
+      totalExpense: 0,
+    }))
+
+    const result = simulatePath(historicalData, baseParams, 42)
+
+    expect(result.snapshots[0].contribution).toBeCloseTo(15000, 10)
+    expect(result.snapshots[1].contribution).toBeCloseTo(20000 * result.snapshots[1].cumulativeInflation, 10)
+  })
+
+  it('multi-year temporary income_change persists for the sampled event duration', () => {
+    vi.spyOn(immigrationEngineModule, 'processImmigrationYear').mockImplementation(noImmigrationYear)
+    vi.spyOn(eventEngineModule, 'rollEventsForYear').mockImplementation(({ year }) => ({
+      events: year === 0
+        ? [{
+            event: {
+              id: 'two-year-income',
+              name: 'Two-year income shock',
+              category: 'career',
+              description: '',
+              baseProbability: 1,
+              durationMonths: [13, 13],
+              impacts: [],
+            },
+            age: 30,
+            year: 0,
+            durationMonths: 13,
+            durationYears: 2,
+            actualImpacts: [
+              { type: 'income_change', description: '', amount: -50000 },
+            ],
+          }]
+        : [],
+      totalPortfolioImpact: 0,
+      totalIncomeImpact: 0,
+      totalExpense: 0,
+    }))
+
+    const result = simulatePath(historicalData, { ...baseParams, endAge: 33 }, 42)
+
+    expect(result.snapshots[0].contribution).toBeCloseTo(10000, 10)
+    expect(result.snapshots[1].contribution).toBeCloseTo((20000 - 50000 / 12 * 0.2) * result.snapshots[1].cumulativeInflation, 10)
+    expect(result.snapshots[2].contribution).toBeCloseTo(20000 * result.snapshots[2].cumulativeInflation, 10)
   })
 
   it('permanent income_change 會從當年開始延續到下一年', () => {

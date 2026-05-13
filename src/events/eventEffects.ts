@@ -21,6 +21,7 @@ export function calcImpactAmount(
   value: number,
   portfolio: number,
   annualIncome: number,
+  permanent: boolean = false,
 ): { amount: number; description: string } {
   const monthlyIncome = annualIncome / 12
 
@@ -52,7 +53,7 @@ export function calcImpactAmount(
       }
     case 'savings_boost':
       return {
-        amount: portfolio * value,
+        amount: (permanent ? annualIncome : portfolio) * value,
         description: value >= 0
           ? `儲蓄 +${(value * 100).toFixed(0)}%`
           : `儲蓄 ${(value * 100).toFixed(0)}%`,
