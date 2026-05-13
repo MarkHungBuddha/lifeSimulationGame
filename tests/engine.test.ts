@@ -162,6 +162,29 @@ describe('simulatePath', () => {
     }
   })
 
+  it('fixed_rate withdrawal uses the portfolio at retirement as the base', () => {
+    const flatData: HistoricalData = {
+      '2000': { sp500: 0, bond: 0, gold: 0, cash: 0, reits: 0, cpi: 0 },
+      '2001': { sp500: 0, bond: 0, gold: 0, cash: 0, reits: 0, cpi: 0 },
+      '2002': { sp500: 0, bond: 0, gold: 0, cash: 0, reits: 0, cpi: 0 },
+      '2003': { sp500: 0, bond: 0, gold: 0, cash: 0, reits: 0, cpi: 0 },
+    }
+    const result = simulatePath(flatData, {
+      currentAge: 30,
+      retirementAge: 31,
+      endAge: 33,
+      initialPortfolio: 100,
+      annualContribution: 100,
+      annualIncome: 100,
+      allocation: { sp500: 0, intlStock: 0, bond: 0, gold: 0, cash: 1, reits: 0 },
+      withdrawal: { type: 'fixed_rate', rate: 0.1 },
+      enableEvents: false,
+    }, 42)
+
+    expect(result.snapshots[1].withdrawal).toBe(20)
+    expect(result.snapshots[2].withdrawal).toBe(20)
+  })
+
   it('配置權重不為 1 時拋出錯誤', () => {
     const badParams = {
       ...baseParams,
@@ -631,6 +654,39 @@ describe('Simulator event application', () => {
 
     expect(result.snapshots[0].contribution).toBeCloseTo(10000, 10)
     expect(result.snapshots[1].contribution).toBeCloseTo(20000 * result.snapshots[1].cumulativeInflation, 10)
+  })
+
+  it('multi-year temporary income_change persists for the sampled event duration', () => {
+    vi.spyOn(immigrationEngineModule, 'processImmigrationYear').mockImplementation(noImmigrationYear)
+    vi.spyOn(eventEngineModule, 'rollEventsForYear').mockImplementation(({ year }) => ({
+      events: year === 0
+        ? [{
+            event: {
+              id: 'two-year-income',
+              name: 'Two-year income shock',
+              category: 'career',
+              description: '',
+              baseProbability: 1,
+              durationMonths: [13, 13],
+              impacts: [],
+            },
+            age: 30,
+            year: 0,
+            actualImpacts: [
+              { type: 'income_change', description: '', amount: -50000 },
+            ],
+          }]
+        : [],
+      totalPortfolioImpact: 0,
+      totalIncomeImpact: 0,
+      totalExpense: 0,
+    }))
+
+    const result = simulatePath(historicalData, { ...baseParams, endAge: 33 }, 42)
+
+    expect(result.snapshots[0].contribution).toBeCloseTo(10000, 10)
+    expect(result.snapshots[1].contribution).toBeCloseTo(10000 * result.snapshots[1].cumulativeInflation, 10)
+    expect(result.snapshots[2].contribution).toBeCloseTo(20000 * result.snapshots[2].cumulativeInflation, 10)
   })
 
   it('permanent income_change 會從當年開始延續到下一年', () => {

@@ -95,6 +95,11 @@ export interface PathResult {
 
 const ASSET_KEYS: (keyof Allocation)[] = ['sp500', 'intlStock', 'bond', 'gold', 'cash', 'reits']
 
+interface ActiveRecurringEvent {
+  source: TriggeredEvent
+  remainingYears: number
+}
+
 function validateAllocation(alloc: Allocation): void {
   const sum = ASSET_KEYS.reduce((s, k) => s + alloc[k], 0)
   if (Math.abs(sum - 1.0) > 0.001) {
@@ -112,13 +117,13 @@ function calcWeightedReturn(returns: YearReturns, alloc: Allocation): number {
 
 function calcWithdrawal(
   strategy: WithdrawalStrategy,
-  initialPortfolio: number,
+  withdrawalBasePortfolio: number,
   currentPortfolio: number,
   cumulativeInflation: number,
 ): number {
   switch (strategy.type) {
     case 'fixed_rate':
-      return initialPortfolio * strategy.rate * cumulativeInflation
+      return withdrawalBasePortfolio * strategy.rate * cumulativeInflation
     case 'fixed_amount':
       return strategy.amount * cumulativeInflation
     case 'dynamic': {
@@ -137,6 +142,18 @@ function boxMuller(rng: () => number): number {
   return Math.sqrt(-2 * Math.log(u1 || 1e-10)) * Math.cos(2 * Math.PI * u2)
 }
 
+function getDurationYears(event: TriggeredEvent): number {
+  if (event.durationYears != null) return event.durationYears
+  const maxMonths = event.event.durationMonths[1]
+  return maxMonths <= 0 ? 1 : Math.max(1, Math.ceil(maxMonths / 12))
+}
+
+function getRecurringImpacts(event: TriggeredEvent): TriggeredEvent['actualImpacts'] {
+  return event.actualImpacts.filter(impact =>
+    !impact.permanent && (impact.type === 'income_change' || impact.type === 'extra_expense'),
+  )
+}
+
 export function simulatePath(
   data: HistoricalData,
   params: SimulationParams,
@@ -152,6 +169,8 @@ export function simulatePath(
   let bankrupt = false
   let bankruptAge: number | null = null
   let effectiveIncome = params.annualIncome
+  let retirementWithdrawalBase: number | null = null
+  let retirementInflationBase = 1.0
   let permanentExpenseAdjustment = 0
   let immState: ImmigrationState = { ...INITIAL_IMMIGRATION_STATE }
   let housingState: HousingState = { ...INITIAL_HOUSING_STATE }
@@ -160,6 +179,7 @@ export function simulatePath(
   const occRng = createSeededRNG(seed * 8761 + 29)  // 職業用獨立 RNG
   const snapshots: YearSnapshot[] = []
   const allEvents: TriggeredEvent[] = []
+  let activeRecurringEvents: ActiveRecurringEvent[] = []
   const baseSavingsRate = params.annualIncome > 0
     ? params.annualContribution / params.annualIncome : 0
 
@@ -173,6 +193,10 @@ export function simulatePath(
     }
 
     const isRetired = age >= params.retirementAge
+    if (isRetired && retirementWithdrawalBase == null) {
+      retirementWithdrawalBase = portfolio
+      retirementInflationBase = cumulativeInflation
+    }
 
     // === 移民處理 ===
     let activeRegion = params.region ?? 'us'
@@ -218,7 +242,16 @@ export function simulatePath(
     }
 
     // 一般事件與移民事件共用同一套 normalization / cap 規則
-    let events = [...generalEvents, ...immigrationEvents]
+    const ongoingEvents = activeRecurringEvents.map(({ source }) => ({
+      ...source,
+      age,
+      year: y,
+    }))
+    activeRecurringEvents = activeRecurringEvents
+      .map(({ source, remainingYears }) => ({ source, remainingYears: remainingYears - 1 }))
+      .filter(({ remainingYears }) => remainingYears > 0)
+
+    let events = [...ongoingEvents, ...generalEvents, ...immigrationEvents]
     const normalizedEffects = normalizeTriggeredEvents(events, portfolio, effectiveIncome)
     const eventPortfolioImpact = normalizedEffects.portfolioDeltaImmediate
     const eventIncomeImpact = normalizedEffects.totalIncomeImpact
@@ -250,6 +283,16 @@ export function simulatePath(
       nextEffectiveIncome *= 1 + currentRaiseRate
     }
     allEvents.push(...events)
+    for (const event of [...generalEvents, ...immigrationEvents]) {
+      const recurringImpacts = getRecurringImpacts(event)
+      const remainingYears = getDurationYears(event) - 1
+      if (remainingYears > 0 && recurringImpacts.length > 0) {
+        activeRecurringEvents.push({
+          source: { ...event, actualImpacts: recurringImpacts },
+          remainingYears,
+        })
+      }
+    }
 
     // === 購屋處理 ===
     let housingSnapshot: YearHousingSnapshot | undefined
@@ -300,11 +343,14 @@ export function simulatePath(
       // 購屋後房貸+持有成本 → 可存入額減少
       contribution = Math.max(0, contribution - annualHousingExpense)
     } else if (!bankrupt) {
+      const withdrawalInflationAdjustment = params.withdrawal.type === 'fixed_rate'
+        ? cumulativeInflation / retirementInflationBase
+        : cumulativeInflation
       withdrawal = calcWithdrawal(
         params.withdrawal,
-        params.initialPortfolio,
+        retirementWithdrawalBase ?? portfolio,
         portfolio,
-        cumulativeInflation,
+        withdrawalInflationAdjustment,
       ) * immExpenseMultiplier
       withdrawal -= (permanentExpenseAdjustment + normalizedEffects.expenseDeltaPermanent) * cumulativeInflation
       // 退休後房屋支出也從 portfolio 扣除

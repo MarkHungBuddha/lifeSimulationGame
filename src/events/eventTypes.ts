@@ -68,6 +68,7 @@ export interface TriggeredEvent {
   event: RandomEvent
   age: number
   year: number            // 模擬第幾年
+  durationYears?: number  // 實際影響年數，已由 durationMonths 抽樣換算
   actualImpacts: {        // 實際影響金額
     type: ImpactType
     description: string

@@ -57,6 +57,7 @@ function createPhaseEvent(
     },
     age,
     year,
+    durationYears: 1,
     actualImpacts: [],
   }
 }
@@ -353,7 +354,7 @@ function rollImmigrationEvents(
         })
       }
 
-      events.push({ event: evt, age, year, actualImpacts })
+      events.push({ event: evt, age, year, durationYears: 1, actualImpacts })
     }
   }
 }

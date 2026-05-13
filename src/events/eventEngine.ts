@@ -30,6 +30,15 @@ function getAdjustedProbability(event: RandomEvent, age: number): number {
   return event.baseProbability
 }
 
+function rollDurationYears(event: RandomEvent, rng: () => number): number {
+  const [minMonths, maxMonths] = event.durationMonths
+  if (maxMonths <= 0) return 1
+  const months = minMonths === maxMonths
+    ? maxMonths
+    : minMonths + rng() * (maxMonths - minMonths)
+  return Math.max(1, Math.ceil(months / 12))
+}
+
 /** 退休後不觸發的事件類別與 ID */
 const WORK_ONLY_CATEGORIES: Set<string> = new Set(['career'])
 const WORK_ONLY_EVENTS: Set<string> = new Set([
@@ -194,7 +203,7 @@ export function rollEventsForYear(
     }
 
     triggered.push({
-      event, age, year, actualImpacts,
+      event, age, year, durationYears: rollDurationYears(event, rng), actualImpacts,
       displayName: occMod2?.name,
       displayDescription: occMod2?.description,
     })
