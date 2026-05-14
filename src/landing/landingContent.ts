@@ -231,7 +231,7 @@ export const landingContent: Record<UiLanguage, LandingCopy> = {
         label: '夢と期限',
         headline: '仕事の',
         emphasis: '最終日を想像してください。',
-        lede: '農場。自分で築いた村。スタンプでいっぱいのパスポート。理想の退職生活にはお金が必要です。早く収入を止めるほど、必要額は大きくなります。',
+        lede: '農場。自分で築いた村。スタンプでいっぱいのパスポート。理想の退職生活にはお金が必要です。収入を早く止めると、必要額は大きくなります。',
       },
       {
         label: '知り得ないこと',
@@ -243,7 +243,7 @@ export const landingContent: Record<UiLanguage, LandingCopy> = {
         label: '一つの数字では足りない理由',
         headline: '4%ルールは出発点。',
         emphasis: '計画ではない。',
-        lede: '年4%を引き出す。単純に見えます。しかし同じ資産でも、リターンの順序によって長く続くことも、早く尽きることもあります。',
+        lede: '年4%引き出すことは単純に見えます。しかし同じ資産でも、リターンの順序によって長く続くことも、早く尽きることもあります。',
       },
       {
         label: '正直な答え',
@@ -260,7 +260,7 @@ export const landingContent: Record<UiLanguage, LandingCopy> = {
       60: '約 $800K、30年もたせる。',
       70: '約 $600K、20年もたせる。',
     },
-    ageCallout: '早く辞めるほど必要額は大きく、もたせる期間も長くなる。',
+    ageCallout: '早く辞めるほど必要額は大きくなり、また期間も長くなる',
     uncertainties: [
       { question: '何歳まで生きる？', answer: '75かもしれない。100かもしれない。' },
       { question: '物価はどれだけ上がる？', answer: '年2%？6%？複利で効きます。' },
@@ -269,9 +269,9 @@ export const landingContent: Record<UiLanguage, LandingCopy> = {
     ],
     fourPercentScene: {
       label: '近道',
-      headline: '4%ルールは',
-      emphasis: '何をする？',
-      body: '4%ルールは退職資金を素早く見積もる方法です。退職後の年間支出を4%で割ります。年間$40K使うなら約$1Mが目安です。まず目標額をつかみ、その後シミュレーションで検証します。',
+      headline: '4%ルールとは',
+      emphasis: '何を示す？',
+      body: '4%ルールは退職資金を素早く見積もる方法です。退職後の年間支出を4%で割ります。年間$40K使うなら約$1Mが目安です。まず目標額を設定し、その後シュミレーションで検証します。',
     },
     demoTitle: '同じ元本。同じ引き出し。違う運。',
     demoStart: '開始',
@@ -283,7 +283,7 @@ export const landingContent: Record<UiLanguage, LandingCopy> = {
     outcomeBad: '18年目で破産',
     mcSteps: [
       '計画を設定：年齢、貯蓄、引き出し。',
-      '実際の市場データで10,000パスを実行。',
+      '実際の市場データで10000パターンを実行',
       '生存率を見て、計画を調整。',
     ],
     inputTitle: '最初のシナリオを作成',
