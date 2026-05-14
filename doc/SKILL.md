@@ -138,6 +138,7 @@ Event data lives in region-specific databases:
 - `src/events/eventDatabase.ts`
 - `src/events/eventDatabase_tw.ts`
 - `src/events/eventDatabase_jp.ts`
+- `src/events/eventDatabase_ph.ts`
 
 Event effects are normalized/applied through:
 
@@ -145,6 +146,8 @@ Event effects are normalized/applied through:
 - `src/events/eventEngine.ts`
 
 When adding event effects, keep batch and story output consistent.
+
+Philippines random events are shared by `ph-manila` and `ph-cebu` for the current MVP. Keep PH event IDs prefixed with `ph_`, avoid occupation-specific PH events until PH occupation support exists, and prefer conservative Manila/Cebu differences through explicit region-aware logic rather than falling back to the US database.
 
 ### Housing
 
@@ -186,5 +189,10 @@ Load these only when relevant:
 - `doc/monte_carlo_japan.md`: Japan-specific simulation notes.
 - `doc/ph-module-implementation-plan.md`: Philippines module plan.
 - `doc/ph-cebu-manila-module-research.md`: Philippines region research.
+- `doc/ph-random-event-library-plan.md`: Philippines random event library plan.
 - `doc/immigration-event-fix-plan.md`: event effect and immigration consistency plan.
+- `doc/demo-feature-flag-block-plan.md`: demo feature gating and blocked feature copy plan.
+- `doc/mobile-first-controls-ux-plan.md`: mobile controls UX plan.
+- `doc/simulator-guided-flow-plan.md`: simulator guided flow plan.
+- `doc/ui_improvement_execution_plan.md`: UI improvement execution plan.
 - `doc/PLAN.md`: broader project roadmap.
