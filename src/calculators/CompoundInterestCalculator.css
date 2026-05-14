@@ -1,0 +1,415 @@
+.compoundPage {
+  --compound-bg: #f7f8f4;
+  --compound-surface: #ffffff;
+  --compound-ink: #11130f;
+  --compound-muted: #62675d;
+  --compound-line: rgba(17, 19, 15, 0.14);
+  --compound-accent: #216c5b;
+  --compound-warn: #b84535;
+  min-height: 100vh;
+  background: var(--compound-bg);
+  color: var(--compound-ink);
+  font-family: "Inter", "Noto Sans TC", sans-serif;
+}
+
+.compoundPage * {
+  box-sizing: border-box;
+}
+
+.compoundTopNav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 22px 48px;
+}
+
+.compoundBrand,
+.compoundNavLink {
+  color: inherit;
+  text-decoration: none;
+}
+
+.compoundBrand {
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 18px;
+}
+
+.compoundBrand span {
+  color: var(--compound-accent);
+}
+
+.compoundNavLink {
+  border: 1px solid var(--compound-line);
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.compoundNavLink:hover {
+  border-color: var(--compound-ink);
+  background: var(--compound-ink);
+  color: var(--compound-bg);
+}
+
+.compoundHero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(280px, 0.7fr);
+  gap: 48px;
+  width: min(1180px, calc(100% - 64px));
+  margin: 34px auto 42px;
+  align-items: end;
+}
+
+.compoundHero h1 {
+  max-width: 760px;
+  margin: 0;
+  font-family: "Fraunces", Georgia, serif;
+  font-size: clamp(44px, 7vw, 86px);
+  font-weight: 400;
+  line-height: 0.98;
+}
+
+.compoundHero p {
+  max-width: 660px;
+  margin: 24px 0 0;
+  color: var(--compound-muted);
+  font-size: 18px;
+  line-height: 1.55;
+}
+
+.compoundEyebrow {
+  margin: 0 0 14px;
+  color: var(--compound-accent);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.compoundSummary {
+  border: 1px solid var(--compound-line);
+  background: var(--compound-surface);
+  padding: 28px;
+}
+
+.compoundSummary span,
+.compoundMetric span,
+.compoundRangeRow span,
+.compoundRangeRow small {
+  color: var(--compound-muted);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+}
+
+.compoundSummary strong {
+  display: block;
+  margin-top: 10px;
+  font-family: "Fraunces", Georgia, serif;
+  font-size: clamp(34px, 4vw, 48px);
+  font-weight: 500;
+  line-height: 1;
+}
+
+.compoundSummary p {
+  margin: 14px 0 0;
+  font-size: 14px;
+}
+
+.compoundWorkspace {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(340px, 1.05fr);
+  gap: 32px;
+  width: min(1180px, calc(100% - 64px));
+  margin: 0 auto;
+  padding-bottom: 72px;
+  align-items: start;
+}
+
+.compoundForm,
+.compoundResults {
+  min-width: 0;
+}
+
+.compoundStep {
+  display: grid;
+  gap: 18px;
+  margin: 0 0 18px;
+  border: 1px solid var(--compound-line);
+  background: var(--compound-surface);
+  padding: 24px;
+}
+
+.compoundStep legend {
+  padding: 0 8px;
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 24px;
+  font-weight: 500;
+}
+
+.compoundField {
+  display: grid;
+  gap: 8px;
+}
+
+.compoundField > span {
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.compoundField small {
+  color: var(--compound-muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.compoundInputWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.compoundInputWrap b {
+  position: absolute;
+  color: var(--compound-muted);
+  font-size: 14px;
+  pointer-events: none;
+}
+
+.compoundInputWrap b:first-child {
+  left: 14px;
+}
+
+.compoundInputWrap b:last-child {
+  right: 14px;
+}
+
+.compoundField input,
+.compoundField select {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid var(--compound-line);
+  border-radius: 6px;
+  background: var(--compound-bg);
+  color: var(--compound-ink);
+  font: 700 16px "Inter", "Noto Sans TC", sans-serif;
+  padding: 12px 14px;
+}
+
+.compoundInputWrap input {
+  padding-left: 30px;
+}
+
+.compoundInputWrap input:only-child {
+  padding-left: 14px;
+}
+
+.compoundInputWrap input:has(+ b) {
+  padding-right: 34px;
+}
+
+.compoundField input:focus,
+.compoundField select:focus {
+  border-color: var(--compound-accent);
+  outline: 3px solid rgba(33, 108, 91, 0.15);
+}
+
+.compoundResults {
+  position: sticky;
+  top: 24px;
+  border: 1px solid var(--compound-line);
+  background: var(--compound-surface);
+  padding: 28px;
+}
+
+.compoundResultHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid var(--compound-line);
+  padding-bottom: 24px;
+}
+
+.compoundResultHeader h2 {
+  margin: 0;
+  font-family: "Fraunces", Georgia, serif;
+  font-size: clamp(36px, 5vw, 60px);
+  font-weight: 500;
+  line-height: 1;
+}
+
+.compoundResultHeader > span {
+  height: fit-content;
+  border: 1px solid var(--compound-line);
+  border-radius: 999px;
+  padding: 8px 12px;
+  color: var(--compound-accent);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.compoundMetrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  margin-top: 24px;
+  background: var(--compound-line);
+  border: 1px solid var(--compound-line);
+}
+
+.compoundMetric {
+  display: grid;
+  gap: 8px;
+  background: var(--compound-surface);
+  padding: 16px;
+}
+
+.compoundMetric strong {
+  font-size: 17px;
+}
+
+.compoundRangeBars {
+  display: grid;
+  gap: 18px;
+  margin-top: 28px;
+}
+
+.compoundRangeRow {
+  display: grid;
+  grid-template-columns: 140px minmax(0, 1fr) 48px;
+  gap: 14px;
+  align-items: center;
+}
+
+.compoundRangeRow div:first-child {
+  display: grid;
+  gap: 3px;
+}
+
+.compoundRangeRow strong {
+  font-size: 15px;
+}
+
+.compoundBarTrack {
+  height: 12px;
+  overflow: hidden;
+  background: rgba(33, 108, 91, 0.12);
+}
+
+.compoundBarTrack span {
+  display: block;
+  height: 100%;
+  background: var(--compound-accent);
+}
+
+.compoundChart {
+  display: flex;
+  align-items: end;
+  gap: 6px;
+  height: 190px;
+  margin-top: 34px;
+  border-bottom: 1px solid var(--compound-line);
+  border-left: 1px solid var(--compound-line);
+  padding: 10px 8px 0;
+}
+
+.compoundChartColumn {
+  display: grid;
+  grid-template-rows: 1fr 20px;
+  align-items: end;
+  flex: 1;
+  min-width: 10px;
+  height: 100%;
+}
+
+.compoundChartColumn span {
+  display: block;
+  width: 100%;
+  background: var(--compound-accent);
+}
+
+.compoundChartColumn span.negative {
+  background: var(--compound-warn);
+}
+
+.compoundChartColumn small {
+  color: var(--compound-muted);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  text-align: center;
+}
+
+.compoundTable {
+  width: 100%;
+  margin-top: 28px;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.compoundTable th,
+.compoundTable td {
+  border-top: 1px solid var(--compound-line);
+  padding: 12px 8px;
+  text-align: right;
+}
+
+.compoundTable th:first-child,
+.compoundTable td:first-child {
+  text-align: left;
+}
+
+.compoundTable th {
+  color: var(--compound-muted);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+@media (max-width: 900px) {
+  .compoundHero,
+  .compoundWorkspace {
+    grid-template-columns: 1fr;
+    width: min(100% - 32px, 680px);
+  }
+
+  .compoundTopNav {
+    padding: 18px 16px;
+  }
+
+  .compoundResults {
+    position: static;
+  }
+}
+
+@media (max-width: 620px) {
+  .compoundHero {
+    margin-top: 16px;
+    gap: 28px;
+  }
+
+  .compoundHero h1 {
+    font-size: clamp(38px, 14vw, 58px);
+  }
+
+  .compoundStep,
+  .compoundResults,
+  .compoundSummary {
+    padding: 20px;
+  }
+
+  .compoundMetrics,
+  .compoundRangeRow {
+    grid-template-columns: 1fr;
+  }
+
+  .compoundRangeRow {
+    gap: 7px;
+  }
+
+  .compoundChart {
+    gap: 3px;
+  }
+}

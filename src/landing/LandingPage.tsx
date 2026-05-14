@@ -72,6 +72,7 @@ export function LandingPage() {
         skip={copy.skip}
         language={language}
         setLanguage={setLanguage}
+        onCalculator={() => navigate('/compound-interest-calculator')}
         onSkip={() => goSimulator(false)}
       />
       <ProgressDots activeScene={activeScene} labels={progressLabels} />
@@ -177,11 +178,12 @@ export function LandingPage() {
   )
 }
 
-function TopNav({ brand, skip, language, setLanguage, onSkip }: {
+function TopNav({ brand, skip, language, setLanguage, onCalculator, onSkip }: {
   brand: string
   skip: string
   language: UiLanguage
   setLanguage: (language: UiLanguage) => void
+  onCalculator: () => void
   onSkip: () => void
 }) {
   return (
@@ -201,6 +203,9 @@ function TopNav({ brand, skip, language, setLanguage, onSkip }: {
             </button>
           ))}
         </div>
+        <button className="landingSkipButton" type="button" onClick={onCalculator}>
+          Calculator<span aria-hidden="true">-&gt;</span>
+        </button>
         <button className="landingSkipButton" type="button" onClick={onSkip}>
           {skip}<span aria-hidden="true">-&gt;</span>
         </button>
