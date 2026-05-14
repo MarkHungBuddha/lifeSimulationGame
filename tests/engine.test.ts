@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createSeededRNG } from '../src/engine/rng'
 import { blockBootstrap, type HistoricalData } from '../src/engine/bootstrap'
 import { simulatePath, type SimulationParams } from '../src/engine/simulator'
+import { runMonteCarlo } from '../src/engine/runner'
 import { rollEventsForYear } from '../src/events/eventEngine'
 import { EVENT_DATABASE_PH } from '../src/events/eventDatabase_ph'
 import { calcImpactAmount, normalizeTriggeredEvents } from '../src/events/eventEffects'
@@ -125,6 +126,7 @@ describe('simulatePath', () => {
     initialPortfolio: 100000,
     annualContribution: 20000,
     annualIncome: 70000,
+    annualExpense: 45000,
     allocation: { sp500: 0.45, intlStock: 0.15, bond: 0.2, gold: 0.1, cash: 0.05, reits: 0.05 },
     withdrawal: { type: 'fixed_rate', rate: 0.04 },
     enableEvents: false,
@@ -177,6 +179,7 @@ describe('simulatePath', () => {
       initialPortfolio: 100,
       annualContribution: 100,
       annualIncome: 100,
+      annualExpense: 10,
       allocation: { sp500: 0, intlStock: 0, bond: 0, gold: 0, cash: 1, reits: 0 },
       withdrawal: { type: 'fixed_rate', rate: 0.1 },
       enableEvents: false,
@@ -184,6 +187,85 @@ describe('simulatePath', () => {
 
     expect(result.snapshots[1].withdrawal).toBe(20)
     expect(result.snapshots[2].withdrawal).toBe(20)
+  })
+
+  it('fixed_rate paths fail success when retirement withdrawal is below the expense floor', () => {
+    const flatData: HistoricalData = {
+      '2000': { sp500: 0, bond: 0, gold: 0, cash: 0, reits: 0, cpi: 0 },
+      '2001': { sp500: 0, bond: 0, gold: 0, cash: 0, reits: 0, cpi: 0 },
+      '2002': { sp500: 0, bond: 0, gold: 0, cash: 0, reits: 0, cpi: 0 },
+      '2003': { sp500: 0, bond: 0, gold: 0, cash: 0, reits: 0, cpi: 0 },
+    }
+
+    const result = simulatePath(flatData, {
+      currentAge: 30,
+      retirementAge: 31,
+      endAge: 33,
+      initialPortfolio: 100,
+      annualContribution: 100,
+      annualIncome: 1000,
+      annualExpense: 1000,
+      allocation: { sp500: 0, intlStock: 0, bond: 0, gold: 0, cash: 1, reits: 0 },
+      withdrawal: { type: 'fixed_rate', rate: 0.1 },
+      enableEvents: false,
+    }, 42)
+
+    expect(result.bankrupt).toBe(false)
+    expect(result.retirementYearsEvaluated).toBe(2)
+    expect(result.retirementYearsBelowExpenseFloor).toBe(2)
+    expect(result.retirementSpendingAdequate).toBe(false)
+    expect(result.successful).toBe(false)
+  })
+
+  it('fixed_amount paths pass success when withdrawals meet the expense floor', () => {
+    const flatData: HistoricalData = {
+      '2000': { sp500: 0, bond: 0, gold: 0, cash: 0, reits: 0, cpi: 0 },
+      '2001': { sp500: 0, bond: 0, gold: 0, cash: 0, reits: 0, cpi: 0 },
+      '2002': { sp500: 0, bond: 0, gold: 0, cash: 0, reits: 0, cpi: 0 },
+      '2003': { sp500: 0, bond: 0, gold: 0, cash: 0, reits: 0, cpi: 0 },
+    }
+
+    const result = simulatePath(flatData, {
+      currentAge: 30,
+      retirementAge: 30,
+      endAge: 32,
+      initialPortfolio: 1000,
+      annualContribution: 0,
+      annualIncome: 1000,
+      annualExpense: 100,
+      allocation: { sp500: 0, intlStock: 0, bond: 0, gold: 0, cash: 1, reits: 0 },
+      withdrawal: { type: 'fixed_amount', amount: 100 },
+      enableEvents: false,
+    }, 42)
+
+    expect(result.bankrupt).toBe(false)
+    expect(result.retirementSpendingAdequate).toBe(true)
+    expect(result.successful).toBe(true)
+  })
+
+  it('Monte Carlo success rate excludes non-bankrupt paths below the retirement expense floor', () => {
+    const flatData: HistoricalData = {
+      '2000': { sp500: 0, bond: 0, gold: 0, cash: 0, reits: 0, cpi: 0 },
+      '2001': { sp500: 0, bond: 0, gold: 0, cash: 0, reits: 0, cpi: 0 },
+      '2002': { sp500: 0, bond: 0, gold: 0, cash: 0, reits: 0, cpi: 0 },
+      '2003': { sp500: 0, bond: 0, gold: 0, cash: 0, reits: 0, cpi: 0 },
+    }
+
+    const result = runMonteCarlo(flatData, {
+      currentAge: 30,
+      retirementAge: 31,
+      endAge: 33,
+      initialPortfolio: 100,
+      annualContribution: 100,
+      annualIncome: 1000,
+      annualExpense: 1000,
+      allocation: { sp500: 0, intlStock: 0, bond: 0, gold: 0, cash: 1, reits: 0 },
+      withdrawal: { type: 'fixed_rate', rate: 0.1 },
+      enableEvents: false,
+    }, 5, 42)
+
+    expect(result.paths.every(path => !path.bankrupt)).toBe(true)
+    expect(result.successRate).toBe(0)
   })
 
   it('配置權重不為 1 時拋出錯誤', () => {
@@ -237,6 +319,7 @@ describe('Occupation System', () => {
     initialPortfolio: 100000,
     annualContribution: 20000,
     annualIncome: 80000,
+    annualExpense: 50000,
     allocation: { sp500: 0.6, intlStock: 0, bond: 0.3, gold: 0.05, cash: 0.05, reits: 0 },
     withdrawal: { type: 'fixed_rate', rate: 0.04 },
     enableEvents: false,
@@ -329,6 +412,7 @@ describe('Bankruptcy structural fixes', () => {
     initialPortfolio: 100000,
     annualContribution: 20000,
     annualIncome: 80000,
+    annualExpense: 50000,
     allocation: { sp500: 0.6, intlStock: 0, bond: 0.3, gold: 0.05, cash: 0.05, reits: 0 },
     withdrawal: { type: 'fixed_rate', rate: 0.04 },
     enableEvents: false,
@@ -644,6 +728,7 @@ describe('Simulator event application', () => {
     initialPortfolio: 100000,
     annualContribution: 20000,
     annualIncome: 100000,
+    annualExpense: 50000,
     allocation: { sp500: 0.6, intlStock: 0, bond: 0.3, gold: 0.05, cash: 0.05, reits: 0 },
     withdrawal: { type: 'fixed_rate', rate: 0.04 },
     enableEvents: true,

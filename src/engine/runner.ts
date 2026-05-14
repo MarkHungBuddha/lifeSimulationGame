@@ -77,7 +77,7 @@ export function runMonteCarlo(
   }
 
   // 成功率
-  const successCount = paths.filter(p => !p.bankrupt).length
+  const successCount = paths.filter(p => p.successful).length
   const successRate = successCount / numPaths
 
   // 每年的資產值矩陣，計算 percentiles
