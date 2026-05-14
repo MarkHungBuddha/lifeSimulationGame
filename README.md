@@ -9,11 +9,11 @@
 - **歷史資料驅動** — 1972-2023 共 52 年，涵蓋 S&P 500、美國長債、黃金、現金、REITs、CPI
 - **Block Bootstrap** — 連續區塊抽樣（block size=4），保留景氣循環序列相關性
 - **可重現模擬** — xoshiro128** seeded PRNG，同一 seed 永遠產出相同結果
-- **三國模擬** — 美國 (USD)、台灣 (TWD)、日本 (JPY) 各有獨立參數與事件
+- **多地區模擬** — 美國 (USD)、台灣 (TWD)、日本 (JPY)、菲律賓 Manila/Cebu (PHP) 各有地區參數
 - **移民模組** — 台灣→日本/美國多階段移民模擬（簽證、定居、永住）
 - **購屋模組** — 自住房購買模擬，房貸、持有成本、房價漲跌
 - **職業系統** — 10 大職業分類 × 3 國薪資，年度加薪隨年齡遞減，職業專屬事件
-- **隨機事件** — 三國各 80+ 種事件（市場、職涯、健康、家庭、財產、法律、職業專屬）
+- **隨機事件** — 依地區套用事件資料庫（市場、職涯、健康、家庭、財產、法律、職業專屬；菲律賓含通膨、颱風、BPO、匯款等事件）
 - **雙模式** — 批次蒙地卡羅模擬 + 單條路徑人生故事
 - **三種提領策略** — 4% 法則、固定金額、動態提領
 - **儲存紀錄** — localStorage 儲存/載入模擬參數組合，可命名、比較、重新套用
@@ -44,6 +44,8 @@ npm run dev
 
 - 專案補充文件集中放在 `doc/`
 - 後續新增的專案說明、調查與規劃文件也統一放在 `doc/`
+- 菲律賓模組請參考 `doc/ph-module-implementation-plan.md`、`doc/ph-cebu-manila-module-research.md`、`doc/ph-random-event-library-plan.md`
+- UI / landing / guided flow 規劃請參考 `doc/ui_improvement_execution_plan.md`、`doc/mobile-first-controls-ux-plan.md`、`doc/simulator-guided-flow-plan.md`
 
 ## 授權
 
@@ -52,6 +54,25 @@ ISC
 ---
 
 ## 更新日誌
+
+### 2026-05-14 — v1.1：菲律賓 Manila/Cebu 與 Landing 文案
+
+- **菲律賓城市情境**：新增 `ph-manila`、`ph-cebu`，使用 PHP 幣別、地區滑桿範圍、Manila/Cebu 生活風格預設
+- **菲律賓購屋參數**：Manila/Cebu 各自設定房貸利率、房價所得比、持有成本、租金收益率等 MVP 參數
+- **菲律賓隨機事件庫**：新增 `src/events/eventDatabase_ph.ts`，避免 PH 地區 fallback 到美國事件
+- **PH 事件類型**：涵蓋通膨、交通燃油、披索壓力、颱風/淹水、失業/工時不足、BPO、醫療、家庭支援、匯款
+- **日文 Landing 文案校稿**：更新早退、4% rule、Monte Carlo 10,000 pattern 相關日文說明
+
+---
+
+### 2026-05-14 — v1.0：事件效果與持續時間修正
+
+- **暫時性 income_change**：依事件持續月數 prorate，不再把短期收入衝擊誤當全年效果
+- **多年度事件**：支援跨年度 temporary income impact 持續到 sampled duration 結束
+- **recurring savings event**：以 annual income 作為 recurring adjustment base，避免 portfolio base 放大短期現金流事件
+- **事件測試補強**：新增 temporary/permanent income、savings、PH event routing 等 regression tests
+
+---
 
 ### 2026-04-07 — v0.9：職業系統
 
