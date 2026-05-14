@@ -329,6 +329,7 @@ export const useGameStore = create<GameState>()(persist((set, get) => ({
         initialPortfolio: state.initialPortfolio,
         annualContribution: state.annualContribution,
         annualIncome: state.annualIncome,
+        annualExpense: state.annualExpense,
         allocation: state.allocation,
         withdrawal: state.withdrawal,
         enableEvents: state.enableEvents,
@@ -392,6 +393,7 @@ export const useGameStore = create<GameState>()(persist((set, get) => ({
           initialPortfolio: state.initialPortfolio,
           annualContribution: state.annualContribution,
           annualIncome: state.annualIncome,
+          annualExpense: state.annualExpense,
           allocation: state.allocation,
           withdrawal: state.withdrawal,
           enableEvents: true,  // 故事模式強制啟用事件

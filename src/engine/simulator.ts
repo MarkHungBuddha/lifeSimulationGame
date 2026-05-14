@@ -51,6 +51,7 @@ export interface SimulationParams {
   initialPortfolio: number
   annualContribution: number
   annualIncome: number      // 年收入（事件影響計算用）
+  annualExpense: number
   allocation: Allocation
   withdrawal: WithdrawalStrategy
   enableEvents: boolean     // 是否啟用隨機事件
@@ -90,10 +91,15 @@ export interface PathResult {
   finalPortfolio: number
   bankrupt: boolean
   bankruptAge: number | null
+  successful: boolean
+  retirementSpendingAdequate: boolean
+  retirementYearsBelowExpenseFloor: number
+  retirementYearsEvaluated: number
   allEvents: TriggeredEvent[]    // 整條路徑所有觸發事件
 }
 
 const ASSET_KEYS: (keyof Allocation)[] = ['sp500', 'intlStock', 'bond', 'gold', 'cash', 'reits']
+const RETIREMENT_EXPENSE_FLOOR_RATIO = 0.8
 
 interface ActiveRecurringEvent {
   source: TriggeredEvent
@@ -208,6 +214,8 @@ export function simulatePath(
   const snapshots: YearSnapshot[] = []
   const allEvents: TriggeredEvent[] = []
   let activeRecurringEvents: ActiveRecurringEvent[] = []
+  let retirementYearsBelowExpenseFloor = 0
+  let retirementYearsEvaluated = 0
   const baseSavingsRate = params.annualIncome > 0
     ? params.annualContribution / params.annualIncome : 0
 
@@ -397,6 +405,14 @@ export function simulatePath(
 
     portfolio -= withdrawal
 
+    if (isRetired && !bankrupt) {
+      retirementYearsEvaluated += 1
+      const expenseFloor = params.annualExpense * RETIREMENT_EXPENSE_FLOOR_RATIO * cumulativeInflation
+      if (withdrawal < expenseFloor) {
+        retirementYearsBelowExpenseFloor += 1
+      }
+    }
+
     if (portfolio <= 0 && !bankrupt) {
       portfolio = 0
       bankrupt = true
@@ -429,12 +445,20 @@ export function simulatePath(
     permanentExpenseAdjustment += normalizedEffects.expenseDeltaPermanent
   }
 
+  const retirementSpendingAdequate = retirementYearsEvaluated === 0
+    ? true
+    : retirementYearsBelowExpenseFloor === 0
+
   return {
     seed,
     snapshots,
     finalPortfolio: portfolio,
     bankrupt,
     bankruptAge,
+    successful: !bankrupt && retirementSpendingAdequate,
+    retirementSpendingAdequate,
+    retirementYearsBelowExpenseFloor,
+    retirementYearsEvaluated,
     allEvents,
   }
 }
