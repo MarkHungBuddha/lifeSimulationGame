@@ -129,6 +129,7 @@ const GUIDED_COPY: Record<UiLanguage, GuidedCopy> = {
       stockWeight: 'Stock weight',
       bondWeight: 'Bond weight',
       goldWeight: 'Gold weight',
+      cashWeight: 'Cash weight',
       allocationTotal: 'Allocation total',
       timeline: 'Timeline',
       incomeSpending: 'Income / spending',
@@ -213,6 +214,7 @@ const GUIDED_COPY: Record<UiLanguage, GuidedCopy> = {
       stockWeight: '股票比例',
       bondWeight: '債券比例',
       goldWeight: '黃金比例',
+      cashWeight: '現金比例',
       allocationTotal: '配置總和',
       timeline: '時間線',
       incomeSpending: '收入 / 支出',
@@ -297,6 +299,7 @@ const GUIDED_COPY: Record<UiLanguage, GuidedCopy> = {
       stockWeight: '株式比率',
       bondWeight: '債券比率',
       goldWeight: '金比率',
+      cashWeight: '現金比率',
       allocationTotal: '配分合計',
       timeline: 'タイムライン',
       incomeSpending: '収入 / 支出',
@@ -323,9 +326,9 @@ const GUIDED_COPY: Record<UiLanguage, GuidedCopy> = {
 const REGION_OPTIONS: Region[] = ['us', 'tw', 'jp', 'ph-manila', 'ph-cebu']
 
 const RISK_ALLOCATIONS: Record<RiskPreset, Allocation> = {
-  conservative: { sp500: 0.25, intlStock: 0.10, bond: 0.40, gold: 0.10, cash: 0.10, reits: 0.05 },
-  balanced: { sp500: 0.45, intlStock: 0.15, bond: 0.20, gold: 0.10, cash: 0.05, reits: 0.05 },
-  growth: { sp500: 0.60, intlStock: 0.20, bond: 0.10, gold: 0.05, cash: 0.00, reits: 0.05 },
+  conservative: { sp500: 0.25, intlStock: 0.10, bond: 0.40, gold: 0.10, cash: 0.15, reits: 0 },
+  balanced: { sp500: 0.45, intlStock: 0.15, bond: 0.20, gold: 0.10, cash: 0.10, reits: 0 },
+  growth: { sp500: 0.60, intlStock: 0.20, bond: 0.10, gold: 0.05, cash: 0.05, reits: 0 },
 }
 
 function getLifestyleList(region: Region) {
@@ -350,6 +353,16 @@ function getWithdrawalAmount(withdrawal: WithdrawalStrategy, fallback: number) {
   if (withdrawal.type === 'fixed_amount') return withdrawal.amount
   if (withdrawal.type === 'dynamic') return withdrawal.floor
   return fallback
+}
+
+function getFixedRateStepNote(language: UiLanguage): string {
+  if (language === 'zh-Hant') {
+    return '4% 法則會用退休時資產當基準，結果也會檢查提領是否足以支應基本生活費。'
+  }
+  if (language === 'ja') {
+    return '4%ルールは退職時の資産を基準にし、結果では基本的な支出を満たせるかも確認します。'
+  }
+  return 'The 4% rule uses your portfolio at retirement as the base and checks basic spending adequacy.'
 }
 
 export function GuidedSimulator({ onOpenAdvanced, startOnResults }: {
@@ -514,6 +527,9 @@ export function GuidedSimulator({ onOpenAdvanced, startOnResults }: {
                 <NumberField label={copy.labels.retirementAge} value={store.retirementAge} min={store.currentAge + 1} max={80} step={1} onChange={store.setRetirementAge} />
                 <NumberField label={copy.labels.planUntilAge} value={store.endAge} min={store.retirementAge + 1} max={100} step={1} onChange={store.setEndAge} />
               </div>
+              {store.withdrawal.type === 'fixed_rate' && (
+                <p className="guidedInlineNote">{getFixedRateStepNote(language)}</p>
+              )}
               <Metrics>
                 <Metric label={copy.labels.retirementYears} value={`${Math.max(0, store.endAge - store.retirementAge)}`} />
                 <Metric label={copy.labels.firstYearSpend} value={formatCurrency(withdrawalAmount, store.region, language)} />
@@ -539,7 +555,7 @@ export function GuidedSimulator({ onOpenAdvanced, startOnResults }: {
                 <Metric label={copy.labels.stockWeight} value={`${((store.allocation.sp500 + store.allocation.intlStock) * 100).toFixed(0)}%`} />
                 <Metric label={copy.labels.bondWeight} value={`${(store.allocation.bond * 100).toFixed(0)}%`} />
                 <Metric label={copy.labels.goldWeight} value={`${(store.allocation.gold * 100).toFixed(0)}%`} />
-                <Metric label={copy.labels.allocationTotal} value={`${(allocationSum(store.allocation) * 100).toFixed(0)}%`} />
+                <Metric label={copy.labels.cashWeight} value={`${(store.allocation.cash * 100).toFixed(0)}%`} />
               </Metrics>
             </GuidedStep>
           )}

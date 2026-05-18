@@ -189,6 +189,31 @@ describe('simulatePath', () => {
     expect(result.snapshots[2].withdrawal).toBe(20)
   })
 
+  it('fixed_rate withdrawal adjusts for inflation after retirement starts', () => {
+    const inflationData: HistoricalData = {
+      '2000': { sp500: 0, bond: 0, gold: 0, cash: 0, reits: 0, cpi: 0.1 },
+      '2001': { sp500: 0, bond: 0, gold: 0, cash: 0, reits: 0, cpi: 0.1 },
+      '2002': { sp500: 0, bond: 0, gold: 0, cash: 0, reits: 0, cpi: 0.1 },
+      '2003': { sp500: 0, bond: 0, gold: 0, cash: 0, reits: 0, cpi: 0.1 },
+    }
+    const result = simulatePath(inflationData, {
+      currentAge: 30,
+      retirementAge: 31,
+      endAge: 34,
+      initialPortfolio: 100,
+      annualContribution: 100,
+      annualIncome: 100,
+      annualExpense: 10,
+      allocation: { sp500: 0, intlStock: 0, bond: 0, gold: 0, cash: 1, reits: 0 },
+      withdrawal: { type: 'fixed_rate', rate: 0.1 },
+      enableEvents: false,
+    }, 42)
+
+    expect(result.snapshots[1].withdrawal).toBeCloseTo(20, 10)
+    expect(result.snapshots[2].withdrawal).toBeCloseTo(22, 10)
+    expect(result.snapshots[3].withdrawal).toBeCloseTo(24.2, 10)
+  })
+
   it('fixed_rate paths fail success when retirement withdrawal is below the expense floor', () => {
     const flatData: HistoricalData = {
       '2000': { sp500: 0, bond: 0, gold: 0, cash: 0, reits: 0, cpi: 0 },
@@ -243,7 +268,7 @@ describe('simulatePath', () => {
     expect(result.successful).toBe(true)
   })
 
-  it('Monte Carlo success rate excludes non-bankrupt paths below the retirement expense floor', () => {
+  it('Monte Carlo fixed-rate success rate excludes non-bankrupt paths below the retirement expense floor', () => {
     const flatData: HistoricalData = {
       '2000': { sp500: 0, bond: 0, gold: 0, cash: 0, reits: 0, cpi: 0 },
       '2001': { sp500: 0, bond: 0, gold: 0, cash: 0, reits: 0, cpi: 0 },
@@ -265,6 +290,7 @@ describe('simulatePath', () => {
     }, 5, 42)
 
     expect(result.paths.every(path => !path.bankrupt)).toBe(true)
+    expect(result.paths.every(path => !path.successful)).toBe(true)
     expect(result.successRate).toBe(0)
   })
 

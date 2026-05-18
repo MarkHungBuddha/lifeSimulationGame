@@ -17,7 +17,7 @@ export const LIFESTYLE_PRESETS_PH_MANILA: LifestylePresetMap = {
     retirementAge: 60,
     initialPortfolio: 500000,
     withdrawal: { type: 'fixed_amount', amount: 180000 },
-    allocation: { sp500: 0.35, intlStock: 0.2, bond: 0.2, gold: 0.1, cash: 0.1, reits: 0.05 },
+    allocation: { sp500: 0.35, intlStock: 0.2, bond: 0.2, gold: 0.1, cash: 0.15, reits: 0 },
   },
   moderate: {
     id: 'moderate',
@@ -32,7 +32,7 @@ export const LIFESTYLE_PRESETS_PH_MANILA: LifestylePresetMap = {
     retirementAge: 65,
     initialPortfolio: 1200000,
     withdrawal: { type: 'fixed_rate', rate: 0.04 },
-    allocation: { sp500: 0.35, intlStock: 0.25, bond: 0.2, gold: 0.05, cash: 0.1, reits: 0.05 },
+    allocation: { sp500: 0.35, intlStock: 0.25, bond: 0.2, gold: 0.05, cash: 0.15, reits: 0 },
   },
   comfortable: {
     id: 'comfortable',
@@ -47,7 +47,7 @@ export const LIFESTYLE_PRESETS_PH_MANILA: LifestylePresetMap = {
     retirementAge: 62,
     initialPortfolio: 4000000,
     withdrawal: { type: 'fixed_amount', amount: 600000 },
-    allocation: { sp500: 0.35, intlStock: 0.25, bond: 0.2, gold: 0.05, cash: 0.05, reits: 0.1 },
+    allocation: { sp500: 0.35, intlStock: 0.25, bond: 0.2, gold: 0.05, cash: 0.15, reits: 0 },
   },
   lavish: {
     id: 'lavish',
@@ -62,7 +62,7 @@ export const LIFESTYLE_PRESETS_PH_MANILA: LifestylePresetMap = {
     retirementAge: 67,
     initialPortfolio: 1500000,
     withdrawal: { type: 'fixed_amount', amount: 1100000 },
-    allocation: { sp500: 0.45, intlStock: 0.2, bond: 0.1, gold: 0.05, cash: 0.1, reits: 0.1 },
+    allocation: { sp500: 0.45, intlStock: 0.2, bond: 0.1, gold: 0.05, cash: 0.2, reits: 0 },
   },
   fire_lean: {
     id: 'fire_lean',
@@ -77,7 +77,7 @@ export const LIFESTYLE_PRESETS_PH_MANILA: LifestylePresetMap = {
     retirementAge: 45,
     initialPortfolio: 1200000,
     withdrawal: { type: 'fixed_rate', rate: 0.035 },
-    allocation: { sp500: 0.45, intlStock: 0.3, bond: 0.1, gold: 0.05, cash: 0, reits: 0.1 },
+    allocation: { sp500: 0.45, intlStock: 0.3, bond: 0.1, gold: 0.05, cash: 0.1, reits: 0 },
   },
   fire_fat: {
     id: 'fire_fat',
@@ -92,7 +92,7 @@ export const LIFESTYLE_PRESETS_PH_MANILA: LifestylePresetMap = {
     retirementAge: 45,
     initialPortfolio: 6000000,
     withdrawal: { type: 'fixed_amount', amount: 900000 },
-    allocation: { sp500: 0.4, intlStock: 0.25, bond: 0.15, gold: 0.05, cash: 0, reits: 0.15 },
+    allocation: { sp500: 0.4, intlStock: 0.25, bond: 0.15, gold: 0.05, cash: 0.15, reits: 0 },
   },
 }
 
@@ -110,7 +110,7 @@ export const LIFESTYLE_PRESETS_PH_CEBU: LifestylePresetMap = {
     retirementAge: 60,
     initialPortfolio: 350000,
     withdrawal: { type: 'fixed_amount', amount: 150000 },
-    allocation: { sp500: 0.35, intlStock: 0.2, bond: 0.2, gold: 0.1, cash: 0.1, reits: 0.05 },
+    allocation: { sp500: 0.35, intlStock: 0.2, bond: 0.2, gold: 0.1, cash: 0.15, reits: 0 },
   },
   moderate: {
     id: 'moderate',
@@ -125,7 +125,7 @@ export const LIFESTYLE_PRESETS_PH_CEBU: LifestylePresetMap = {
     retirementAge: 65,
     initialPortfolio: 1000000,
     withdrawal: { type: 'fixed_rate', rate: 0.04 },
-    allocation: { sp500: 0.35, intlStock: 0.25, bond: 0.2, gold: 0.05, cash: 0.1, reits: 0.05 },
+    allocation: { sp500: 0.35, intlStock: 0.25, bond: 0.2, gold: 0.05, cash: 0.15, reits: 0 },
   },
   comfortable: {
     id: 'comfortable',
@@ -140,7 +140,7 @@ export const LIFESTYLE_PRESETS_PH_CEBU: LifestylePresetMap = {
     retirementAge: 62,
     initialPortfolio: 3000000,
     withdrawal: { type: 'fixed_amount', amount: 420000 },
-    allocation: { sp500: 0.35, intlStock: 0.25, bond: 0.2, gold: 0.05, cash: 0.05, reits: 0.1 },
+    allocation: { sp500: 0.35, intlStock: 0.25, bond: 0.2, gold: 0.05, cash: 0.15, reits: 0 },
   },
   lavish: {
     id: 'lavish',
@@ -155,7 +155,7 @@ export const LIFESTYLE_PRESETS_PH_CEBU: LifestylePresetMap = {
     retirementAge: 67,
     initialPortfolio: 1200000,
     withdrawal: { type: 'fixed_amount', amount: 900000 },
-    allocation: { sp500: 0.45, intlStock: 0.2, bond: 0.1, gold: 0.05, cash: 0.1, reits: 0.1 },
+    allocation: { sp500: 0.45, intlStock: 0.2, bond: 0.1, gold: 0.05, cash: 0.2, reits: 0 },
   },
   fire_lean: {
     id: 'fire_lean',
@@ -170,7 +170,7 @@ export const LIFESTYLE_PRESETS_PH_CEBU: LifestylePresetMap = {
     retirementAge: 45,
     initialPortfolio: 1000000,
     withdrawal: { type: 'fixed_rate', rate: 0.035 },
-    allocation: { sp500: 0.45, intlStock: 0.3, bond: 0.1, gold: 0.05, cash: 0, reits: 0.1 },
+    allocation: { sp500: 0.45, intlStock: 0.3, bond: 0.1, gold: 0.05, cash: 0.1, reits: 0 },
   },
   fire_fat: {
     id: 'fire_fat',
@@ -185,7 +185,7 @@ export const LIFESTYLE_PRESETS_PH_CEBU: LifestylePresetMap = {
     retirementAge: 45,
     initialPortfolio: 5000000,
     withdrawal: { type: 'fixed_amount', amount: 700000 },
-    allocation: { sp500: 0.4, intlStock: 0.25, bond: 0.15, gold: 0.05, cash: 0, reits: 0.15 },
+    allocation: { sp500: 0.4, intlStock: 0.25, bond: 0.15, gold: 0.05, cash: 0.15, reits: 0 },
   },
 }
 
