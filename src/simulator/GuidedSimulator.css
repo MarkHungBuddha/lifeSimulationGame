@@ -243,6 +243,15 @@
   margin-top: 24px;
 }
 
+.guidedInlineNote {
+  border-left: 2px solid #c8392f;
+  color: #4a4a4a;
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 14px 0 0;
+  padding-left: 12px;
+}
+
 .guidedWarning {
   border-left: 2px solid #c8392f;
   color: #4a4a4a;

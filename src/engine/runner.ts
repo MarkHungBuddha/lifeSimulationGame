@@ -2,7 +2,7 @@
  * Monte Carlo 批次模擬器
  *
  * 負責執行 N 條路徑並彙總統計結果：
- * - 成功率（未破產比率）
+ * - 生存率（未破產比率）
  * - 各年 Percentile（p10/p25/p50/p75/p90）
  * - 中位破產年齡
  */
@@ -76,8 +76,8 @@ export function runMonteCarlo(
     }
   }
 
-  // 成功率
-  const successCount = paths.filter(p => p.successful).length
+  const shouldApplyExpenseFloor = params.withdrawal.type === 'fixed_rate'
+  const successCount = paths.filter(p => shouldApplyExpenseFloor ? p.successful : !p.bankrupt).length
   const successRate = successCount / numPaths
 
   // 每年的資產值矩陣，計算 percentiles

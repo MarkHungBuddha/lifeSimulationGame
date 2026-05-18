@@ -30,6 +30,7 @@ export function ResultPanel() {
   const annualIncome = useGameStore((s) => s.annualIncome)
   const annualExpense = useGameStore((s) => s.annualExpense)
   const annualContribution = useGameStore((s) => s.annualContribution)
+  const withdrawal = useGameStore((s) => s.withdrawal)
   const region = useGameStore((s) => s.region)
   const { language, locale, t } = useI18n()
 
@@ -49,6 +50,7 @@ export function ResultPanel() {
   }
 
   const rate = result.successRate
+  const usesFixedRateFloor = withdrawal.type === 'fixed_rate'
   const rateColor = rate >= 0.8 ? 'success' : rate >= 0.5 ? 'warning' : 'error'
   const rateHex = rate >= 0.8 ? '#2a6d3a' : rate >= 0.5 ? '#9b5f15' : '#a92f28'
   const lifestylePreset = lifestyleId !== 'custom'
@@ -114,8 +116,13 @@ export function ResultPanel() {
           {(rate * 100).toFixed(1)}%
         </Typography>
         <Stack direction="row" spacing={1} justifyContent="center" sx={{ mt: 1.5 }} flexWrap="wrap" useFlexGap>
-          <Chip icon={<TrendingUpIcon />} label={t('result.hero_label')} color={rateColor} variant="outlined" />
-          <HelpButton title={t('guide.term.survival_rate.body')} />
+          <Chip
+            icon={<TrendingUpIcon />}
+            label={t(usesFixedRateFloor ? 'result.hero_label_fixed_rate' : 'result.hero_label')}
+            color={rateColor}
+            variant="outlined"
+          />
+          <HelpButton title={t(usesFixedRateFloor ? 'guide.term.fixed_rate_success.body' : 'guide.term.survival_rate.body')} />
           <Chip label={t('result.paths', { count: result.numPaths.toLocaleString(locale) })} variant="outlined" size="small" />
         </Stack>
       </Paper>

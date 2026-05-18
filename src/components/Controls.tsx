@@ -295,6 +295,16 @@ function translate(copy: Record<string, string>, key: string, params?: Record<st
   return template.replace(/\{(\w+)\}/g, (_, name: string) => String(params[name] ?? `{${name}}`))
 }
 
+function getFixedRateNote(language: UiLanguage): string {
+  if (language === 'zh-Hant') {
+    return '以退休當年的資產為基準，之後每年依通膨調整提領金額。結果會套用年開銷 80% 的最低生活費門檻。'
+  }
+  if (language === 'ja') {
+    return '退職時点の資産を基準にし、その後はインフレに合わせて引き出し額を調整します。結果には年間支出80%の下限を適用します。'
+  }
+  return 'Uses the portfolio value at retirement as the base, then adjusts withdrawals with inflation. This result applies the 80% annual-expense floor.'
+}
+
 export function Controls() {
   const store = useGameStore()
   const { saveRecord, records } = useSavedRecords()
@@ -560,10 +570,15 @@ export function Controls() {
         </Select>
       </FormControl>
       {store.withdrawal.type === 'fixed_rate' && (
-        <SliderField label={copy.withdrawalRate} value={store.withdrawal.rate * 100} unit="%"
-          min={2} max={8} step={0.5}
-          onChange={(v) => store.setWithdrawal({ type: 'fixed_rate', rate: v / 100 })}
-          format={(v) => `${v.toFixed(1)}%`} />
+        <>
+          <SliderField label={copy.withdrawalRate} value={store.withdrawal.rate * 100} unit="%"
+            min={2} max={8} step={0.5}
+            onChange={(v) => store.setWithdrawal({ type: 'fixed_rate', rate: v / 100 })}
+            format={(v) => `${v.toFixed(1)}%`} />
+          <Alert severity="info" variant="outlined" sx={{ py: 0.5 }}>
+            {getFixedRateNote(language)}
+          </Alert>
+        </>
       )}
       {store.withdrawal.type === 'fixed_amount' && (
         <SliderField label={copy.withdrawalAmount} value={store.withdrawal.amount} unit=""
